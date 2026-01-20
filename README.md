@@ -1,236 +1,318 @@
-# My Portfolio Website
+# Portfolio Monorepo
 
-A fully dynamic, bilingual portfolio website built with Next.js, PostgreSQL, and modern web technologies.
+> Modern portfolio application with microservices architecture
 
-## 🚀 Tech Stack
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.9-black)](https://nextjs.org/)
+[![Express](https://img.shields.io/badge/Express-4.18.2-green)](https://expressjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)](https://postgresql.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-blue)](https://www.typescriptlang.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
 
-- **Frontend & Backend**: Next.js 15 with App Router
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: BetterAuth
-- **Styling**: Tailwind CSS
-- **Internationalization**: next-intl (English & Arabic)
-- **Deployment**: DigitalOcean (Docker ready)
-- **Version Control**: Git & GitHub
+## 🏗️ Architecture
 
-## 📋 Features
+```
+portfolio-monorepo/
+├── frontend/              # Next.js 15 Application (Port 3000)
+│   ├── src/app/          # App Router with i18n (en, fr)
+│   ├── components/       # React Components
+│   ├── public/           # Static Assets
+│   └── messages/         # Translations
+│
+├── backend/              # Express.js API (Port 4000)
+│   ├── src/server.ts    # Main Server
+│   ├── routes/          # API Endpoints
+│   └── db/              # Database Config
+│
+└── docker-compose.yml   # PostgreSQL 17 + Services
+```
 
-### Public Features
+## 🚀 Quick Start
 
-- ✅ Bilingual support (English/Arabic)
-- ✅ Fully responsive design
-- ✅ Dynamic content from database
-- ✅ Skills showcase
-- ✅ Projects portfolio
-- ✅ Work experience timeline
-- ✅ Education history
-- ✅ Downloadable resume/CV
-- ✅ Hobbies section
-- ✅ Contact form
-- ✅ Testimonials display
+### Using Docker (Recommended)
 
-### Admin Features
+```bash
+# Start all services
+npm run docker:up
 
-- ✅ Secure admin authentication
-- ✅ Admin dashboard
-- ✅ CRUD operations for:
-  - Skills
-  - Projects
-  - Work experience
-  - Education
-  - Resume/CV
-  - Contact information
-  - Hobbies
-- ✅ View contact form submissions
-- ✅ Testimonial management (approve/reject/delete)
-- ✅ Real-time content updates
+# View logs
+npm run docker:logs
 
-## 🛠️ Setup Instructions
+# Stop services
+npm run docker:down
+```
 
-### Prerequisites
+**Access:**
 
-- Node.js 18+ installed
-- Docker and Docker Compose installed (for PostgreSQL)
-- Git installed
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080/api
+- Health Check: http://localhost:8080/health
+- Auth Service: http://localhost:3001
 
-### 1. Clone the Repository
+### Local Development
 
-\`\`\`bash
-git clone <your-repo-url>
-cd my-portfolio
-\`\`\`
+**1. Install dependencies:**
 
-### 2. Install Dependencies
+```bash
+npm run install:all
+```
 
-\`\`\`bash
-npm install
-\`\`\`
+**2. Start PostgreSQL:**
 
-### 3. Set Up Environment Variables
+```bash
+docker-compose up postgres -d
+```
 
-\`\`\`bash
+**3. Initialize database:**
 
-# Copy the example env file
-
-cp .env.example .env
-
-# Edit .env and update the values:
-
-# - DATABASE_URL
-
-# - BETTER_AUTH_SECRET (generate a secure random string, min 32 chars)
-
-# - ADMIN_EMAIL and ADMIN_PASSWORD (for initial admin access)
-
-\`\`\`
-
-### 4. Start PostgreSQL with Docker
-
-\`\`\`bash
-docker-compose up -d
-\`\`\`
-
-### 5. Generate and Run Database Migrations
-
-\`\`\`bash
-
-# Generate migration files
-
-npm run db:generate
-
-# Apply migrations to database
-
+```bash
+cd frontend
 npm run db:push
-\`\`\`
+npm run db:seed
+cd ..
+```
 
-### 6. Create Admin User
+**4. Start development servers:**
 
-You'll need to create an admin user manually or through a seed script:
-
-\`\`\`bash
-
-# Option 1: Use Drizzle Studio to insert data
-
-npm run db:studio
-
-# Option 2: Create a seed script (recommended)
-
-# Create src/db/seed.ts and run it
-
-\`\`\`
-
-### 7. Start Development Server
-
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
-Visit [http://localhost:3000](http://localhost:3000) to see your portfolio!
+## 📋 Available Scripts
 
-## 📁 Project Structure
+### Root Level
 
-\`\`\`
-my-portfolio/
-├── src/
-│ ├── app/ # Next.js App Router
-│ │ ├── api/ # API routes
-│ │ ├── admin/ # Admin panel pages
-│ │ ├── [locale]/ # Public pages (i18n)
-│ │ └── globals.css # Global styles
-│ ├── components/ # React components
-│ ├── db/ # Database configuration
-│ │ └── schema/ # Drizzle ORM schemas
-│ ├── i18n/ # Internationalization
-│ ├── lib/ # Utility functions
-│ └── middleware.ts # Next.js middleware
-├── messages/ # Translation files
-│ ├── en.json # English translations
-│ └── ar.json # Arabic translations
-├── public/ # Static files
-├── docker-compose.yml # Docker configuration
-├── drizzle.config.ts # Drizzle ORM config
-├── next.config.ts # Next.js config
-├── tailwind.config.ts # Tailwind CSS config
-└── package.json # Dependencies
-\`\`\`
+```bash
+npm run dev              # Start both services in dev mode
+npm run build            # Build both services
+npm run start            # Start production servers
+npm run install:all      # Install all dependencies
+npm run docker:up        # Start Docker services
+npm run docker:down      # Stop Docker services
+npm run docker:build     # Rebuild Docker images
+npm run docker:logs      # View Docker logs
+npm run docker:clean     # Remove volumes and data
+```
 
-## 🗄️ Database Schema
+### Frontend (`cd frontend`)
 
-The database includes the following tables:
+```bash
+npm run dev              # Development server
+npm run build            # Production build
+npm run start            # Start production server
+npm run db:push          # Push schema to database
+npm run db:seed          # Seed database with data
+npm run db:studio        # Open Drizzle Studio
+```
 
-- **users** - User authentication
-- **sessions** - Auth sessions
-- **skills** - User skills (bilingual)
-- **projects** - Portfolio projects (bilingual)
-- **work_experience** - Work history (bilingual)
-- **education** - Educational background (bilingual)
-- **resumes** - CV/Resume files (bilingual)
-- **hobbies** - Personal hobbies (bilingual)
-- **contact_messages** - Contact form submissions
-- **testimonials** - User testimonials with approval status
-- **contact_info** - Contact information and social links
+### Backend (`cd backend`)
+
+```bash
+npm run dev              # Development with hot reload
+npm run build            # TypeScript compilation
+npm run start            # Start production server
+```
+
+## 🔌 API Endpoints
+
+**Base URL:** `http://localhost:8080/api`
+
+### Skills
+
+- `GET /api/skills` - Get all skills
+- `GET /api/skills/:id` - Get skill by ID
+- `POST /api/skills` - Create skill _(admin)_
+- `PUT /api/skills/:id` - Update skill _(admin)_
+- `DELETE /api/skills/:id` - Delete skill _(admin)_
+
+### Projects
+
+- `GET /api/projects` - Get all projects
+- `GET /api/projects/:id` - Get project by ID
+- `POST /api/projects` - Create project _(admin)_
+- `PUT /api/projects/:id` - Update project _(admin)_
+- `DELETE /api/projects/:id` - Delete project _(admin)_
+
+### Experience
+
+- `GET /api/experience` - Get all work experience
+- `GET /api/experience/:id` - Get experience by ID
+
+### Education
+
+- `GET /api/education` - Get all education
+- `GET /api/education/:id` - Get education by ID
+
+### Contact
+
+- `POST /api/contact` - Submit contact form
+- `GET /api/contact/messages` - Get all messages _(admin)_
+
+## 🗄️ Database
+
+**PostgreSQL 17** with Drizzle ORM
+
+**Connection String:**
+
+```
+postgresql://postgres:password@localhost:5432/portfolio
+```
+
+## 🌐 Features
+
+### Frontend
+
+✅ Next.js 15 with App Router  
+✅ React 19  
+✅ TypeScript  
+✅ Tailwind CSS  
+✅ Bilingual (EN/FR) with next-intl  
+✅ Dark/Light mode with next-themes  
+✅ BetterAuth authentication  
+✅ Responsive design  
+✅ SEO optimized
+
+### Backend
+
+✅ Express.js with TypeScript  
+✅ REST API  
+✅ CORS enabled  
+✅ Helmet security  
+✅ Health checks  
+✅ Error handling  
+✅ Drizzle ORM integration
+
+### Infrastructure
+
+✅ Docker containerization  
+✅ Docker Compose orchestration  
+✅ PostgreSQL 17  
+✅ Health checks  
+✅ Network isolation
+
+## 🔧 Tech Stack
+
+**Frontend:**
+
+- Next.js 15.5.9
+- React 19
+- TypeScript 5.7.2
+- Tailwind CSS 3.4.1
+- next-intl 3.26.0
+- next-themes 0.4.6
+- Drizzle ORM 0.45.0
+- BetterAuth 1.4.0
+
+**Backend:**
+
+- Express.js 4.18.2
+- TypeScript 5.7.2
+- Drizzle ORM 0.45.0
+- PostgreSQL (postgres 3.4.4)
+- CORS 2.8.5
+- Helmet 7.1.0
+
+**Database:**
+
+- PostgreSQL 17 Alpine
+
+**DevOps:**
+
+- Docker
+- Docker Compose
+- Node.js 18 Alpine
+
+## 🔐 Admin Access
+
+**Email:** tamim@portfolio.com  
+**Password:** Admin123!Secure
+
+## 📚 Documentation
+
+- [Development Guide](./DEVELOPMENT.md) - Local setup without Docker
+- [Project Structure](./PROJECT_STRUCTURE.md) - Detailed architecture
+- [Docker Setup](./DOCKER_README.md) - Docker configuration
+- [Frontend Docs](./frontend/README.md)
+- [Backend Docs](./backend/README.md)
 
 ## 🚢 Deployment
 
-### Docker Deployment
+### Docker Production
 
-\`\`\`bash
+```bash
+npm run docker:build
+```
 
-# Build the Docker image
+### Manual Deployment
 
-docker build -t my-portfolio .
+**Backend:**
 
-# Run the container
+```bash
+cd backend
+npm run build
+NODE_ENV=production npm start
+```
 
-docker run -p 3000:3000 --env-file .env my-portfolio
-\`\`\`
+**Frontend:**
 
-### DigitalOcean Deployment
+```bash
+cd frontend
+npm run build
+NODE_ENV=production npm start
+```
 
-1. Create a DigitalOcean App Platform project
-2. Connect your GitHub repository
-3. Configure environment variables
-4. Deploy!
+## 🔄 Development Workflow
 
-## 📝 Available Scripts
+1. Create feature branch: `git checkout -b feature/your-feature`
+2. Make changes to frontend or backend
+3. Test locally: `npm run dev`
+4. Build and test: `npm run build`
+5. Test with Docker: `npm run docker:build`
+6. Commit and push changes
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run db:generate` - Generate database migrations
-- `npm run db:push` - Apply migrations to database
-- `npm run db:studio` - Open Drizzle Studio (database GUI)
+## 🐛 Troubleshooting
 
-## 🔐 Security Notes
+### Port Already in Use
 
-- ✅ Change default admin credentials in `.env`
-- ✅ Use a strong `BETTER_AUTH_SECRET` (min 32 characters)
-- ✅ Never commit `.env` file to version control
-- ✅ Enable email verification in production
-- ✅ Use HTTPS in production
-- ✅ Implement rate limiting for contact form
+```bash
+# Windows
+netstat -ano | findstr :8080
+netstat -ano | findstr :3001
 
-## 📖 Next Steps
+# Kill process
+taskkill /PID <PID> /F
+```
 
-1. Install dependencies: `npm install`
-2. Start PostgreSQL: `docker-compose up -d`
-3. Setup environment: `cp .env.example .env`
-4. Run migrations: `npm run db:push`
-5. Create admin user
-6. Start development: `npm run dev`
-7. Build your portfolio components
-8. Deploy to DigitalOcean
+### Database Connection Issues
+
+- Ensure PostgreSQL is running
+- Check DATABASE_URL in .env files
+- Verify database exists
+
+### Module Not Found
+
+```bash
+npm run install:all
+```
+
+### Clean Install
+
+```bash
+npm run clean
+npm run install:all
+```
 
 ## 📄 License
 
-MIT License - feel free to use this project for your portfolio!
+Private - © 2026 Tamim Afghanyar
 
-## 🤝 Contributing
+## 👤 Author
 
-This is a personal portfolio project, but suggestions and improvements are welcome!
+**Tamim Afghanyar**
+
+- GitHub: [@tamimafg6](https://github.com/tamimafg6)
+- LinkedIn: [Tamim Afghanyar](https://www.linkedin.com/in/tamim-afghanyar-2026852b3)
+- Email: tamim.afghanyar@gmail.com
 
 ---
 
-**Student**: Tamim Afghanyar  
-**ID**: 2330990  
-**Course**: Portfolio Software Evaluation
+Built with ❤️ using Next.js, Express.js, and PostgreSQL

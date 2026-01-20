@@ -1,54 +1,31 @@
 {
-  "name": "my-portfolio",
-  "version": "0.1.0",
+  "name": "portfolio-monorepo",
+  "version": "1.0.0",
   "private": true,
+  "description": "Tamim Afghanyar's Portfolio - Microservices Architecture",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx src/db/seed.ts"
-  },
-  "dependencies": {
-    "next": "^15.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "better-auth": "^1.4.0",
-    "drizzle-orm": "^0.45.0",
-    "drizzle-zod": "^0.8.0",
-    "postgres": "^3.4.4",
-    "@neondatabase/serverless": "^0.10.1",
-    "@tanstack/react-query": "^5.61.0",
-    "zod": "^3.24.1",
-    "bcryptjs": "^2.4.3",
-    "next-intl": "^3.26.0",
-    "react-hook-form": "^7.54.0",
-    "@hookform/resolvers": "^3.9.1",
-    "sonner": "^1.7.0",
-    "lucide-react": "^0.468.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.6.0",
-    "class-variance-authority": "^0.7.1"
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose up --build -d",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "clean": "cd backend && rm -rf node_modules dist && cd ../frontend && rm -rf node_modules .next"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "@types/react": "^19.0.1",
-    "@types/react-dom": "^19.0.2",
-    "@types/bcryptjs": "^2.4.6",
-    "typescript": "^5.7.2",
-    "drizzle-kit": "^0.31.8",
-    "eslint": "^9.17.0",
-    "eslint-config-next": "^15.1.0",
-    "tailwindcss": "^3.4.17",
-    "postcss": "^8.4.49",
-    "autoprefixer": "^10.4.20",
-    "tsx": "^4.19.2"
+    "concurrently": "^8.2.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }

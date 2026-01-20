@@ -1,9 +1,8 @@
-version: "3.8"
-
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: portfolio-postgres
+  # App Database (PostgreSQL 17) - For Backend
+  app-db:
+    image: postgres:17-alpine
+    container_name: portfolio-app-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -12,12 +11,120 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - app_db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - portfolio-network
+
+  # Auth Database (PostgreSQL 17) - For Auth Service
+  auth-db:
+    image: postgres:17-alpine
+    container_name: portfolio-auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: auth
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - portfolio-network
+
+  # Auth Service (Next.js with BetterAuth)
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: portfolio-auth-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:password@auth-db:5432/auth
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: http://auth-service:3001
+      NODE_ENV: production
+      PORT: 3001
+      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - portfolio-network
+
+  # Backend Service (Express.js API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: portfolio-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:password@app-db:5432/portfolio
+      PORT: 8080
+      NODE_ENV: production
+      FRONTEND_URL: http://frontend:3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      app-db:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - portfolio-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Service (Next.js) - NO DATABASE ACCESS
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
+      API_URL: http://backend:8080/api
+      NEXT_PUBLIC_AUTH_URL: http://localhost:3001
+      AUTH_URL: http://auth-service:3001
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+      - auth-service
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  app_db_data:
+  auth_db_data:

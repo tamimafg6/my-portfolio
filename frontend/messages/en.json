@@ -1,0 +1,132 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "skills": "Skills",
+    "projects": "Projects",
+    "experience": "Experience",
+    "education": "Education",
+    "testimonials": "Testimonials",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "Welcome to My Portfolio",
+    "subtitle": "Full Stack Developer & Designer",
+    "cta": "View My Work",
+    "description": "Building innovative solutions with modern technologies",
+    "hero": {
+      "greeting": "Hi, I'm Tamim Afghanyar",
+      "title": "Full Stack Developer & Designer",
+      "description": "I create beautiful, functional, and user-centered digital experiences. Explore my work and let's build something amazing together.",
+      "viewWork": "View My Work",
+      "getInTouch": "Get In Touch"
+    },
+    "quickLinks": {
+      "skills": "Skills & Expertise",
+      "skillsDesc": "Explore my technical skills and tools I work with",
+      "projects": "Featured Projects",
+      "projectsDesc": "Check out my latest work and case studies",
+      "contact": "Contact Me",
+      "contactDesc": "Let's discuss your next project"
+    }
+  },
+  "about": {
+    "title": "About Me",
+    "description": "Learn more about my journey and expertise"
+  },
+  "skills": {
+    "title": "Skills & Expertise",
+    "description": "Technologies and tools I work with",
+    "subtitle": "Technologies and tools I work with",
+    "noSkills": "No skills added yet."
+  },
+  "projects": {
+    "title": "Featured Projects",
+    "description": "Explore my recent work and achievements",
+    "subtitle": "Showcasing my recent work and case studies",
+    "viewProject": "View Project",
+    "sourceCode": "Source Code",
+    "liveDemo": "Live Demo",
+    "noProjects": "No projects added yet."
+  },
+  "experience": {
+    "title": "Work Experience",
+    "description": "My professional journey",
+    "present": "Present"
+  },
+  "education": {
+    "title": "Education",
+    "description": "My academic background"
+  },
+  "hobbies": {
+    "title": "Hobbies & Interests",
+    "description": "What I enjoy doing in my free time"
+  },
+  "testimonials": {
+    "title": "Testimonials",
+    "description": "What people say about my work",
+    "submit": "Submit Testimonial",
+    "yourName": "Your Name",
+    "yourEmail": "Your Email",
+    "yourPosition": "Your Position",
+    "yourCompany": "Your Company",
+    "yourMessage": "Your Message",
+    "rating": "Rating",
+    "submitSuccess": "Thank you! Your testimonial has been submitted for review.",
+    "submitError": "Failed to submit testimonial. Please try again."
+  },
+  "contact": {
+    "title": "Get In Touch",
+    "description": "Feel free to reach out for opportunities or collaboration",
+    "subtitle": "Have a question or want to work together?",
+    "getInTouch": "Contact Information",
+    "email": "Email",
+    "phone": "Phone",
+    "location": "Location",
+    "name": "Name",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send Message",
+    "success": "Message sent successfully! I'll get back to you soon.",
+    "error": "Failed to send message. Please try again.",
+    "form": {
+      "name": "Your Name",
+      "namePlaceholder": "John Doe",
+      "email": "Your Email",
+      "emailPlaceholder": "john@example.com",
+      "subject": "Subject",
+      "subjectPlaceholder": "What's this about?",
+      "message": "Message",
+      "messagePlaceholder": "Tell me more about your project...",
+      "send": "Send Message",
+      "sending": "Sending...",
+      "successMessage": "Message sent successfully! I'll get back to you soon.",
+      "errorMessage": "Failed to send message. Please try again."
+    }
+  },
+  "resume": {
+    "title": "Resume",
+    "download": "Download Resume"
+  },
+  "admin": {
+    "login": "Admin Login",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "email": "Email",
+    "password": "Password",
+    "manage": "Manage",
+    "messages": "Messages",
+    "stats": "Statistics"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "downloadCV": "Download CV",
+    "noData": "No data available",
+    "error": "An error occurred"
+  }
+}

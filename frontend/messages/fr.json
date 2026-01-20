@@ -1,0 +1,132 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "about": "À propos",
+    "skills": "Compétences",
+    "projects": "Projets",
+    "experience": "Expérience",
+    "education": "Formation",
+    "testimonials": "Témoignages",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "Bienvenue sur mon portfolio",
+    "subtitle": "Développeur Full Stack & Designer",
+    "cta": "Voir mes projets",
+    "description": "Créer des solutions innovantes avec des technologies modernes",
+    "hero": {
+      "greeting": "Bonjour, je suis Tamim Afghanyar",
+      "title": "Développeur Full Stack & Designer",
+      "description": "Je crée des expériences numériques belles, fonctionnelles et centrées sur l'utilisateur. Explorez mon travail et construisons quelque chose d'incroyable ensemble.",
+      "viewWork": "Voir Mon Travail",
+      "getInTouch": "Me Contacter"
+    },
+    "quickLinks": {
+      "skills": "Compétences & Expertise",
+      "skillsDesc": "Explorez mes compétences techniques et les outils que j'utilise",
+      "projects": "Projets En Vedette",
+      "projectsDesc": "Découvrez mes derniers travaux et études de cas",
+      "contact": "Me Contacter",
+      "contactDesc": "Discutons de votre prochain projet"
+    }
+  },
+  "about": {
+    "title": "À propos de moi",
+    "description": "Découvrez mon parcours et mon expertise"
+  },
+  "skills": {
+    "title": "Compétences & Expertise",
+    "description": "Technologies et outils que j'utilise",
+    "subtitle": "Technologies et outils avec lesquels je travaille",
+    "noSkills": "Aucune compétence ajoutée pour le moment."
+  },
+  "projects": {
+    "title": "Projets En Vedette",
+    "description": "Découvrez mes travaux et réalisations récents",
+    "subtitle": "Présentation de mes travaux récents et études de cas",
+    "viewProject": "Voir le projet",
+    "sourceCode": "Code source",
+    "liveDemo": "Démo en direct",
+    "noProjects": "Aucun projet ajouté pour le moment."
+  },
+  "experience": {
+    "title": "Expérience Professionnelle",
+    "description": "Mon parcours professionnel",
+    "present": "Présent"
+  },
+  "education": {
+    "title": "Formation",
+    "description": "Mon parcours académique"
+  },
+  "hobbies": {
+    "title": "Loisirs & Intérêts",
+    "description": "Ce que j'aime faire pendant mon temps libre"
+  },
+  "testimonials": {
+    "title": "Témoignages",
+    "description": "Ce que les gens disent de mon travail",
+    "submit": "Soumettre un témoignage",
+    "yourName": "Votre nom",
+    "yourEmail": "Votre email",
+    "yourPosition": "Votre poste",
+    "yourCompany": "Votre entreprise",
+    "yourMessage": "Votre message",
+    "rating": "Évaluation",
+    "submitSuccess": "Merci ! Votre témoignage a été soumis pour examen.",
+    "submitError": "Échec de la soumission. Veuillez réessayer."
+  },
+  "contact": {
+    "title": "Me Contacter",
+    "description": "N'hésitez pas à me contacter pour des opportunités ou une collaboration",
+    "subtitle": "Une question ou envie de travailler ensemble ?",
+    "getInTouch": "Informations De Contact",
+    "email": "Email",
+    "phone": "Téléphone",
+    "location": "Localisation",
+    "name": "Nom",
+    "subject": "Sujet",
+    "message": "Message",
+    "send": "Envoyer le message",
+    "success": "Message envoyé avec succès ! Je vous répondrai bientôt.",
+    "error": "Échec de l'envoi du message. Veuillez réessayer.",
+    "form": {
+      "name": "Votre Nom",
+      "namePlaceholder": "Jean Dupont",
+      "email": "Votre Email",
+      "emailPlaceholder": "jean@exemple.com",
+      "subject": "Sujet",
+      "subjectPlaceholder": "De quoi s'agit-il ?",
+      "message": "Message",
+      "messagePlaceholder": "Parlez-moi de votre projet...",
+      "send": "Envoyer Le Message",
+      "sending": "Envoi...",
+      "successMessage": "Message envoyé avec succès ! Je vous répondrai bientôt.",
+      "errorMessage": "Échec de l'envoi du message. Veuillez réessayer."
+    }
+  },
+  "resume": {
+    "title": "CV",
+    "download": "Télécharger le CV"
+  },
+  "admin": {
+    "login": "Connexion Admin",
+    "logout": "Déconnexion",
+    "dashboard": "Tableau de bord",
+    "email": "Email",
+    "password": "Mot de passe",
+    "manage": "Gérer",
+    "messages": "Messages",
+    "stats": "Statistiques"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "downloadCV": "Télécharger le CV",
+    "noData": "Aucune donnée disponible",
+    "error": "Une erreur s'est produite"
+  }
+}
