@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "skills": "Skills",
+    "projects": "Projects",
+    "experience": "Experience",
+    "education": "Education",
+    "testimonials": "Testimonials",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "Welcome to My Portfolio",
+    "subtitle": "Full Stack Developer & Designer",
+    "cta": "View My Work"
+  },
+  "contact": {
+    "title": "Get In Touch",
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send Message",
+    "success": "Message sent successfully!",
+    "error": "Failed to send message. Please try again."
+  },
+  "admin": {
+    "login": "Login",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "email": "Email",
+    "password": "Password"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "downloadCV": "Download CV"
+  }
+}
