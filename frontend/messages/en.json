@@ -7,7 +7,8 @@
     "experience": "Experience",
     "education": "Education",
     "testimonials": "Testimonials",
-    "contact": "Contact"
+    "contact": "Contact",
+    "login": "Login"
   },
   "home": {
     "title": "Welcome to My Portfolio",
@@ -65,6 +66,8 @@
   "testimonials": {
     "title": "Testimonials",
     "description": "What people say about my work",
+    "heading": "Client Testimonials",
+    "subheading": "Don't just take my word for it - hear what my clients and colleagues have to say",
     "submit": "Submit Testimonial",
     "yourName": "Your Name",
     "yourEmail": "Your Email",
@@ -73,7 +76,12 @@
     "yourMessage": "Your Message",
     "rating": "Rating",
     "submitSuccess": "Thank you! Your testimonial has been submitted for review.",
-    "submitError": "Failed to submit testimonial. Please try again."
+    "submitError": "Failed to submit testimonial. Please try again.",
+    "cta": {
+      "heading": "Want to work together?",
+      "description": "I'm always open to discussing new projects and opportunities.",
+      "button": "Get In Touch"
+    }
   },
   "contact": {
     "title": "Get In Touch",

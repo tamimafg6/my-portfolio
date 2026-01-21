@@ -9,7 +9,8 @@ interface ScrollAnimationProps {
     | "fade-in"
     | "slide-in-from-bottom"
     | "slide-in-from-left"
-    | "slide-in-from-right";
+    | "slide-in-from-right"
+    | "slide-up";
   delay?: number;
 }
 
@@ -25,17 +26,19 @@ export default function ScrollAnimation({
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          const element = entry.target as HTMLElement;
           if (entry.isIntersecting) {
+            // Element is in view - add animate class to play animation
+            const delayMs = typeof delay === 'number' ? delay * 1000 : delay;
             setTimeout(() => {
-              entry.target.classList.add("animate");
-            }, delay);
-            observer.unobserve(entry.target);
+              element.classList.add("animate");
+            }, delayMs);
           }
         });
       },
       {
-        threshold: 0.1,
-        rootMargin: "0px 0px -50px 0px",
+        threshold: 0.15,
+        rootMargin: "0px 0px -80px 0px",
       },
     );
 

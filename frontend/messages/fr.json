@@ -7,7 +7,8 @@
     "experience": "Expérience",
     "education": "Formation",
     "testimonials": "Témoignages",
-    "contact": "Contact"
+    "contact": "Contact",
+    "login": "Connexion"
   },
   "home": {
     "title": "Bienvenue sur mon portfolio",
@@ -65,6 +66,8 @@
   "testimonials": {
     "title": "Témoignages",
     "description": "Ce que les gens disent de mon travail",
+    "heading": "Témoignages de Clients",
+    "subheading": "Ne me croyez pas sur parole - écoutez ce que mes clients et collègues ont à dire",
     "submit": "Soumettre un témoignage",
     "yourName": "Votre nom",
     "yourEmail": "Votre email",
@@ -73,7 +76,12 @@
     "yourMessage": "Votre message",
     "rating": "Évaluation",
     "submitSuccess": "Merci ! Votre témoignage a été soumis pour examen.",
-    "submitError": "Échec de la soumission. Veuillez réessayer."
+    "submitError": "Échec de la soumission. Veuillez réessayer.",
+    "cta": {
+      "heading": "Vous voulez travailler ensemble ?",
+      "description": "Je suis toujours ouvert à discuter de nouveaux projets et opportunités.",
+      "button": "Me Contacter"
+    }
   },
   "contact": {
     "title": "Me Contacter",

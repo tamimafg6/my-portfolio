@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { Briefcase, Calendar, MapPin } from "lucide-react";
+import { Briefcase, Calendar, MapPin, ArrowRight } from "lucide-react";
+import ScrollAnimation from "@/components/ScrollAnimation";
 
 interface Experience {
   id: number;
@@ -19,9 +20,9 @@ const experiences: Experience[] = [
     company: "Immo 1ère",
     position: "Server",
     location: "Montreal, QC",
-    startDate: "2023-06",
-    endDate: "2024-08",
-    current: false,
+    startDate: "2024-07",
+    endDate: "",
+    current: true,
     responsibilities: [
       "Provided exceptional customer service in a fast-paced restaurant environment",
       "Managed multiple tables efficiently while maintaining attention to detail",
@@ -34,8 +35,8 @@ const experiences: Experience[] = [
     company: "Champlain College",
     position: "Peer Tutor",
     location: "Saint-Lambert, QC",
-    startDate: "2022-09",
-    endDate: "2023-05",
+    startDate: "2025-09",
+    endDate: "2025-10",
     current: false,
     responsibilities: [
       "Tutored students in programming fundamentals and computer science concepts",
@@ -61,79 +62,157 @@ export default async function ExperiencePage({
   };
 
   return (
-    <div className="min-h-screen py-16 bg-gray-50 dark:bg-[#0a0a0f]">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen pt-24 pb-16 bg-background">
+      {/* Background geometric pattern */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-5">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern
+              id="experience-grid"
+              x="0"
+              y="0"
+              width="60"
+              height="60"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 60 0 L 0 0 0 60"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.5"
+              />
+            </pattern>
+          </defs>
+          <rect
+            width="100%"
+            height="100%"
+            fill="url(#experience-grid)"
+            className="text-foreground"
+          />
+        </svg>
+      </div>
+
+      <div className="px-6 md:px-12 relative z-10">
         {/* Header */}
-        <div className="max-w-4xl mx-auto text-center mb-16 fade-in">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900 dark:text-white">
-            Work Experience
-          </h1>
-          <p className="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
-            My professional journey and work history
-          </p>
-        </div>
+        <ScrollAnimation animation="fade-in" delay={0}>
+          <div className="max-w-4xl mx-auto text-center mb-16">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
+              {t("title")}
+            </h1>
+            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-6"></div>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              {t("subtitle")}
+            </p>
+          </div>
+        </ScrollAnimation>
 
         {/* Timeline */}
         <div className="max-w-4xl mx-auto">
           <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-0 md:left-1/2 transform md:-translate-x-1/2 w-0.5 h-full bg-gray-200 dark:bg-gray-700"></div>
+            {/* Timeline line - hidden on mobile */}
+            <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-500 via-purple-500 to-blue-500 opacity-30"></div>
 
             {/* Experience items */}
             {experiences.map((exp, index) => (
-              <div
+              <ScrollAnimation
                 key={exp.id}
-                className={`relative mb-12 ${
-                  index % 2 === 0
-                    ? "md:pr-8 md:text-right"
-                    : "md:pl-8 md:ml-auto md:text-left"
-                } md:w-1/2 fade-in`}
-                style={{ animationDelay: `${index * 0.1}s` }}
+                animation={
+                  index % 2 === 0 ? "slide-in-from-left" : "slide-in-from-right"
+                }
+                delay={index * 0.15}
               >
-                {/* Timeline dot */}
-                <div className="absolute left-0 md:left-auto md:right-[-9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-4 border-gray-50 dark:border-[#0a0a0f] md:transform md:translate-x-1/2"></div>
-                {index % 2 !== 0 && (
-                  <div className="hidden md:block absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-4 border-gray-50 dark:border-[#0a0a0f]"></div>
-                )}
-
-                {/* Content card */}
-                <div className="ml-8 md:ml-0 p-6 bg-white dark:bg-[#1a1a2e] rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg">
-                  {/* Company and position */}
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {exp.position}
-                  </h3>
-                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-3 md:justify-end">
-                    <Briefcase className="w-4 h-4" />
-                    <span className="font-semibold">{exp.company}</span>
+                <div className="relative mb-12 lg:mb-16 group">
+                  {/* Timeline dot */}
+                  <div className="hidden lg:flex absolute left-1/2 transform -translate-x-1/2 -top-2 w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 border-4 border-background items-center justify-center shadow-lg shadow-blue-500/50">
+                    <div className="w-2 h-2 rounded-full bg-white"></div>
                   </div>
 
-                  {/* Date and location */}
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 mb-4 text-gray-600 dark:text-gray-400 text-sm md:justify-end">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>
-                        {formatDate(exp.startDate)} -{" "}
-                        {exp.current ? "Present" : formatDate(exp.endDate)}
-                      </span>
+                  {/* Mobile dot */}
+                  <div className="lg:hidden absolute -left-4 top-4 w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 border-2 border-background"></div>
+
+                  {/* Timeline connector - mobile only */}
+                  <div className="lg:hidden absolute -left-[7px] top-6 w-0.5 h-[calc(100%-24px)] bg-gradient-to-b from-blue-500/50 to-purple-500/50"></div>
+
+                  {/* Content - Grid layout */}
+                  <div
+                    className={`lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center ${
+                      index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"
+                    }`}
+                  >
+                    {/* Left side content */}
+                    <div
+                      className={`${
+                        index % 2 === 0
+                          ? "lg:text-left"
+                          : "lg:text-right"
+                      }`}
+                    >
+                      {/* Current badge */}
+                      {exp.current && (
+                        <div className="inline-block mb-4">
+                          <span className="px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
+                            Current
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Position title */}
+                      <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+                        {exp.position}
+                      </h3>
+
+                      {/* Company */}
+                      <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-4">
+                        <Briefcase className="w-5 h-5" />
+                        <span className="font-semibold text-lg">
+                          {exp.company}
+                        </span>
+                      </div>
+
+                      {/* Date and location */}
+                      <div className="space-y-2 mb-6 text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm md:text-base">
+                            {formatDate(exp.startDate)} -{" "}
+                            {exp.current ? "Present" : formatDate(exp.endDate)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm md:text-base">
+                            {exp.location}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <span className="hidden md:inline">•</span>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{exp.location}</span>
+
+                    {/* Right side - card */}
+                    <div className="lg:col-span-1">
+                      <div className="ml-4 lg:ml-0 p-6 md:p-8 bg-card border border-border rounded-2xl hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group/card">
+                        <h4 className="text-sm font-semibold text-blue-500 dark:text-blue-400 mb-4 uppercase tracking-wider">
+                          Key Responsibilities
+                        </h4>
+
+                        {/* Responsibilities list */}
+                        <ul className="space-y-3">
+                          {exp.responsibilities.map((resp, idx) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-3 group/item"
+                            >
+                              <ArrowRight className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 group-hover/item:translate-x-1 transition-transform" />
+                              <span className="text-foreground leading-relaxed">
+                                {resp}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Responsibilities */}
-                  <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                    {exp.responsibilities.map((resp, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-blue-500 mt-1.5">•</span>
-                        <span>{resp}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
-              </div>
+              </ScrollAnimation>
             ))}
           </div>
         </div>

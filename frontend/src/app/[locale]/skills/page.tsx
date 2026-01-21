@@ -1,4 +1,11 @@
 import { getTranslations } from "next-intl/server";
+import ScrollAnimation from "@/components/ScrollAnimation";
+import { 
+  SiTypescript, SiJavascript, SiReact, SiNextdotjs, SiTailwindcss,
+  SiSpringboot, SiPostgresql, SiDocker, SiGit, SiGithub,
+  SiLinux
+} from "react-icons/si";
+import { FaJava, FaNode } from "react-icons/fa6";
 
 // Use internal Docker network URL for server-side, public URL for client-side
 const API_URL =
@@ -15,6 +22,31 @@ interface Skill {
   icon: string;
   order: number;
 }
+
+// Map skill names to icons
+const skillIconMap: Record<string, React.ReactNode> = {
+  "Java": <FaJava className="w-12 h-12" />,
+  "C#": <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-500 text-lg">#</div>,
+  "Kotlin": <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-600">K</div>,
+  "JavaScript": <SiJavascript className="w-12 h-12" />,
+  "SQL": <div className="w-12 h-12 flex items-center justify-center text-xl font-bold">SQL</div>,
+  "Spring Boot": <SiSpringboot className="w-12 h-12" />,
+  "ASP.NET MVC": <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">ASP</div>,
+  "Next.js": <SiNextdotjs className="w-12 h-12" />,
+  "SQL Server": <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">MSSQL</div>,
+  "Azure SQL": <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">Azure</div>,
+  "Docker": <SiDocker className="w-12 h-12" />,
+  "Git & GitHub": <SiGit className="w-12 h-12" />,
+  "IntelliJ IDEA": <div className="w-12 h-12 flex items-center justify-center font-bold text-orange-600">I</div>,
+  "VS Code": <div className="w-12 h-12 flex items-center justify-center text-blue-500 font-bold">&lt;&gt;</div>,
+  "Linux": <SiLinux className="w-12 h-12" />,
+  "React": <SiReact className="w-12 h-12" />,
+  "TypeScript": <SiTypescript className="w-12 h-12" />,
+  "Node.js": <FaNode className="w-12 h-12" />,
+  "Express.js": <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">EXP</div>,
+  "PostgreSQL": <SiPostgresql className="w-12 h-12" />,
+  "Tailwind CSS": <SiTailwindcss className="w-12 h-12" />,
+};
 
 export default async function SkillsPage({
   params,
@@ -42,76 +74,72 @@ export default async function SkillsPage({
   );
 
   return (
-    <div className="min-h-screen py-16 bg-gray-50 dark:bg-[#0a0a0f]">
+    <div className="min-h-screen py-16 bg-background">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="max-w-4xl mx-auto text-center mb-16 fade-in">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-900 dark:text-white">
-            {t("title")}
-          </h1>
-          <p className="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
-            {t("subtitle")}
-          </p>
-        </div>
+        <ScrollAnimation animation="fade-in">
+          <div className="max-w-4xl mx-auto text-center mb-16">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
+              {t("title")}
+            </h1>
+            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-6"></div>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              {t("subtitle")}
+            </p>
+          </div>
+        </ScrollAnimation>
 
         {/* Skills Sections */}
         {Object.keys(groupedSkills).length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-600 dark:text-gray-400">{t("noSkills")}</p>
+            <p className="text-muted-foreground">{t("noSkills")}</p>
           </div>
         ) : (
-          <div className="max-w-5xl mx-auto space-y-12">
+          <div className="max-w-6xl mx-auto space-y-16">
             {Object.entries(groupedSkills).map(
               ([category, categorySkills], idx) => (
-                <div
+                <ScrollAnimation
                   key={category}
-                  className="fade-in"
-                  style={{ animationDelay: `${idx * 100}ms` }}
+                  animation="fade-in"
+                  delay={idx * 0.1}
                 >
-                  {/* Category Header */}
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                    {category}
-                  </h2>
+                  <div>
+                    {/* Category Header */}
+                    <h2 className="text-2xl font-bold text-foreground mb-8">
+                      {category}
+                    </h2>
 
-                  {/* Skills Badges */}
-                  <div className="flex flex-wrap gap-3">
-                    {categorySkills.map((skill) => (
-                      <div
-                        key={skill.id}
-                        className="group relative px-4 py-2.5 rounded-lg
-                                bg-gray-100 dark:bg-[#1a1a2e]
-                                border border-gray-300 dark:border-gray-700/50
-                                hover:scale-105 transition-all duration-300
-                                hover:border-gray-400 dark:hover:border-gray-600
-                                cursor-default"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          {skill.icon && (
-                            <span className="text-base">{skill.icon}</span>
-                          )}
-                          <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                            {locale === "fr"
-                              ? skill.nameAr || skill.nameEn
-                              : skill.nameEn}
-                          </span>
-                        </div>
-
-                        {/* Level Indicator (appears on hover) */}
-                        {skill.level !== undefined && (
-                          <div
-                            className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 
-                                      opacity-0 group-hover:opacity-100 transition-opacity duration-300
-                                      bg-blue-600 dark:bg-blue-500 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10"
-                          >
-                            Level {skill.level}/5
+                    {/* Skills Grid with Logos */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                      {categorySkills.map((skill) => (
+                        <div
+                          key={skill.id}
+                          className="flex flex-col items-center justify-center p-6 rounded-lg bg-card border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group"
+                        >
+                          <div className="text-4xl mb-3 text-foreground group-hover:scale-110 transition-transform duration-300">
+                            {skillIconMap[skill.nameEn] || (
+                              <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 rounded font-bold text-white text-sm">
+                                {skill.nameEn.charAt(0)}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          <p className="font-semibold text-center text-sm text-foreground">
+                            {locale === "fr" ? skill.nameAr : skill.nameEn}
+                          </p>
+                          <div className="mt-2 flex gap-1">
+                            {[...Array(Math.round(skill.level))].map((_, i) => (
+                              <div
+                                key={i}
+                                className="w-1.5 h-1.5 rounded-full bg-blue-500"
+                              ></div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ),
-            )}
+                </ScrollAnimation>
+            ))}
           </div>
         )}
       </div>

@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { LanguageSwitcher } from "./language-switcher";
 import { Button } from "./ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
 
 export default function Navbar() {
   const t = useTranslations("nav");
+  const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
@@ -51,6 +53,12 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <Link href="/admin/login">
+              <Button variant="outline" size="sm" className="gap-2">
+                <LogIn className="h-4 w-4" />
+                {t("login")}
+              </Button>
+            </Link>
             <ThemeToggle />
             <LanguageSwitcher />
           </div>
@@ -86,6 +94,12 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <Link href="/admin/login" onClick={() => setIsOpen(false)}>
+              <Button variant="outline" size="sm" className="w-full gap-2 mt-2">
+                <LogIn className="h-4 w-4" />
+                {t("login")}
+              </Button>
+            </Link>
           </div>
         )}
       </div>
