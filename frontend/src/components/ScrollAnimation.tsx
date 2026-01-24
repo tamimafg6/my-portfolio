@@ -29,7 +29,7 @@ export default function ScrollAnimation({
           const element = entry.target as HTMLElement;
           if (entry.isIntersecting) {
             // Element is in view - add animate class to play animation
-            const delayMs = typeof delay === 'number' ? delay * 1000 : delay;
+            const delayMs = typeof delay === "number" ? delay * 1000 : delay;
             setTimeout(() => {
               element.classList.add("animate");
             }, delayMs);

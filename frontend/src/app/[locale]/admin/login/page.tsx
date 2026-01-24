@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useLocale } from "next-intl";
+import { useRouter as useIntlRouter } from "@/i18n/routing";
 import { authClient } from "@/lib/auth-client";
 import { parseAuthError } from "@/shared/lib/auth/parse-error";
 
 export const dynamic = "force-dynamic";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
+  const router = useIntlRouter();
+  const locale = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -78,7 +81,7 @@ export default function AdminLoginPage() {
       }
 
       // Redirect to admin dashboard
-      router.push("/admin");
+      router.push(`/${locale}/admin/dashboard`);
     } catch (err) {
       const errorMessage = parseAuthError(err, "An unexpected error occurred");
       setError(errorMessage);

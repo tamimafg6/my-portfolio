@@ -142,9 +142,7 @@ export default async function ExperiencePage({
                     {/* Left side content */}
                     <div
                       className={`${
-                        index % 2 === 0
-                          ? "lg:text-left"
-                          : "lg:text-right"
+                        index % 2 === 0 ? "lg:text-left" : "lg:text-right"
                       }`}
                     >
                       {/* Current badge */}

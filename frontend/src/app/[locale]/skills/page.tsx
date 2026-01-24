@@ -1,9 +1,17 @@
 import { getTranslations } from "next-intl/server";
 import ScrollAnimation from "@/components/ScrollAnimation";
-import { 
-  SiTypescript, SiJavascript, SiReact, SiNextdotjs, SiTailwindcss,
-  SiSpringboot, SiPostgresql, SiDocker, SiGit, SiGithub,
-  SiLinux
+import {
+  SiTypescript,
+  SiJavascript,
+  SiReact,
+  SiNextdotjs,
+  SiTailwindcss,
+  SiSpringboot,
+  SiPostgresql,
+  SiDocker,
+  SiGit,
+  SiGithub,
+  SiLinux,
 } from "react-icons/si";
 import { FaJava, FaNode } from "react-icons/fa6";
 
@@ -25,26 +33,62 @@ interface Skill {
 
 // Map skill names to icons
 const skillIconMap: Record<string, React.ReactNode> = {
-  "Java": <FaJava className="w-12 h-12" />,
-  "C#": <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-500 text-lg">#</div>,
-  "Kotlin": <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-600">K</div>,
-  "JavaScript": <SiJavascript className="w-12 h-12" />,
-  "SQL": <div className="w-12 h-12 flex items-center justify-center text-xl font-bold">SQL</div>,
+  Java: <FaJava className="w-12 h-12" />,
+  "C#": (
+    <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-500 text-lg">
+      #
+    </div>
+  ),
+  Kotlin: (
+    <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-600">
+      K
+    </div>
+  ),
+  JavaScript: <SiJavascript className="w-12 h-12" />,
+  SQL: (
+    <div className="w-12 h-12 flex items-center justify-center text-xl font-bold">
+      SQL
+    </div>
+  ),
   "Spring Boot": <SiSpringboot className="w-12 h-12" />,
-  "ASP.NET MVC": <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">ASP</div>,
+  "ASP.NET MVC": (
+    <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">
+      ASP
+    </div>
+  ),
   "Next.js": <SiNextdotjs className="w-12 h-12" />,
-  "SQL Server": <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">MSSQL</div>,
-  "Azure SQL": <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">Azure</div>,
-  "Docker": <SiDocker className="w-12 h-12" />,
+  "SQL Server": (
+    <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">
+      MSSQL
+    </div>
+  ),
+  "Azure SQL": (
+    <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">
+      Azure
+    </div>
+  ),
+  Docker: <SiDocker className="w-12 h-12" />,
   "Git & GitHub": <SiGit className="w-12 h-12" />,
-  "IntelliJ IDEA": <div className="w-12 h-12 flex items-center justify-center font-bold text-orange-600">I</div>,
-  "VS Code": <div className="w-12 h-12 flex items-center justify-center text-blue-500 font-bold">&lt;&gt;</div>,
-  "Linux": <SiLinux className="w-12 h-12" />,
-  "React": <SiReact className="w-12 h-12" />,
-  "TypeScript": <SiTypescript className="w-12 h-12" />,
+  "IntelliJ IDEA": (
+    <div className="w-12 h-12 flex items-center justify-center font-bold text-orange-600">
+      I
+    </div>
+  ),
+  "VS Code": (
+    <div className="w-12 h-12 flex items-center justify-center text-blue-500 font-bold">
+      &lt;&gt;
+    </div>
+  ),
+  Linux: <SiLinux className="w-12 h-12" />,
+  React: <SiReact className="w-12 h-12" />,
+  TypeScript: <SiTypescript className="w-12 h-12" />,
   "Node.js": <FaNode className="w-12 h-12" />,
-  "Express.js": <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">EXP</div>,
-  "PostgreSQL": <SiPostgresql className="w-12 h-12" />,
+  "Express.js": (
+    <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">
+      EXP
+    </div>
+  ),
+  PostgreSQL: <SiPostgresql className="w-12 h-12" />,
   "Tailwind CSS": <SiTailwindcss className="w-12 h-12" />,
 };
 
@@ -139,7 +183,8 @@ export default async function SkillsPage({
                     </div>
                   </div>
                 </ScrollAnimation>
-            ))}
+              ),
+            )}
           </div>
         )}
       </div>

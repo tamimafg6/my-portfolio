@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 
 interface Particle {
   x: number;
@@ -14,6 +15,7 @@ export default function GeometricBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
   const particlesRef = useRef<Particle[]>([]);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -21,6 +23,13 @@ export default function GeometricBackground() {
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    // Theme-aware colors
+    const isDark = theme === "dark";
+    const bgColor = isDark ? "rgba(10, 10, 15, 0.05)" : "rgba(248, 249, 250, 0.3)";
+    const particleColor = isDark ? "rgba(96, 165, 250, 0.6)" : "rgba(59, 130, 246, 0.4)"; // blue-400/blue-500
+    const lineColor = isDark ? "rgba(147, 51, 234, " : "rgba(124, 58, 237, "; // purple-600/purple-600
+    const triangleColor = isDark ? "rgba(59, 130, 246, " : "rgba(37, 99, 235, "; // blue-500/blue-600
 
     // Set canvas size
     const resizeCanvas = () => {
@@ -54,7 +63,8 @@ export default function GeometricBackground() {
     // Animation loop
     let animationId: number;
     const animate = () => {
-      ctx.fillStyle = "rgba(10, 10, 15, 0.05)";
+      // Use theme-aware background color
+      ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Update and draw particles
@@ -83,10 +93,10 @@ export default function GeometricBackground() {
         particle.vx *= 0.99;
         particle.vy *= 0.99;
 
-        // Draw particle
+        // Draw particle with theme-aware color
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(96, 165, 250, 0.6)"; // blue-400
+        ctx.fillStyle = particleColor;
         ctx.fill();
       });
 
@@ -99,17 +109,18 @@ export default function GeometricBackground() {
           const maxDistance = 120;
 
           if (distance < maxDistance) {
-            const opacity = (1 - distance / maxDistance) * 0.3;
+            const opacity = (1 - distance / maxDistance) * (isDark ? 0.3 : 0.2);
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(147, 51, 234, ${opacity})`; // purple-600
+            ctx.strokeStyle = `${lineColor}${opacity})`;
             ctx.lineWidth = 1;
             ctx.stroke();
 
             // Draw triangles occasionally
             if (Math.random() > 0.99) {
-              const p3 = particles[Math.floor(Math.random() * particles.length)];
+              const p3 =
+                particles[Math.floor(Math.random() * particles.length)];
               const dx2 = p1.x - p3.x;
               const dy2 = p1.y - p3.y;
               const distance2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
@@ -120,7 +131,7 @@ export default function GeometricBackground() {
                 ctx.lineTo(p2.x, p2.y);
                 ctx.lineTo(p3.x, p3.y);
                 ctx.closePath();
-                ctx.fillStyle = `rgba(59, 130, 246, ${opacity * 0.1})`; // blue-500
+                ctx.fillStyle = `${triangleColor}${opacity * 0.1})`;
                 ctx.fill();
               }
             }
@@ -139,7 +150,7 @@ export default function GeometricBackground() {
       window.removeEventListener("mousemove", handleMouseMove);
       cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [theme]);
 
   return (
     <canvas

@@ -65,14 +65,14 @@ body {
   @apply bg-background text-foreground transition-colors duration-300;
 }
 
-body:not(.dark) {
+html:not(.dark) body {
   background-image:
     linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%),
     url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.015'%3E%3Cpolygon points='0,0 100,0 50,50'/%3E%3Cpolygon points='0,100 100,100 50,50'/%3E%3Cpolygon points='0,0 0,100 50,50'/%3E%3Cpolygon points='100,0 100,100 50,50'/%3E%3C/g%3E%3C/svg%3E");
   background-attachment: fixed;
 }
 
-.dark body {
+html.dark body {
   background-image:
     linear-gradient(135deg, #1a1a24 0%, #0a0a0f 100%),
     url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpolygon points='0,0 100,0 50,50'/%3E%3Cpolygon points='0,100 100,100 50,50'/%3E%3Cpolygon points='0,0 0,100 50,50'/%3E%3Cpolygon points='100,0 100,100 50,50'/%3E%3C/g%3E%3C/svg%3E");
@@ -94,13 +94,13 @@ body:not(.dark) {
     border-color: transparent;
   }
   50% {
-    border-color: white;
+    border-color: hsl(var(--foreground));
   }
 }
 
 .typing-effect {
   overflow: hidden;
-  border-right: 0.15em solid white;
+  border-right: 0.15em solid hsl(var(--foreground));
   white-space: nowrap;
   animation:
     typing 3.5s steps(40, end),
@@ -192,7 +192,8 @@ body:not(.dark) {
 }
 
 .slide-in-from-bottom {
-  animation: slide-in-from-bottom 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards paused;
+  animation: slide-in-from-bottom 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards
+    paused;
   opacity: 0;
 }
 
@@ -201,7 +202,8 @@ body:not(.dark) {
 }
 
 .slide-in-from-left {
-  animation: slide-in-from-left 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards paused;
+  animation: slide-in-from-left 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards
+    paused;
   opacity: 0;
 }
 
@@ -210,7 +212,8 @@ body:not(.dark) {
 }
 
 .slide-in-from-right {
-  animation: slide-in-from-right 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards paused;
+  animation: slide-in-from-right 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards
+    paused;
   opacity: 0;
 }
 

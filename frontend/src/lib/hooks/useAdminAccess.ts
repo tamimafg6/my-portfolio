@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/routing";
 import { authClient } from "@/lib/auth-client";
 import { getAuthServiceBaseUrl } from "@/lib/utils/auth-url";
 
@@ -11,6 +12,7 @@ import { getAuthServiceBaseUrl } from "@/lib/utils/auth-url";
  */
 export function useAdminAccess() {
   const router = useRouter();
+  const locale = useLocale();
   const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +53,7 @@ export function useAdminAccess() {
         const session = await authClient.getSession();
 
         if (!session.data?.session) {
-          router.push("/admin/login");
+          router.push(`/${locale}/admin/login`);
           return;
         }
 
@@ -60,21 +62,21 @@ export function useAdminAccess() {
 
         if (role?.toLowerCase() !== "admin") {
           router.push(
-            "/admin/login?error=Access denied. Admin privileges required.",
+            `/${locale}/admin/login?error=Access denied. Admin privileges required.`,
           );
           return;
         }
 
         setAuthorized(true);
       } catch {
-        router.push("/admin/login");
+        router.push(`/${locale}/admin/login`);
       } finally {
         setLoading(false);
       }
     };
 
     checkAccess();
-  }, [router]);
+  }, [router, locale]);
 
   return { authorized, loading };
 }

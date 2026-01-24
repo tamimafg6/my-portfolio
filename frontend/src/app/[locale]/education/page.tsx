@@ -1,5 +1,12 @@
 import { getTranslations } from "next-intl/server";
-import { GraduationCap, Calendar, MapPin, Award, BookOpen, ArrowRight } from "lucide-react";
+import {
+  GraduationCap,
+  Calendar,
+  MapPin,
+  Award,
+  BookOpen,
+  ArrowRight,
+} from "lucide-react";
 import ScrollAnimation from "@/components/ScrollAnimation";
 
 interface Education {
@@ -137,10 +144,14 @@ export default async function EducationPage({
                             {edu.current ? "Present" : formatDate(edu.endDate)}
                           </span>
                         </div>
-                        <span className="hidden sm:inline text-muted-foreground">•</span>
+                        <span className="hidden sm:inline text-muted-foreground">
+                          •
+                        </span>
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4 flex-shrink-0" />
-                          <span className="text-sm md:text-base">{edu.location}</span>
+                          <span className="text-sm md:text-base">
+                            {edu.location}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -162,7 +173,9 @@ export default async function EducationPage({
                             className="flex items-start gap-3 group/item"
                           >
                             <ArrowRight className="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5 group-hover/item:translate-x-1 transition-transform" />
-                            <span className="text-foreground">{achievement}</span>
+                            <span className="text-foreground">
+                              {achievement}
+                            </span>
                           </li>
                         ))}
                       </ul>

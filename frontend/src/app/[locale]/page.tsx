@@ -19,9 +19,16 @@ import TypingEffect from "@/components/TypingEffect";
 import ScrollAnimation from "@/components/ScrollAnimation";
 import GeometricBackground from "@/components/GeometricBackground";
 import Image from "next/image";
-import { 
-  SiTypescript, SiJavascript, SiReact, SiNextdotjs, SiTailwindcss,
-  SiSpringboot, SiPostgresql, SiDocker, SiGit
+import {
+  SiTypescript,
+  SiJavascript,
+  SiReact,
+  SiNextdotjs,
+  SiTailwindcss,
+  SiSpringboot,
+  SiPostgresql,
+  SiDocker,
+  SiGit,
 } from "react-icons/si";
 import { FaJava, FaNode } from "react-icons/fa6";
 import { useEffect, useState } from "react";
@@ -52,26 +59,66 @@ interface Project {
 
 // Map skill names to icons
 const skillIconMap: Record<string, React.ReactNode> = {
-  "Java": <FaJava className="w-12 h-12" />,
-  "C#": <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-500 text-lg">#</div>,
-  "Kotlin": <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-600">K</div>,
-  "JavaScript": <SiJavascript className="w-12 h-12" />,
-  "SQL": <div className="w-12 h-12 flex items-center justify-center text-xl font-bold">SQL</div>,
+  Java: <FaJava className="w-12 h-12" />,
+  "C#": (
+    <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-500 text-lg">
+      #
+    </div>
+  ),
+  Kotlin: (
+    <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-600">
+      K
+    </div>
+  ),
+  JavaScript: <SiJavascript className="w-12 h-12" />,
+  SQL: (
+    <div className="w-12 h-12 flex items-center justify-center text-xl font-bold">
+      SQL
+    </div>
+  ),
   "Spring Boot": <SiSpringboot className="w-12 h-12" />,
-  "ASP.NET MVC": <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">ASP</div>,
+  "ASP.NET MVC": (
+    <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">
+      ASP
+    </div>
+  ),
   "Next.js": <SiNextdotjs className="w-12 h-12" />,
-  "SQL Server": <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">MSSQL</div>,
-  "Azure SQL": <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">Azure</div>,
-  "Docker": <SiDocker className="w-12 h-12" />,
+  "SQL Server": (
+    <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">
+      MSSQL
+    </div>
+  ),
+  "Azure SQL": (
+    <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">
+      Azure
+    </div>
+  ),
+  Docker: <SiDocker className="w-12 h-12" />,
   "Git & GitHub": <SiGit className="w-12 h-12" />,
-  "IntelliJ IDEA": <div className="w-12 h-12 flex items-center justify-center font-bold text-orange-600">I</div>,
-  "VS Code": <div className="w-12 h-12 flex items-center justify-center text-blue-500 font-bold">&lt;&gt;</div>,
-  "Linux": <div className="w-12 h-12 flex items-center justify-center font-bold">LNX</div>,
-  "React": <SiReact className="w-12 h-12" />,
-  "TypeScript": <SiTypescript className="w-12 h-12" />,
+  "IntelliJ IDEA": (
+    <div className="w-12 h-12 flex items-center justify-center font-bold text-orange-600">
+      I
+    </div>
+  ),
+  "VS Code": (
+    <div className="w-12 h-12 flex items-center justify-center text-blue-500 font-bold">
+      &lt;&gt;
+    </div>
+  ),
+  Linux: (
+    <div className="w-12 h-12 flex items-center justify-center font-bold">
+      LNX
+    </div>
+  ),
+  React: <SiReact className="w-12 h-12" />,
+  TypeScript: <SiTypescript className="w-12 h-12" />,
   "Node.js": <FaNode className="w-12 h-12" />,
-  "Express.js": <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">EXP</div>,
-  "PostgreSQL": <SiPostgresql className="w-12 h-12" />,
+  "Express.js": (
+    <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">
+      EXP
+    </div>
+  ),
+  PostgreSQL: <SiPostgresql className="w-12 h-12" />,
   "Tailwind CSS": <SiTailwindcss className="w-12 h-12" />,
 };
 
@@ -84,7 +131,7 @@ export default function HomePage() {
     // Fetch skills from Next.js API route
     fetch("/api/skills")
       .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch skills');
+        if (!res.ok) throw new Error("Failed to fetch skills");
         return res.json();
       })
       .then((data) => {
@@ -96,7 +143,7 @@ export default function HomePage() {
     // Fetch projects from Next.js API route
     fetch("/api/projects")
       .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch projects');
+        if (!res.ok) throw new Error("Failed to fetch projects");
         return res.json();
       })
       .then((data) => {
@@ -179,7 +226,8 @@ export default function HomePage() {
       id: 2,
       name: "Michael Chen",
       role: "Senior Developer, Digital Innovations",
-      quote: "Consistently delivers clean code and is quick to unblock teammates.",
+      quote:
+        "Consistently delivers clean code and is quick to unblock teammates.",
     },
   ];
 
@@ -201,27 +249,64 @@ export default function HomePage() {
       .catch((err) => console.error("Failed to fetch projects:", err));
   }, []);
 
+  // Handle hash navigation on page load
+  useEffect(() => {
+    const handleHashScroll = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        const sectionId = hash.substring(1); // Remove the # symbol
+        const element = document.getElementById(sectionId);
+        if (element) {
+          // Small delay to ensure page is fully rendered
+          setTimeout(() => {
+            const navbarHeight = 64; // h-16 = 64px
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: "smooth",
+            });
+          }, 100);
+        }
+      }
+    };
+
+    // Handle initial hash
+    handleHashScroll();
+
+    // Handle hash changes (e.g., browser back/forward)
+    window.addEventListener("hashchange", handleHashScroll);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashScroll);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0f] relative">
+    <div className="min-h-screen bg-background relative">
       {/* Interactive Geometric Background */}
       <GeometricBackground />
-      
+
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center" style={{ zIndex: 1 }}>
+      <section
+        className="relative min-h-[90vh] flex items-center justify-center"
+        style={{ zIndex: 1 }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <ScrollAnimation animation="fade-in" delay={0}>
-              <h1 className="text-6xl md:text-8xl font-bold mb-6 dark:text-white text-gray-900">
+              <h1 className="text-6xl md:text-8xl font-bold mb-6 text-foreground">
                 <TypingEffect text="TAMIM AFGHANYAR" speed={80} />
               </h1>
             </ScrollAnimation>
             <ScrollAnimation animation="slide-up" delay={0.1}>
-              <p className="text-2xl md:text-3xl font-semibold dark:text-gray-300 text-gray-700 mb-6">
+              <p className="text-2xl md:text-3xl font-semibold text-foreground/80 mb-6">
                 Full-Stack Software Engineer
               </p>
             </ScrollAnimation>
             <ScrollAnimation animation="slide-up" delay={0.2}>
-              <p className="text-lg dark:text-gray-400 text-gray-600 mb-8 max-w-2xl mx-auto">
+              <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
                 {t("hero.description")}
               </p>
             </ScrollAnimation>
@@ -232,18 +317,18 @@ export default function HomePage() {
                 <Link
                   href="https://github.com/tamimafg6"
                   target="_blank"
-                  className="p-3 border dark:border-gray-700 border-gray-300 rounded-lg dark:hover:border-gray-500 hover:border-gray-400 dark:hover:bg-gray-800/50 hover:bg-gray-100 transition-all"
+                  className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
                   aria-label="GitHub"
                 >
-                  <Github className="w-6 h-6 dark:text-gray-300 text-gray-700" />
+                  <Github className="w-6 h-6 text-foreground" />
                 </Link>
                 <Link
                   href="https://www.linkedin.com/in/tamim-afghanyar-2026852b3"
                   target="_blank"
-                  className="p-3 border dark:border-gray-700 border-gray-300 rounded-lg dark:hover:border-gray-500 hover:border-gray-400 dark:hover:bg-gray-800/50 hover:bg-gray-100 transition-all"
+                  className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
                   aria-label="LinkedIn"
                 >
-                  <Linkedin className="w-6 h-6 dark:text-gray-300 text-gray-700" />
+                  <Linkedin className="w-6 h-6 text-foreground" />
                 </Link>
               </div>
             </ScrollAnimation>
@@ -253,14 +338,14 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-4 justify-center">
                 <Link
                   href="/en/projects"
-                  className="inline-flex items-center gap-2 dark:bg-white bg-gray-900 dark:text-black text-white px-8 py-3 rounded-lg dark:hover:bg-gray-200 hover:bg-gray-800 transition-all font-semibold"
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-all font-semibold"
                 >
                   {t("hero.viewWork")}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="/en/contact"
-                  className="inline-flex items-center gap-2 border dark:border-gray-600 border-gray-400 dark:text-white text-gray-900 px-8 py-3 rounded-lg dark:hover:bg-gray-800/50 hover:bg-gray-100 transition-all font-semibold"
+                  className="inline-flex items-center gap-2 border border-border text-foreground px-8 py-3 rounded-lg hover:bg-accent transition-all font-semibold"
                 >
                   {t("hero.getInTouch")}
                 </Link>
@@ -269,14 +354,18 @@ export default function HomePage() {
 
             {/* Scroll Down Indicator */}
             <div className="mt-16 animate-bounce">
-              <ChevronDown className="w-8 h-8 mx-auto dark:text-gray-400 text-gray-600" />
+              <ChevronDown className="w-8 h-8 mx-auto text-muted-foreground" />
             </div>
           </div>
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="relative py-20 bg-white/80 dark:bg-[#0a0a0f]/70" style={{ zIndex: 1 }}>
+      <section
+        id="about"
+        className="relative py-20 bg-background/80 backdrop-blur-sm"
+        style={{ zIndex: 1 }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
             <ScrollAnimation animation="slide-in-from-left" delay={0.05}>
@@ -308,7 +397,9 @@ export default function HomePage() {
               <div className="p-8 md:p-10 bg-card border border-border rounded-2xl shadow-xl shadow-blue-500/5 hover:border-blue-500/50 transition-all">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-foreground">Quick Snapshot</h3>
+                    <h3 className="text-lg font-semibold text-foreground">
+                      Quick Snapshot
+                    </h3>
                     <div className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
                       Full-Stack
                     </div>
@@ -336,7 +427,9 @@ export default function HomePage() {
                       <p className="text-xs uppercase tracking-wide text-amber-500 font-semibold mb-1">
                         Soft Skills
                       </p>
-                      <p className="text-foreground">Collaboration, mentoring</p>
+                      <p className="text-foreground">
+                        Collaboration, mentoring
+                      </p>
                     </div>
                   </div>
                   <div className="pt-2">
@@ -355,13 +448,21 @@ export default function HomePage() {
       </section>
 
       {/* Experience Section */}
-      <section id="experience" className="relative py-20 bg-gray-50 dark:bg-[#0a0a0f]" style={{ zIndex: 1 }}>
+      <section
+        id="experience"
+        className="relative py-20 bg-muted/30"
+        style={{ zIndex: 1 }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <ScrollAnimation animation="fade-in" delay={0}>
               <div className="text-center mb-12">
-                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Experience</h2>
-                <p className="text-lg text-muted-foreground">A quick view of recent roles.</p>
+                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+                  Experience
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  A quick view of recent roles.
+                </p>
               </div>
             </ScrollAnimation>
 
@@ -375,8 +476,12 @@ export default function HomePage() {
                   <div className="p-6 md:p-7 bg-card border border-border rounded-2xl hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all">
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                       <div>
-                        <p className="text-sm text-blue-500 font-semibold">{exp.company}</p>
-                        <h3 className="text-2xl font-bold text-foreground">{exp.position}</h3>
+                        <p className="text-sm text-blue-500 font-semibold">
+                          {exp.company}
+                        </p>
+                        <h3 className="text-2xl font-bold text-foreground">
+                          {exp.position}
+                        </h3>
                       </div>
                       <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
                         {exp.current ? "Current" : "Past"}
@@ -386,7 +491,8 @@ export default function HomePage() {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         <span>
-                          {formatDate(exp.startDate)} - {exp.current ? "Present" : formatDate(exp.endDate)}
+                          {formatDate(exp.startDate)} -{" "}
+                          {exp.current ? "Present" : formatDate(exp.endDate)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -394,7 +500,9 @@ export default function HomePage() {
                         <span>{exp.location}</span>
                       </div>
                     </div>
-                    <p className="text-foreground leading-relaxed">{exp.summary}</p>
+                    <p className="text-foreground leading-relaxed">
+                      {exp.summary}
+                    </p>
                   </div>
                 </ScrollAnimation>
               ))}
@@ -413,7 +521,11 @@ export default function HomePage() {
       </section>
 
       {/* Skills Section */}
-      <section id="skills" className="relative py-20 bg-white dark:bg-[#0a0a0f]/50" style={{ zIndex: 1 }}>
+      <section
+        id="skills"
+        className="relative py-20 bg-background"
+        style={{ zIndex: 1 }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <ScrollAnimation animation="fade-in" delay={0}>
@@ -430,7 +542,11 @@ export default function HomePage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mb-12">
               {skills.map((skill, idx) => (
-                <ScrollAnimation key={skill.id} animation="slide-up" delay={idx * 0.03}>
+                <ScrollAnimation
+                  key={skill.id}
+                  animation="slide-up"
+                  delay={idx * 0.03}
+                >
                   <div className="flex flex-col items-center justify-center p-6 rounded-lg bg-card border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group">
                     <div className="text-4xl mb-3 text-foreground group-hover:scale-110 transition-transform duration-300">
                       {skillIconMap[skill.nameEn] || (
@@ -468,7 +584,11 @@ export default function HomePage() {
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="relative py-20 bg-gray-50 dark:bg-[#0a0a0f]" style={{ zIndex: 1 }}>
+      <section
+        id="projects"
+        className="relative py-20 bg-muted/30"
+        style={{ zIndex: 1 }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <ScrollAnimation animation="fade-in" delay={0}>
@@ -487,7 +607,9 @@ export default function HomePage() {
               {projects.map((project, idx) => (
                 <ScrollAnimation
                   key={project.id}
-                  animation={idx % 2 === 0 ? "slide-in-from-left" : "slide-in-from-right"}
+                  animation={
+                    idx % 2 === 0 ? "slide-in-from-left" : "slide-in-from-right"
+                  }
                   delay={idx * 0.15}
                 >
                   <div className="group relative bg-card rounded-2xl overflow-hidden border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 h-full flex flex-col">
@@ -584,24 +706,40 @@ export default function HomePage() {
       </section>
 
       {/* Education Section */}
-      <section id="education" className="relative py-20 bg-white dark:bg-[#0a0a0f]/60" style={{ zIndex: 1 }}>
+      <section
+        id="education"
+        className="relative py-20 bg-background"
+        style={{ zIndex: 1 }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <ScrollAnimation animation="fade-in" delay={0}>
               <div className="text-center mb-12">
-                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Education</h2>
-                <p className="text-lg text-muted-foreground">Formal training and relevant coursework.</p>
+                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+                  Education
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  Formal training and relevant coursework.
+                </p>
               </div>
             </ScrollAnimation>
 
             <div className="grid gap-8">
               {education.map((edu, idx) => (
-                <ScrollAnimation key={edu.id} animation="slide-up" delay={idx * 0.15}>
+                <ScrollAnimation
+                  key={edu.id}
+                  animation="slide-up"
+                  delay={idx * 0.15}
+                >
                   <div className="p-8 bg-card border border-border rounded-2xl hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all">
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                       <div>
-                        <p className="text-sm text-blue-500 font-semibold">{edu.institution}</p>
-                        <h3 className="text-2xl font-bold text-foreground">{edu.degree}</h3>
+                        <p className="text-sm text-blue-500 font-semibold">
+                          {edu.institution}
+                        </p>
+                        <h3 className="text-2xl font-bold text-foreground">
+                          {edu.degree}
+                        </h3>
                       </div>
                       {edu.current && (
                         <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
@@ -613,7 +751,8 @@ export default function HomePage() {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         <span>
-                          {formatDate(edu.startDate)} - {edu.current ? "Present" : formatDate(edu.endDate)}
+                          {formatDate(edu.startDate)} -{" "}
+                          {edu.current ? "Present" : formatDate(edu.endDate)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -647,13 +786,21 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="relative py-20 bg-gray-50 dark:bg-[#0a0a0f]" style={{ zIndex: 1 }}>
+      <section
+        id="testimonials"
+        className="relative py-20 bg-muted/30"
+        style={{ zIndex: 1 }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <ScrollAnimation animation="fade-in" delay={0}>
               <div className="text-center mb-12">
-                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Testimonials</h2>
-                <p className="text-lg text-muted-foreground">Kind words from collaborators.</p>
+                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+                  Testimonials
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  Kind words from collaborators.
+                </p>
               </div>
             </ScrollAnimation>
 
@@ -661,15 +808,23 @@ export default function HomePage() {
               {testimonials.map((testi, idx) => (
                 <ScrollAnimation
                   key={testi.id}
-                  animation={idx % 2 === 0 ? "slide-in-from-left" : "slide-in-from-right"}
+                  animation={
+                    idx % 2 === 0 ? "slide-in-from-left" : "slide-in-from-right"
+                  }
                   delay={idx * 0.15}
                 >
                   <div className="p-8 bg-card border border-border rounded-2xl hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all">
-                    <p className="text-lg text-foreground italic mb-6">“{testi.quote}”</p>
+                    <p className="text-lg text-foreground italic mb-6">
+                      “{testi.quote}”
+                    </p>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-foreground font-semibold">{testi.name}</p>
-                        <p className="text-sm text-muted-foreground">{testi.role}</p>
+                        <p className="text-foreground font-semibold">
+                          {testi.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {testi.role}
+                        </p>
                       </div>
                       <span className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold flex items-center justify-center">
                         {testi.name.charAt(0)}
@@ -693,13 +848,20 @@ export default function HomePage() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="relative py-20 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10" style={{ zIndex: 1 }}>
+      <section
+        id="contact"
+        className="relative py-20 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10"
+        style={{ zIndex: 1 }}
+      >
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center bg-card border border-border rounded-2xl p-10 md:p-12 shadow-xl shadow-blue-500/10">
             <ScrollAnimation animation="slide-up" delay={0}>
-              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">Let's build something great</h2>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+                Let's build something great
+              </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Ready to collaborate? Reach out and let's chat about your project or idea.
+                Ready to collaborate? Reach out and let's chat about your
+                project or idea.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-4">
                 <Link
