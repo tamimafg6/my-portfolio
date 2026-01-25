@@ -7,10 +7,18 @@ const intlMiddleware = createMiddleware(routing);
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // First, let intl middleware handle locale routing
+  // Handle /admin/* routes (without locale) FIRST - redirect to /en/admin/*
+  // This must happen before intl middleware to avoid duplication
+  if (pathname.startsWith("/admin") && !/^\/(en|fr)\/admin/.test(pathname)) {
+    const newPath = pathname.replace("/admin", "/en/admin");
+    return NextResponse.redirect(new URL(newPath, request.url));
+  }
+
+  // Let intl middleware handle locale routing first
   const response = intlMiddleware(request);
   
-  // Check if accessing admin routes (after locale prefix)
+  // After intl middleware processes, check admin routes
+  // Use the original pathname since intl middleware handles locale internally
   const isAdminRoute = /^\/(en|fr)\/admin/.test(pathname);
   
   if (isAdminRoute) {
@@ -18,7 +26,7 @@ export async function middleware(request: NextRequest) {
     const localeMatch = pathname.match(/^\/(en|fr)/);
     const locale = localeMatch ? localeMatch[1] : "en";
     
-    // If no session token, redirect to login
+    // If no session token, redirect to login (except for login page itself)
     if (!sessionToken && !pathname.includes("/login")) {
       return NextResponse.redirect(new URL(`/${locale}/admin/login`, request.url));
     }
@@ -27,12 +35,6 @@ export async function middleware(request: NextRequest) {
     if (sessionToken && pathname.includes("/login")) {
       return NextResponse.redirect(new URL(`/${locale}/admin/dashboard`, request.url));
     }
-  }
-  
-  // Also handle /admin/* routes (without locale) - redirect to /en/admin/*
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/(en|fr)/admin")) {
-    const newPath = pathname.replace("/admin", "/en/admin");
-    return NextResponse.redirect(new URL(newPath, request.url));
   }
 
   return response;
