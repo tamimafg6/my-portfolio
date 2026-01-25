@@ -5,4 +5,7 @@ import { getAuthServiceUrl } from "./utils/auth-url";
 export const authClient = createAuthClient({
   baseURL: getAuthServiceUrl(),
   plugins: [jwtClient()],
+  fetchOptions: {
+    credentials: "include", // Include cookies in requests
+  },
 });

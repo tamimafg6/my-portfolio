@@ -82,6 +82,19 @@ export function middleware(request: NextRequest) {
       ? origin 
       : (allowedOrigins.length > 0 ? allowedOrigins[0] : null);
     
+    // Handle OPTIONS preflight requests
+    if (request.method === "OPTIONS") {
+      const optionsResponse = new NextResponse(null, { status: 204 });
+      if (allowedOrigin) {
+        optionsResponse.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+        optionsResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        optionsResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        optionsResponse.headers.set("Access-Control-Allow-Credentials", "true");
+        optionsResponse.headers.set("Access-Control-Max-Age", "86400");
+      }
+      return optionsResponse;
+    }
+    
     if (allowedOrigin) {
       response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
       response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");

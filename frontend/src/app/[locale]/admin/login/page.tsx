@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
-import { useRouter as useIntlRouter } from "@/i18n/routing";
+import { useRouter as useIntlRouter, usePathname } from "@/i18n/routing";
 import { authClient } from "@/lib/auth-client";
 import { parseAuthError } from "@/shared/lib/auth/parse-error";
 
@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 export default function AdminLoginPage() {
   const router = useIntlRouter();
   const locale = useLocale();
+  const pathname = usePathname();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -56,32 +57,78 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Verify admin role from JWT token
-      const tokenResult = await authClient.token();
-      const token = tokenResult.data?.token;
+      // Check if signIn was successful by checking for data
+      if (!("data" in resultWithError) || !resultWithError.data) {
+        setError("Login failed. No response data received.");
+        setLoading(false);
+        return;
+      }
 
-      if (token) {
-        const tokenParts = token.split(".");
-        if (tokenParts.length === 3) {
-          const base64Url = tokenParts[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const padded = base64.padEnd(
-            base64.length + ((4 - (base64.length % 4)) % 4),
-            "=",
-          );
-          const payload = JSON.parse(atob(padded));
-
-          if (payload.role?.toLowerCase() !== "admin") {
-            setError("Access denied. Admin privileges required.");
-            await authClient.signOut();
-            setLoading(false);
-            return;
-          }
+      // Immediately check for session after signIn
+      // The cookie should be set by the signIn response
+      let session = await authClient.getSession();
+      
+      // If session not immediately available, wait and retry
+      if (!session.data?.session) {
+        // Wait a moment for cookies to be set after signIn
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        
+        // Retry getting session
+        let retries = 0;
+        const maxRetries = 10;
+        while (!session.data?.session && retries < maxRetries) {
+          await new Promise((resolve) => setTimeout(resolve, 400));
+          session = await authClient.getSession();
+          retries++;
         }
       }
 
-      // Redirect to admin dashboard
-      router.push(`/${locale}/admin/dashboard`);
+      if (session.data?.session) {
+        // Wait a bit longer to ensure cookies are fully set
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Verify admin role from JWT token
+        const tokenResult = await authClient.token();
+        const token = tokenResult.data?.token;
+
+        if (token) {
+          const tokenParts = token.split(".");
+          if (tokenParts.length === 3) {
+            const base64Url = tokenParts[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const padded = base64.padEnd(
+              base64.length + ((4 - (base64.length % 4)) % 4),
+              "=",
+            );
+            const payload = JSON.parse(atob(padded));
+
+            if (payload.role?.toLowerCase() !== "admin") {
+              setError("Access denied. Admin privileges required.");
+              await authClient.signOut();
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
+        // Verify we can get a token before redirecting
+        if (tokenResult.data?.token) {
+          // Use window.location with the locale we already have
+          // This avoids any router locale duplication issues
+          const dashboardUrl = `/${locale}/admin/dashboard`;
+          window.location.href = dashboardUrl;
+          return; // Exit early, don't set loading to false
+        } else {
+          setError("Failed to retrieve authentication token. Please try again.");
+          setLoading(false);
+        }
+      } else {
+        // More detailed error message
+        setError(
+          "Failed to establish session. Please check that the auth service is running and accessible.",
+        );
+        setLoading(false);
+      }
     } catch (err) {
       const errorMessage = parseAuthError(err, "An unexpected error occurred");
       setError(errorMessage);
