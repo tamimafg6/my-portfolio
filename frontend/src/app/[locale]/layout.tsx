@@ -4,8 +4,7 @@ import { routing } from "@/i18n/routing";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/Providers";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import AdminLayoutWrapper from "@/components/AdminLayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,11 +78,7 @@ export default async function LocaleLayout({
         >
           <Providers>
             <NextIntlClientProvider locale={locale} messages={messages}>
-              <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <main className="flex-1">{children}</main>
-                <Footer />
-              </div>
+              <AdminLayoutWrapper>{children}</AdminLayoutWrapper>
             </NextIntlClientProvider>
           </Providers>
         </ThemeProvider>

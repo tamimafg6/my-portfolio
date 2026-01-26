@@ -302,7 +302,7 @@ export default function HomePage() {
             </ScrollAnimation>
             <ScrollAnimation animation="slide-up" delay={0.1}>
               <p className="text-2xl md:text-3xl font-semibold text-foreground/80 mb-6">
-                Full-Stack Software Engineer
+                Full-Stack Developer
               </p>
             </ScrollAnimation>
             <ScrollAnimation animation="slide-up" delay={0.2}>

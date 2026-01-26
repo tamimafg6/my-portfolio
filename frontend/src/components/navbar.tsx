@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { LanguageSwitcher } from "./language-switcher";
 import { Button } from "./ui/button";
-import { Menu, X, LogIn } from "lucide-react";
+import { Menu, X, LogIn, LogOut } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
+import { authClient } from "@/lib/auth-client";
 
 export default function Navbar() {
   const t = useTranslations("nav");
@@ -15,6 +16,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   const navLinks = [
     { href: "/", label: t("home"), sectionId: null },
@@ -26,6 +29,41 @@ export default function Navbar() {
     { href: "/testimonials", label: t("testimonials"), sectionId: "testimonials" },
     { href: "/contact", label: t("contact"), sectionId: "contact" },
   ];
+
+  // Check if user is logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const session = await authClient.getSession();
+        setIsLoggedIn(!!session.data?.session);
+      } catch (error) {
+        setIsLoggedIn(false);
+      } finally {
+        setIsCheckingSession(false);
+      }
+    };
+
+    checkSession();
+
+    // Check session periodically to update login status
+    const interval = setInterval(checkSession, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut();
+      setIsLoggedIn(false);
+      router.push("/");
+      // Reload to ensure session is cleared
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still redirect even if logout fails
+      window.location.href = "/";
+    }
+  };
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -101,12 +139,26 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            <Link href="/admin/login">
-              <Button variant="outline" size="sm" className="gap-2">
-                <LogIn className="h-4 w-4" />
-                {t("login")}
-              </Button>
-            </Link>
+            {!isCheckingSession && (
+              isLoggedIn ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              ) : (
+                <Link href="/admin/login">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <LogIn className="h-4 w-4" />
+                    {t("login")}
+                  </Button>
+                </Link>
+              )
+            )}
             <ThemeToggle />
             <LanguageSwitcher />
           </div>
@@ -142,12 +194,29 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            <Link href="/admin/login" onClick={() => setIsOpen(false)}>
-              <Button variant="outline" size="sm" className="w-full gap-2 mt-2">
-                <LogIn className="h-4 w-4" />
-                {t("login")}
-              </Button>
-            </Link>
+            {!isCheckingSession && (
+              isLoggedIn ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 mt-2"
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleLogout();
+                  }}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              ) : (
+                <Link href="/admin/login" onClick={() => setIsOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full gap-2 mt-2">
+                    <LogIn className="h-4 w-4" />
+                    {t("login")}
+                  </Button>
+                </Link>
+              )
+            )}
           </div>
         )}
       </div>
