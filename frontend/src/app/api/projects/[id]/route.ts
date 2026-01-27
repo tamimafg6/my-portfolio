@@ -5,58 +5,24 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "http://backend:8080/api";
 
-export async function GET() {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const res = await fetch(`${API_URL}/skills`, {
-      cache: "no-store",
+    const { id } = await params;
+    const res = await fetch(`${API_URL}/projects/${id}`, {
+      method: "DELETE",
       headers: {
-        "Accept": "application/json; charset=utf-8",
-        "Accept-Charset": "utf-8",
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch skills: ${res.status}`);
-    }
-
-    const data = await res.json();
-    return NextResponse.json(data, {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching skills:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch skills" },
-      { 
-        status: 500,
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-        },
-      },
-    );
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const res = await fetch(`${API_URL}/skills`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Accept": "application/json; charset=utf-8",
         "Cookie": request.headers.get("cookie") || "",
       },
       credentials: "include",
-      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
       const error = await res.json();
       return NextResponse.json(
-        { error: error.error || "Failed to create skill" },
+        { error: error.error || "Failed to delete project" },
         { 
           status: res.status,
           headers: {
@@ -73,9 +39,60 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error creating skill:", error);
+    console.error("Error deleting project:", error);
     return NextResponse.json(
-      { error: "Failed to create skill" },
+      { error: "Failed to delete project" },
+      { 
+        status: 500,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      },
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const res = await fetch(`${API_URL}/projects/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Accept": "application/json; charset=utf-8",
+        "Cookie": request.headers.get("cookie") || "",
+      },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      return NextResponse.json(
+        { error: error.error || "Failed to update project" },
+        { 
+          status: res.status,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+          },
+        },
+      );
+    }
+
+    const data = await res.json();
+    return NextResponse.json(data, {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    });
+  } catch (error) {
+    console.error("Error updating project:", error);
+    return NextResponse.json(
+      { error: "Failed to update project" },
       { 
         status: 500,
         headers: {

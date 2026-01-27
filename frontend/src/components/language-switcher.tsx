@@ -12,7 +12,12 @@ export function LanguageSwitcher() {
 
   const toggleLanguage = () => {
     const newLocale = locale === "en" ? "fr" : "en";
-    router.replace(pathname, { locale: newLocale });
+    // pathname from next-intl is already without locale prefix
+    const currentPath = pathname || "/";
+    // Construct new path with new locale
+    const newPath = `/${newLocale}${currentPath === "/" ? "" : currentPath}`;
+    // Use window.location for reliable locale switching
+    window.location.href = newPath;
   };
 
   return (

@@ -101,7 +101,7 @@ export default async function ProjectsPage({
                     <div className="absolute top-4 right-4 z-10">
                       <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg">
                         <Sparkles className="w-3 h-3" />
-                        Featured
+                        {t("featured")}
                       </div>
                     </div>
                   )}

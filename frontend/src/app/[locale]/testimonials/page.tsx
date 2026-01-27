@@ -27,49 +27,45 @@ interface Testimonial {
   rating: number;
 }
 
-// Mock data - will be replaced with API call later
-const testimonials: Testimonial[] = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    role: "Project Manager",
-    company: "Tech Solutions Inc.",
-    content:
-      "Working with Tamim was an absolute pleasure. His technical expertise and attention to detail helped us deliver our project ahead of schedule. Highly recommended!",
-    rating: 5,
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    role: "Senior Developer",
-    company: "Digital Innovations",
-    content:
-      "Tamim's problem-solving skills are exceptional. He consistently delivers clean, maintainable code and is always willing to help team members.",
-    rating: 5,
-  },
-  {
-    id: 3,
-    name: "Emily Rodriguez",
-    role: "CTO",
-    company: "StartupHub",
-    content:
-      "An outstanding developer who brings both technical excellence and great communication skills. Tamim was instrumental in building our core platform.",
-    rating: 5,
-  },
-  {
-    id: 4,
-    name: "David Kumar",
-    role: "Tech Lead",
-    company: "CloudTech Systems",
-    content:
-      "Tamim's ability to learn new technologies quickly and apply them effectively is impressive. A valuable asset to any development team.",
-    rating: 5,
-  },
-];
-
 export default function TestimonialsPage() {
   const t = useTranslations("testimonials");
   const locale = useLocale();
+
+  // Create testimonials with translations
+  const testimonials: Testimonial[] = [
+    {
+      id: 1,
+      name: "Sarah Johnson",
+      role: t("items.3.role"),
+      company: t("items.3.company"),
+      content: t("items.3.quote"),
+      rating: 5,
+    },
+    {
+      id: 2,
+      name: "Michael Chen",
+      role: t("items.4.role"),
+      company: t("items.4.company"),
+      content: t("items.4.quote"),
+      rating: 5,
+    },
+    {
+      id: 3,
+      name: "Emily Rodriguez",
+      role: t("items.5.role"),
+      company: t("items.5.company"),
+      content: t("items.5.quote"),
+      rating: 5,
+    },
+    {
+      id: 4,
+      name: "David Kumar",
+      role: t("items.6.role"),
+      company: t("items.6.company"),
+      content: t("items.6.quote"),
+      rating: 5,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background py-20">
@@ -154,7 +150,7 @@ export default function TestimonialsPage() {
                       {testimonial.name}
                     </p>
                     <p className="text-muted-foreground text-sm">
-                      {testimonial.role} at {testimonial.company}
+                      {testimonial.role}{testimonial.company ? (locale === "fr" ? ` chez ${testimonial.company}` : ` at ${testimonial.company}`) : ""}
                     </p>
                   </div>
                 </div>

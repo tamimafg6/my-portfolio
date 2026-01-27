@@ -13,39 +13,7 @@ interface Experience {
   responsibilities: string[];
 }
 
-// Experience data
-const experiences: Experience[] = [
-  {
-    id: 1,
-    company: "Immo 1ère",
-    position: "Server",
-    location: "Montreal, QC",
-    startDate: "2024-07",
-    endDate: "",
-    current: true,
-    responsibilities: [
-      "Provided exceptional customer service in a fast-paced restaurant environment",
-      "Managed multiple tables efficiently while maintaining attention to detail",
-      "Collaborated with kitchen staff to ensure timely and accurate order delivery",
-      "Handled customer inquiries and resolved issues professionally",
-    ],
-  },
-  {
-    id: 2,
-    company: "Champlain College",
-    position: "Peer Tutor",
-    location: "Saint-Lambert, QC",
-    startDate: "2025-09",
-    endDate: "2025-10",
-    current: false,
-    responsibilities: [
-      "Tutored students in programming fundamentals and computer science concepts",
-      "Assisted with Java, C#, and web development coursework",
-      "Helped students debug code and understand complex algorithms",
-      "Mentored peers in developing problem-solving skills",
-    ],
-  },
-];
+// Experience data will be created in the component using translations
 
 export default async function ExperiencePage({
   params,
@@ -60,6 +28,40 @@ export default async function ExperiencePage({
     const date = new Date(parseInt(year), parseInt(month) - 1);
     return date.toLocaleDateString(locale, { year: "numeric", month: "short" });
   };
+
+  // Create experiences with translations
+  const experiences: Experience[] = [
+    {
+      id: 1,
+      company: "Immo 1ère",
+      position: t("items.1.position"),
+      location: "Montreal, QC",
+      startDate: "2024-07",
+      endDate: "",
+      current: true,
+      responsibilities: [
+        t("items.1.responsibilities.0"),
+        t("items.1.responsibilities.1"),
+        t("items.1.responsibilities.2"),
+        t("items.1.responsibilities.3"),
+      ],
+    },
+    {
+      id: 2,
+      company: "Champlain College",
+      position: t("items.2.position"),
+      location: "Saint-Lambert, QC",
+      startDate: "2025-09",
+      endDate: "2025-10",
+      current: false,
+      responsibilities: [
+        t("items.2.responsibilities.0"),
+        t("items.2.responsibilities.1"),
+        t("items.2.responsibilities.2"),
+        t("items.2.responsibilities.3"),
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
@@ -149,7 +151,7 @@ export default async function ExperiencePage({
                       {exp.current && (
                         <div className="inline-block mb-4">
                           <span className="px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
-                            Current
+                            {t("current")}
                           </span>
                         </div>
                       )}
@@ -173,7 +175,7 @@ export default async function ExperiencePage({
                           <Calendar className="w-4 h-4 flex-shrink-0" />
                           <span className="text-sm md:text-base">
                             {formatDate(exp.startDate)} -{" "}
-                            {exp.current ? "Present" : formatDate(exp.endDate)}
+                            {exp.current ? t("present") : formatDate(exp.endDate)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -189,7 +191,7 @@ export default async function ExperiencePage({
                     <div className="lg:col-span-1">
                       <div className="ml-4 lg:ml-0 p-6 md:p-8 bg-card border border-border rounded-2xl hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group/card">
                         <h4 className="text-sm font-semibold text-blue-500 dark:text-blue-400 mb-4 uppercase tracking-wider">
-                          Key Responsibilities
+                          {t("keyResponsibilities")}
                         </h4>
 
                         {/* Responsibilities list */}

@@ -29,6 +29,69 @@
       "projectsDesc": "Check out my latest work and case studies",
       "contact": "Contact Me",
       "contactDesc": "Let's discuss your next project"
+    },
+    "about": {
+      "badge": "About",
+      "title": "About Me",
+      "description": "Hi, I'm Tamim Afghanyar, a full-stack developer and Computer Science student who loves building useful, polished experiences.",
+      "highlights": {
+        "1": "Full-Stack with Next.js, React, TypeScript, Tailwind",
+        "2": "Focus on clean, maintainable code and good DX",
+        "3": "Comfortable across frontend, backend, and databases",
+        "4": "Always learning and experimenting with new tech"
+      },
+      "snapshot": {
+        "title": "Quick Snapshot",
+        "fullStack": "Full-Stack",
+        "focus": "Focus",
+        "focusValue": "Next.js, React, TS",
+        "backend": "Backend",
+        "backendValue": "Node, SQL",
+        "passion": "Passion",
+        "passionValue": "DX & clean code",
+        "softSkills": "Soft Skills",
+        "softSkillsValue": "Collaboration, mentoring",
+        "viewFull": "View full about"
+      }
+    },
+    "experience": {
+      "title": "Experience",
+      "subtitle": "A quick view of recent roles.",
+      "current": "Current",
+      "past": "Past",
+      "present": "Present",
+      "viewFull": "View full experience"
+    },
+    "skillsSection": {
+      "title": "Skills",
+      "subtitle": "Key skills that define my professional identity.",
+      "viewAll": "View All Skills"
+    },
+    "projectsSection": {
+      "title": "Projects",
+      "subtitle": "Showcasing impactful projects and technical achievements.",
+      "featured": "Featured",
+      "liveDemo": "Live Demo",
+      "sourceCode": "Source Code",
+      "viewAll": "View All Projects"
+    },
+    "educationSection": {
+      "title": "Education",
+      "subtitle": "Formal training and relevant coursework.",
+      "current": "Current",
+      "present": "Present",
+      "viewFull": "View full education"
+    },
+    "testimonialsSection": {
+      "title": "Testimonials",
+      "subtitle": "Kind words from collaborators.",
+      "viewAll": "View all testimonials"
+    },
+    "contactSection": {
+      "title": "Let's build something great",
+      "subtitle": "Ready to collaborate? Reach out and let's chat about your project or idea.",
+      "contactMe": "Contact Me",
+      "emailDirectly": "Email directly"
     }
   },
   "about": {
@@ -48,16 +111,67 @@
     "viewProject": "View Project",
     "sourceCode": "Source Code",
     "liveDemo": "Live Demo",
-    "noProjects": "No projects added yet."
+    "noProjects": "No projects added yet.",
+    "featured": "Featured"
   },
   "experience": {
-    "title": "Work Experience",
+    "title": "Experience",
+    "subtitle": "A quick view of recent roles.",
     "description": "My professional journey",
-    "present": "Present"
+    "present": "Present",
+    "current": "Current",
+    "past": "Past",
+    "keyResponsibilities": "Key Responsibilities",
+    "items": {
+      "1": {
+        "position": "Server",
+        "summary": "Customer-first mindset in a fast-paced environment; handled multi-table sections and resolved issues quickly.",
+        "responsibilities": {
+          "0": "Provided exceptional customer service in a fast-paced restaurant environment",
+          "1": "Managed multiple tables efficiently while maintaining attention to detail",
+          "2": "Collaborated with kitchen staff to ensure timely and accurate order delivery",
+          "3": "Handled customer inquiries and resolved issues professionally"
+        }
+      },
+      "2": {
+        "position": "Peer Tutor",
+        "summary": "Helped students with Java, C#, and web dev; debugging guidance and algorithm intuition building.",
+        "responsibilities": {
+          "0": "Tutored students in programming fundamentals and computer science concepts",
+          "1": "Assisted with Java, C#, and web development coursework",
+          "2": "Helped students debug code and understand complex algorithms",
+          "3": "Mentored peers in developing problem-solving skills"
+        }
+      }
+    }
   },
   "education": {
     "title": "Education",
-    "description": "My academic background"
+    "subtitle": "My academic background",
+    "description": "My academic background",
+    "current": "Current",
+    "present": "Present",
+    "achievements": "Achievements",
+    "relevantCoursework": "Relevant Coursework",
+    "items": {
+      "1": {
+        "degree": "DEC (Diploma of College Studies)",
+        "field": "Computer Science",
+        "achievements": {
+          "0": "Dean's List - Multiple Semesters",
+          "1": "Peer Tutor for Computer Science",
+          "2": "Completed multiple full-stack projects"
+        },
+        "coursework": {
+          "0": "Object-Oriented Programming (Java, C#)",
+          "1": "Web Development (HTML, CSS, JavaScript, React)",
+          "2": "Database Management (SQL Server, Azure SQL)",
+          "3": "Data Structures and Algorithms",
+          "4": "Software Engineering Principles",
+          "5": "Mobile Development (Kotlin)"
+        }
+      }
+    }
   },
   "hobbies": {
     "title": "Hobbies & Interests",
@@ -81,6 +195,36 @@
       "heading": "Want to work together?",
       "description": "I'm always open to discussing new projects and opportunities.",
       "button": "Get In Touch"
+    },
+    "items": {
+      "1": {
+        "quote": "Tamim's attention to detail and delivery speed helped us ship ahead of schedule.",
+        "role": "Project Manager, Tech Solutions"
+      },
+      "2": {
+        "quote": "Consistently delivers clean code and is quick to unblock teammates.",
+        "role": "Senior Developer, Digital Innovations"
+      },
+      "3": {
+        "quote": "Working with Tamim was an absolute pleasure. His technical expertise and attention to detail helped us deliver our project ahead of schedule. Highly recommended!",
+        "role": "Project Manager",
+        "company": "Tech Solutions Inc."
+      },
+      "4": {
+        "quote": "Tamim's problem-solving skills are exceptional. He consistently delivers clean, maintainable code and is always willing to help team members.",
+        "role": "Senior Developer",
+        "company": "Digital Innovations"
+      },
+      "5": {
+        "quote": "An outstanding developer who brings both technical excellence and great communication skills. Tamim was instrumental in building our core platform.",
+        "role": "CTO",
+        "company": "StartupHub"
+      },
+      "6": {
+        "quote": "Tamim's ability to learn new technologies quickly and apply them effectively is impressive. A valuable asset to any development team.",
+        "role": "Tech Lead",
+        "company": "CloudTech Systems"
+      }
     }
   },
   "contact": {

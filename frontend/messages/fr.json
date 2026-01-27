@@ -29,6 +29,69 @@
       "projectsDesc": "Découvrez mes derniers travaux et études de cas",
       "contact": "Me Contacter",
       "contactDesc": "Discutons de votre prochain projet"
+    },
+    "about": {
+      "badge": "À propos",
+      "title": "À propos de moi",
+      "description": "Bonjour, je m'appelle Tamim Afghanyar, un développeur full-stack et étudiant en informatique qui aime créer des expériences utiles et raffinées.",
+      "highlights": {
+        "1": "Full-Stack avec Next.js, React, TypeScript, Tailwind",
+        "2": "Concentré sur un code propre, maintenable et une bonne DX",
+        "3": "À l'aise avec le frontend, le backend et les bases de données",
+        "4": "Toujours en train d'apprendre et d'expérimenter avec de nouvelles technologies"
+      },
+      "snapshot": {
+        "title": "Aperçu Rapide",
+        "fullStack": "Full-Stack",
+        "focus": "Focus",
+        "focusValue": "Next.js, React, TS",
+        "backend": "Backend",
+        "backendValue": "Node, SQL",
+        "passion": "Passion",
+        "passionValue": "DX & code propre",
+        "softSkills": "Compétences Douces",
+        "softSkillsValue": "Collaboration, mentorat",
+        "viewFull": "Voir le profil complet"
+      }
+    },
+    "experience": {
+      "title": "Expérience",
+      "subtitle": "Un aperçu rapide des rôles récents.",
+      "current": "Actuel",
+      "past": "Passé",
+      "present": "Présent",
+      "viewFull": "Voir l'expérience complète"
+    },
+    "skillsSection": {
+      "title": "Compétences",
+      "subtitle": "Compétences clés qui définissent mon identité professionnelle.",
+      "viewAll": "Voir Toutes les Compétences"
+    },
+    "projectsSection": {
+      "title": "Projets",
+      "subtitle": "Présentation de projets impactants et réalisations techniques.",
+      "featured": "En Vedette",
+      "liveDemo": "Démo en direct",
+      "sourceCode": "Code source",
+      "viewAll": "Voir Tous les Projets"
+    },
+    "educationSection": {
+      "title": "Formation",
+      "subtitle": "Formation formelle et cours pertinents.",
+      "current": "Actuel",
+      "present": "Présent",
+      "viewFull": "Voir la formation complète"
+    },
+    "testimonialsSection": {
+      "title": "Témoignages",
+      "subtitle": "Mots gentils de collaborateurs.",
+      "viewAll": "Voir tous les témoignages"
+    },
+    "contactSection": {
+      "title": "Construisons quelque chose de grand",
+      "subtitle": "Prêt à collaborer ? Contactez-moi et discutons de votre projet ou idée.",
+      "contactMe": "Me Contacter",
+      "emailDirectly": "Envoyer un email"
     }
   },
   "about": {
@@ -48,16 +111,67 @@
     "viewProject": "Voir le projet",
     "sourceCode": "Code source",
     "liveDemo": "Démo en direct",
-    "noProjects": "Aucun projet ajouté pour le moment."
+    "noProjects": "Aucun projet ajouté pour le moment.",
+    "featured": "En Vedette"
   },
   "experience": {
-    "title": "Expérience Professionnelle",
+    "title": "Expérience",
+    "subtitle": "Un aperçu rapide des rôles récents.",
     "description": "Mon parcours professionnel",
-    "present": "Présent"
+    "present": "Présent",
+    "current": "Actuel",
+    "past": "Passé",
+    "keyResponsibilities": "Responsabilités Clés",
+    "items": {
+      "1": {
+        "position": "Serveur",
+        "summary": "Mentalité axée sur le client dans un environnement rapide ; gestion de sections multi-tables et résolution rapide des problèmes.",
+        "responsibilities": {
+          "0": "Service à la clientèle exceptionnel dans un environnement de restaurant rapide",
+          "1": "Gestion efficace de plusieurs tables tout en maintenant l'attention aux détails",
+          "2": "Collaboration avec le personnel de cuisine pour assurer une livraison ponctuelle et précise des commandes",
+          "3": "Gestion des demandes des clients et résolution professionnelle des problèmes"
+        }
+      },
+      "2": {
+        "position": "Tuteur par les pairs",
+        "summary": "Aide aux étudiants avec Java, C# et développement web ; conseils en débogage et développement de l'intuition algorithmique.",
+        "responsibilities": {
+          "0": "Tutorat des étudiants en programmation fondamentale et concepts informatiques",
+          "1": "Assistance avec les travaux de cours Java, C# et développement web",
+          "2": "Aide aux étudiants à déboguer le code et comprendre les algorithmes complexes",
+          "3": "Mentorat des pairs dans le développement de compétences en résolution de problèmes"
+        }
+      }
+    }
   },
   "education": {
     "title": "Formation",
-    "description": "Mon parcours académique"
+    "subtitle": "Mon parcours académique",
+    "description": "Mon parcours académique",
+    "current": "Actuel",
+    "present": "Présent",
+    "achievements": "Réalisations",
+    "relevantCoursework": "Cours Pertinents",
+    "items": {
+      "1": {
+        "degree": "DEC (Diplôme d'études collégiales)",
+        "field": "Informatique",
+        "achievements": {
+          "0": "Liste du doyen - Plusieurs semestres",
+          "1": "Tuteur par les pairs en informatique",
+          "2": "Projets full-stack multiples complétés"
+        },
+        "coursework": {
+          "0": "Programmation orientée objet (Java, C#)",
+          "1": "Développement web (HTML, CSS, JavaScript, React)",
+          "2": "Gestion de bases de données (SQL Server, Azure SQL)",
+          "3": "Structures de données et algorithmes",
+          "4": "Principes d'ingénierie logicielle",
+          "5": "Développement mobile (Kotlin)"
+        }
+      }
+    }
   },
   "hobbies": {
     "title": "Loisirs & Intérêts",
@@ -81,6 +195,36 @@
       "heading": "Vous voulez travailler ensemble ?",
       "description": "Je suis toujours ouvert à discuter de nouveaux projets et opportunités.",
       "button": "Me Contacter"
+    },
+    "items": {
+      "1": {
+        "quote": "L'attention aux détails et la rapidité de livraison de Tamim nous ont aidés à livrer en avance sur le calendrier.",
+        "role": "Chef de projet, Tech Solutions"
+      },
+      "2": {
+        "quote": "Livre constamment du code propre et débloque rapidement les membres de l'équipe.",
+        "role": "Développeur senior, Digital Innovations"
+      },
+      "3": {
+        "quote": "Travailler avec Tamim a été un plaisir absolu. Son expertise technique et son attention aux détails nous ont aidés à livrer notre projet en avance sur le calendrier. Hautement recommandé !",
+        "role": "Chef de projet",
+        "company": "Tech Solutions Inc."
+      },
+      "4": {
+        "quote": "Les compétences en résolution de problèmes de Tamim sont exceptionnelles. Il livre constamment du code propre et maintenable et est toujours prêt à aider les membres de l'équipe.",
+        "role": "Développeur senior",
+        "company": "Digital Innovations"
+      },
+      "5": {
+        "quote": "Un développeur exceptionnel qui apporte à la fois l'excellence technique et d'excellentes compétences en communication. Tamim a été instrumental dans la construction de notre plateforme principale.",
+        "role": "CTO",
+        "company": "StartupHub"
+      },
+      "6": {
+        "quote": "La capacité de Tamim à apprendre rapidement de nouvelles technologies et à les appliquer efficacement est impressionnante. Un atout précieux pour toute équipe de développement.",
+        "role": "Chef technique",
+        "company": "CloudTech Systems"
+      }
     }
   },
   "contact": {

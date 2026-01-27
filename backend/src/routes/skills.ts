@@ -10,10 +10,12 @@ const router = Router();
 router.get("/", async (req: Request, res: Response) => {
   try {
     const allSkills = await db.select().from(skills).orderBy(skills.order);
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.json(allSkills);
   } catch (error) {
     console.error("Error fetching skills:", error);
-    res.status(500).json({ error: "Failed to fetch skills" });
+    res.status(500).setHeader("Content-Type", "application/json; charset=utf-8");
+    res.json({ error: "Failed to fetch skills" });
   }
 });
 

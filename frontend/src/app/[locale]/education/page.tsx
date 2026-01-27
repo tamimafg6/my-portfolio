@@ -23,32 +23,7 @@ interface Education {
   achievements: string[];
 }
 
-// Education data
-const education: Education[] = [
-  {
-    id: 1,
-    institution: "Champlain College",
-    degree: "DEC (Diploma of College Studies)",
-    field: "Computer Science",
-    location: "Saint-Lambert, QC",
-    startDate: "2023-08",
-    endDate: "2026-05",
-    current: true,
-    coursework: [
-      "Object-Oriented Programming (Java, C#)",
-      "Web Development (HTML, CSS, JavaScript, React)",
-      "Database Management (SQL Server, Azure SQL)",
-      "Data Structures and Algorithms",
-      "Software Engineering Principles",
-      "Mobile Development (Kotlin)",
-    ],
-    achievements: [
-      "Dean's List - Multiple Semesters",
-      "Peer Tutor for Computer Science",
-      "Completed multiple full-stack projects",
-    ],
-  },
-];
+// Education data will be created in the component using translations
 
 export default async function EducationPage({
   params,
@@ -63,6 +38,33 @@ export default async function EducationPage({
     const date = new Date(parseInt(year), parseInt(month) - 1);
     return date.toLocaleDateString(locale, { year: "numeric", month: "short" });
   };
+
+  // Create education with translations
+  const education: Education[] = [
+    {
+      id: 1,
+      institution: "Champlain College",
+      degree: t("items.1.degree"),
+      field: t("items.1.field"),
+      location: "Saint-Lambert, QC",
+      startDate: "2023-08",
+      endDate: "2026-05",
+      current: true,
+      coursework: [
+        t("items.1.coursework.0"),
+        t("items.1.coursework.1"),
+        t("items.1.coursework.2"),
+        t("items.1.coursework.3"),
+        t("items.1.coursework.4"),
+        t("items.1.coursework.5"),
+      ],
+      achievements: [
+        t("items.1.achievements.0"),
+        t("items.1.achievements.1"),
+        t("items.1.achievements.2"),
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
@@ -127,7 +129,7 @@ export default async function EducationPage({
                     <div className="flex-1">
                       {edu.current && (
                         <span className="inline-block px-3 py-1 text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-3">
-                          Current
+                          {t("current")}
                         </span>
                       )}
                       <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
@@ -141,7 +143,7 @@ export default async function EducationPage({
                           <Calendar className="w-4 h-4 flex-shrink-0" />
                           <span className="text-sm md:text-base">
                             {formatDate(edu.startDate)} -{" "}
-                            {edu.current ? "Present" : formatDate(edu.endDate)}
+                            {edu.current ? t("present") : formatDate(edu.endDate)}
                           </span>
                         </div>
                         <span className="hidden sm:inline text-muted-foreground">
@@ -163,7 +165,7 @@ export default async function EducationPage({
                       <div className="flex items-center gap-2 mb-4">
                         <Award className="w-5 h-5 text-purple-500" />
                         <h3 className="text-lg font-semibold text-foreground">
-                          Achievements
+                          {t("achievements")}
                         </h3>
                       </div>
                       <ul className="space-y-3">
@@ -187,7 +189,7 @@ export default async function EducationPage({
                     <div className="flex items-center gap-2 mb-4">
                       <BookOpen className="w-5 h-5 text-blue-500" />
                       <h3 className="text-lg font-semibold text-foreground">
-                        Relevant Coursework
+                        {t("relevantCoursework")}
                       </h3>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-3">

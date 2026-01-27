@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -124,6 +124,7 @@ const skillIconMap: Record<string, React.ReactNode> = {
 
 export default function HomePage() {
   const t = useTranslations("home");
+  const locale = useLocale();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -156,43 +157,34 @@ export default function HomePage() {
   const formatDate = (dateStr: string) => {
     const [year, month] = dateStr.split("-");
     const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString("en", { year: "numeric", month: "short" });
+    return date.toLocaleDateString(locale, { year: "numeric", month: "short" });
   };
 
-  const aboutContent = {
-    title: "About Me",
-    description:
-      "Hi, I'm Tamim Afghanyar, a full-stack developer and Computer Science student who loves building useful, polished experiences.",
-    highlights: [
-      "Full-Stack with Next.js, React, TypeScript, Tailwind",
-      "Focus on clean, maintainable code and good DX",
-      "Comfortable across frontend, backend, and databases",
-      "Always learning and experimenting with new tech",
-    ],
-  };
+  // Get translations for experience, education, and testimonials
+  const tExp = useTranslations("experience");
+  const tEdu = useTranslations("education");
+  const tTest = useTranslations("testimonials");
 
   const experiences = [
     {
       id: 1,
       company: "Immo 1ère",
-      position: "Server",
+      position: tExp("items.1.position"),
       location: "Montreal, QC",
       startDate: "2024-07",
       endDate: "",
       current: true,
-      summary:
-        "Customer-first mindset in a fast-paced environment; handled multi-table sections and resolved issues quickly.",
+      summary: tExp("items.1.summary"),
     },
     {
       id: 2,
       company: "Champlain College",
-      position: "Peer Tutor",
+      position: tExp("items.2.position"),
       location: "Saint-Lambert, QC",
       startDate: "2025-09",
       endDate: "2025-10",
       current: false,
-      summary:
-        "Helped students with Java, C#, and web dev; debugging guidance and algorithm intuition building.",
+      summary: tExp("items.2.summary"),
     },
   ];
 
@@ -200,16 +192,16 @@ export default function HomePage() {
     {
       id: 1,
       institution: "Champlain College",
-      degree: "DEC in Computer Science",
+      degree: `${tEdu("items.1.degree")} en ${tEdu("items.1.field")}`,
       location: "Saint-Lambert, QC",
       startDate: "2023-08",
       endDate: "2026-05",
       current: true,
       coursework: [
-        "OOP (Java, C#)",
-        "Web Dev (React, JS, CSS)",
-        "Databases (SQL Server, Azure SQL)",
-        "Data Structures & Algorithms",
+        tEdu("items.1.coursework.0"),
+        tEdu("items.1.coursework.1"),
+        tEdu("items.1.coursework.2"),
+        tEdu("items.1.coursework.3"),
       ],
     },
   ];
@@ -218,16 +210,14 @@ export default function HomePage() {
     {
       id: 1,
       name: "Sarah Johnson",
-      role: "Project Manager, Tech Solutions",
-      quote:
-        "Tamim's attention to detail and delivery speed helped us ship ahead of schedule.",
+      role: tTest("items.1.role"),
+      quote: tTest("items.1.quote"),
     },
     {
       id: 2,
       name: "Michael Chen",
-      role: "Senior Developer, Digital Innovations",
-      quote:
-        "Consistently delivers clean code and is quick to unblock teammates.",
+      role: tTest("items.2.role"),
+      quote: tTest("items.2.quote"),
     },
   ];
 
@@ -337,14 +327,14 @@ export default function HomePage() {
             <ScrollAnimation animation="slide-up" delay={0.4}>
               <div className="flex flex-wrap gap-4 justify-center">
                 <Link
-                  href="/en/projects"
+                  href={`/${locale}/projects`}
                   className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-all font-semibold"
                 >
                   {t("hero.viewWork")}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  href="/en/contact"
+                  href={`/${locale}/contact`}
                   className="inline-flex items-center gap-2 border border-border text-foreground px-8 py-3 rounded-lg hover:bg-accent transition-all font-semibold"
                 >
                   {t("hero.getInTouch")}
@@ -371,22 +361,22 @@ export default function HomePage() {
             <ScrollAnimation animation="slide-in-from-left" delay={0.05}>
               <div className="space-y-6">
                 <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                  <Sparkles className="w-4 h-4" /> About
+                  <Sparkles className="w-4 h-4" /> {t("about.badge")}
                 </span>
                 <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-                  {aboutContent.title}
+                  {t("about.title")}
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  {aboutContent.description}
+                  {t("about.description")}
                 </p>
                 <div className="space-y-3">
-                  {aboutContent.highlights.map((item, idx) => (
+                  {[1, 2, 3, 4].map((idx) => (
                     <div
                       key={idx}
                       className="flex items-start gap-3 p-3 rounded-lg bg-card border border-border hover:border-blue-500/40 transition-colors"
                     >
                       <ArrowRight className="w-4 h-4 text-blue-500 mt-1" />
-                      <span className="text-foreground">{item}</span>
+                      <span className="text-foreground">{t(`about.highlights.${idx}`)}</span>
                     </div>
                   ))}
                 </div>
@@ -395,52 +385,52 @@ export default function HomePage() {
 
             <ScrollAnimation animation="slide-in-from-right" delay={0.1}>
               <div className="p-8 md:p-10 bg-card border border-border rounded-2xl shadow-xl shadow-blue-500/5 hover:border-blue-500/50 transition-all">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      Quick Snapshot
-                    </h3>
-                    <div className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                      Full-Stack
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {t("about.snapshot.title")}
+                      </h3>
+                      <div className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                        {t("about.snapshot.fullStack")}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                      <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                        <p className="text-xs uppercase tracking-wide text-blue-500 font-semibold mb-1">
+                          {t("about.snapshot.focus")}
+                        </p>
+                        <p className="text-foreground">{t("about.snapshot.focusValue")}</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/20">
+                        <p className="text-xs uppercase tracking-wide text-purple-500 font-semibold mb-1">
+                          {t("about.snapshot.backend")}
+                        </p>
+                        <p className="text-foreground">{t("about.snapshot.backendValue")}</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                        <p className="text-xs uppercase tracking-wide text-emerald-500 font-semibold mb-1">
+                          {t("about.snapshot.passion")}
+                        </p>
+                        <p className="text-foreground">{t("about.snapshot.passionValue")}</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                        <p className="text-xs uppercase tracking-wide text-amber-500 font-semibold mb-1">
+                          {t("about.snapshot.softSkills")}
+                        </p>
+                        <p className="text-foreground">
+                          {t("about.snapshot.softSkillsValue")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="pt-2">
+                      <Link
+                        href={`/${locale}/about`}
+                        className="inline-flex items-center gap-2 text-blue-500 hover:text-blue-400 font-semibold"
+                      >
+                        {t("about.snapshot.viewFull")} <ArrowRight className="w-4 h-4" />
+                      </Link>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                    <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
-                      <p className="text-xs uppercase tracking-wide text-blue-500 font-semibold mb-1">
-                        Focus
-                      </p>
-                      <p className="text-foreground">Next.js, React, TS</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/20">
-                      <p className="text-xs uppercase tracking-wide text-purple-500 font-semibold mb-1">
-                        Backend
-                      </p>
-                      <p className="text-foreground">Node, SQL</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-                      <p className="text-xs uppercase tracking-wide text-emerald-500 font-semibold mb-1">
-                        Passion
-                      </p>
-                      <p className="text-foreground">DX & clean code</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
-                      <p className="text-xs uppercase tracking-wide text-amber-500 font-semibold mb-1">
-                        Soft Skills
-                      </p>
-                      <p className="text-foreground">
-                        Collaboration, mentoring
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-2">
-                    <Link
-                      href="/en/about"
-                      className="inline-flex items-center gap-2 text-blue-500 hover:text-blue-400 font-semibold"
-                    >
-                      View full about <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </div>
-                </div>
               </div>
             </ScrollAnimation>
           </div>
@@ -458,10 +448,10 @@ export default function HomePage() {
             <ScrollAnimation animation="fade-in" delay={0}>
               <div className="text-center mb-12">
                 <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-                  Experience
+                  {t("experience.title")}
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  A quick view of recent roles.
+                  {t("experience.subtitle")}
                 </p>
               </div>
             </ScrollAnimation>
@@ -484,7 +474,7 @@ export default function HomePage() {
                         </h3>
                       </div>
                       <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                        {exp.current ? "Current" : "Past"}
+                        {exp.current ? t("experience.current") : t("experience.past")}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
@@ -492,7 +482,7 @@ export default function HomePage() {
                         <Calendar className="w-4 h-4" />
                         <span>
                           {formatDate(exp.startDate)} -{" "}
-                          {exp.current ? "Present" : formatDate(exp.endDate)}
+                          {exp.current ? t("experience.present") : formatDate(exp.endDate)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -510,10 +500,10 @@ export default function HomePage() {
 
             <div className="text-center mt-10">
               <Link
-                href="/en/experience"
+                href={`/${locale}/experience`}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border hover:border-blue-500/50 text-foreground hover:text-blue-500 transition-colors"
               >
-                View full experience <ArrowRight className="w-4 h-4" />
+                {t("experience.viewFull")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -531,11 +521,11 @@ export default function HomePage() {
             <ScrollAnimation animation="fade-in" delay={0}>
               <div className="text-center mb-16">
                 <h2 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
-                  Skills
+                  {t("skillsSection.title")}
                 </h2>
                 <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-6"></div>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Key skills that define my professional identity.
+                  {t("skillsSection.subtitle")}
                 </p>
               </div>
             </ScrollAnimation>
@@ -556,7 +546,7 @@ export default function HomePage() {
                       )}
                     </div>
                     <p className="font-semibold text-center text-sm text-foreground">
-                      {skill.nameEn}
+                      {locale === "fr" ? skill.nameAr : skill.nameEn}
                     </p>
                     <div className="mt-2 flex gap-1">
                       {[...Array(Math.round(skill.level))].map((_, i) => (
@@ -573,10 +563,10 @@ export default function HomePage() {
 
             <div className="text-center">
               <Link
-                href="/en/skills"
+                href={`/${locale}/skills`}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border hover:border-blue-500/50 text-foreground hover:text-blue-500 transition-colors"
               >
-                View All Skills <ArrowRight className="w-4 h-4" />
+                {t("skillsSection.viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -594,11 +584,11 @@ export default function HomePage() {
             <ScrollAnimation animation="fade-in" delay={0}>
               <div className="text-center mb-16">
                 <h2 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
-                  Projects
+                  {t("projectsSection.title")}
                 </h2>
                 <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-6"></div>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Showcasing impactful projects and technical achievements.
+                  {t("projectsSection.subtitle")}
                 </p>
               </div>
             </ScrollAnimation>
@@ -618,7 +608,7 @@ export default function HomePage() {
                       <div className="absolute top-4 right-4 z-10">
                         <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg">
                           <Sparkles className="w-3 h-3" />
-                          Featured
+                          {t("projectsSection.featured")}
                         </div>
                       </div>
                     )}
@@ -639,11 +629,11 @@ export default function HomePage() {
                     {/* Project Content */}
                     <div className="p-6 md:p-8 flex-1 flex flex-col">
                       <h3 className="text-2xl md:text-3xl font-bold mb-3 text-foreground group-hover:text-blue-500 transition-colors">
-                        {project.titleEn}
+                        {locale === "fr" ? project.titleAr || project.titleEn : project.titleEn}
                       </h3>
 
                       <p className="text-foreground mb-6 line-clamp-3 leading-relaxed flex-1">
-                        {project.descriptionEn}
+                        {locale === "fr" ? project.descriptionAr || project.descriptionEn : project.descriptionEn}
                       </p>
 
                       {/* Technologies */}
@@ -672,7 +662,7 @@ export default function HomePage() {
                             className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors"
                           >
                             <ExternalLink className="w-4 h-4" />
-                            Live Demo
+                            {t("projectsSection.liveDemo")}
                           </a>
                         )}
                         {project.githubUrl && (
@@ -683,7 +673,7 @@ export default function HomePage() {
                             className="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground text-sm font-medium rounded-lg hover:border-blue-500/50 transition-colors"
                           >
                             <Github className="w-4 h-4" />
-                            Source Code
+                            {t("projectsSection.sourceCode")}
                           </a>
                         )}
                       </div>
@@ -695,10 +685,10 @@ export default function HomePage() {
 
             <div className="text-center">
               <Link
-                href="/en/projects"
+                href={`/${locale}/projects`}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border hover:border-blue-500/50 text-foreground hover:text-blue-500 transition-colors"
               >
-                View All Projects <ArrowRight className="w-4 h-4" />
+                {t("projectsSection.viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -716,10 +706,10 @@ export default function HomePage() {
             <ScrollAnimation animation="fade-in" delay={0}>
               <div className="text-center mb-12">
                 <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-                  Education
+                  {t("educationSection.title")}
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Formal training and relevant coursework.
+                  {t("educationSection.subtitle")}
                 </p>
               </div>
             </ScrollAnimation>
@@ -743,7 +733,7 @@ export default function HomePage() {
                       </div>
                       {edu.current && (
                         <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                          Current
+                          {t("educationSection.current")}
                         </span>
                       )}
                     </div>
@@ -752,7 +742,7 @@ export default function HomePage() {
                         <Calendar className="w-4 h-4" />
                         <span>
                           {formatDate(edu.startDate)} -{" "}
-                          {edu.current ? "Present" : formatDate(edu.endDate)}
+                          {edu.current ? t("educationSection.present") : formatDate(edu.endDate)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -775,10 +765,10 @@ export default function HomePage() {
 
             <div className="text-center mt-10">
               <Link
-                href="/en/education"
+                href={`/${locale}/education`}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border hover:border-blue-500/50 text-foreground hover:text-blue-500 transition-colors"
               >
-                View full education <ArrowRight className="w-4 h-4" />
+                {t("educationSection.viewFull")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -796,10 +786,10 @@ export default function HomePage() {
             <ScrollAnimation animation="fade-in" delay={0}>
               <div className="text-center mb-12">
                 <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-                  Testimonials
+                  {t("testimonialsSection.title")}
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Kind words from collaborators.
+                  {t("testimonialsSection.subtitle")}
                 </p>
               </div>
             </ScrollAnimation>
@@ -837,10 +827,10 @@ export default function HomePage() {
 
             <div className="text-center mt-10">
               <Link
-                href="/en/testimonials"
+                href={`/${locale}/testimonials`}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border hover:border-blue-500/50 text-foreground hover:text-blue-500 transition-colors"
               >
-                View all testimonials <ArrowRight className="w-4 h-4" />
+                {t("testimonialsSection.viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -857,24 +847,23 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto text-center bg-card border border-border rounded-2xl p-10 md:p-12 shadow-xl shadow-blue-500/10">
             <ScrollAnimation animation="slide-up" delay={0}>
               <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Let's build something great
+                {t("contactSection.title")}
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Ready to collaborate? Reach out and let's chat about your
-                project or idea.
+                {t("contactSection.subtitle")}
               </p>
               <div className="flex flex-wrap items-center justify-center gap-4">
                 <Link
-                  href="/en/contact"
+                  href={`/${locale}/contact`}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-transform hover:scale-[1.02]"
                 >
-                  Contact Me <ArrowRight className="w-4 h-4" />
+                  {t("contactSection.contactMe")} <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   href="mailto:tamim.afghanyar@gmail.com"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border hover:border-blue-500/50 text-foreground hover:text-blue-500 transition-colors"
                 >
-                  Email directly
+                  {t("contactSection.emailDirectly")}
                 </Link>
               </div>
             </ScrollAnimation>
