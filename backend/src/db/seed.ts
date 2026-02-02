@@ -142,6 +142,61 @@ async function seed() {
     },
   ]);
 
+  // Seed work experience (from resume)
+  await db.insert(schema.workExperience).values([
+    {
+      companyEn: "Immo 1ère",
+      companyAr: "Immo 1ère",
+      positionEn: "Server — Part-Time Contract",
+      positionAr: "Serveur — Contrat à temps partiel",
+      descriptionEn:
+        "Worked in a team environment, strengthened teamwork and customer service skills. Assisted clients and supported smooth daily operations in a fast-paced setting.",
+      descriptionAr:
+        "Travail en équipe, consolidation des compétences en collaboration et en service à la clientèle. Assistance aux clients et soutien aux opérations quotidiennes dans un environnement dynamique.",
+      startDate: new Date("2024-07-01"),
+      endDate: null,
+      isCurrent: true,
+      location: "Canada",
+      order: 0,
+    },
+    {
+      companyEn: "Champlain College",
+      companyAr: "Collège Champlain",
+      positionEn: "Peer Tutor — First-Year",
+      positionAr: "Tuteur — Première année",
+      descriptionEn:
+        "Helped first-year students with programming labs and assignments by clarifying concepts and debugging issues.",
+      descriptionAr:
+        "Aidé les étudiants de première année pour les laboratoires et travaux de programmation en clarifiant les concepts et en déboguant les problèmes.",
+      startDate: new Date("2025-09-01"),
+      endDate: new Date("2025-10-01"),
+      isCurrent: false,
+      location: "Saint-Lambert, QC",
+      order: 1,
+    },
+  ]);
+
+  // Seed education (from resume)
+  await db.insert(schema.education).values([
+    {
+      institutionEn: "Champlain College",
+      institutionAr: "Collège Champlain",
+      degreeEn: "DEC",
+      degreeAr: "DEC",
+      fieldEn: "Computer Science Technology",
+      fieldAr: "Techniques de l'informatique",
+      descriptionEn:
+        "Relevant coursework: OOP (Java); Databases (SQL); Web Development (JS/ASP.NET); Distributed Systems (Web Services/Microservices); Linux/Operating Systems; Networking & Security; Mobile (Android); Azure SQL. Graduating May 2026.",
+      descriptionAr:
+        "Cours pertinents : POO (Java); Bases de données (SQL); Développement Web (JS/ASP.NET); Systèmes distribués (Web Services); Linux/Systèmes d'exploitation; Réseautique et sécurité; Développement mobile (Android/IOS). Diplôme prévu : Mai 2026.",
+      startDate: new Date("2023-08-01"),
+      endDate: new Date("2026-05-01"),
+      location: "Saint-Lambert, QC",
+      gpa: null,
+      order: 0,
+    },
+  ]);
+
   console.log("✅ Database seeded successfully!");
   process.exit(0);
 }

@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { ExternalLink, Github, Sparkles } from "lucide-react";
+import { ExternalLink, Github } from "lucide-react";
 import Image from "next/image";
 import ScrollAnimation from "@/components/ScrollAnimation";
 
@@ -96,16 +96,6 @@ export default async function ProjectsPage({
                 delay={idx * 0.1}
               >
                 <div className="group relative bg-card rounded-2xl overflow-hidden border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 h-full flex flex-col">
-                  {/* Featured Badge */}
-                  {project.featured && (
-                    <div className="absolute top-4 right-4 z-10">
-                      <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg">
-                        <Sparkles className="w-3 h-3" />
-                        {t("featured")}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Project Image */}
                   {project.image && (
                     <div className="relative h-56 bg-muted overflow-hidden">

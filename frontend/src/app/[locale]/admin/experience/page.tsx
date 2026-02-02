@@ -40,6 +40,7 @@ export default function AdminExperiencePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [isLoadingExperiences, setIsLoadingExperiences] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     companyEn: "",
     companyAr: "",
@@ -60,27 +61,31 @@ export default function AdminExperiencePage() {
     }
   }, [authorized, loading, router, locale]);
 
-  // Fetch experiences
-  useEffect(() => {
-    const fetchExperiences = async () => {
-      try {
-        setIsLoadingExperiences(true);
-        const res = await fetch("/api/experience");
-        if (res.ok) {
-          const data = await res.json();
-          setExperiences(Array.isArray(data) ? data : []);
-        } else {
-          console.error("Failed to fetch experiences:", res.status);
-          setExperiences([]);
-        }
-      } catch (error) {
-        console.error("Error fetching experiences:", error);
+  const fetchExperiences = async () => {
+    try {
+      setIsLoadingExperiences(true);
+      setFetchError(null);
+      const res = await fetch("/api/experience");
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data)) {
+        setExperiences(data);
+      } else {
         setExperiences([]);
-      } finally {
-        setIsLoadingExperiences(false);
+        const message =
+          (data && typeof data.error === "string" ? data.error : null) ||
+          (res.ok ? "Invalid response" : `Failed to load (${res.status}). Is the backend running on port 8080?`);
+        setFetchError(message);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching experiences:", error);
+      setExperiences([]);
+      setFetchError("Could not reach the server. Is the backend running?");
+    } finally {
+      setIsLoadingExperiences(false);
+    }
+  };
 
+  useEffect(() => {
     if (authorized) {
       fetchExperiences();
     }
@@ -183,6 +188,14 @@ export default function AdminExperiencePage() {
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-4 text-muted-foreground">Loading experiences...</p>
+              </div>
+            ) : fetchError ? (
+              <div className="text-center py-12">
+                <p className="text-destructive font-medium mb-2">Error loading experience</p>
+                <p className="text-sm text-muted-foreground mb-4">{fetchError}</p>
+                <Button variant="outline" onClick={() => fetchExperiences()}>
+                  Retry
+                </Button>
               </div>
             ) : experiences.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">

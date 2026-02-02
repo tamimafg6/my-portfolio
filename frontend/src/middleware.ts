@@ -26,14 +26,14 @@ export async function middleware(request: NextRequest) {
     const localeMatch = pathname.match(/^\/(en|fr)/);
     const locale = localeMatch ? localeMatch[1] : "en";
     
-    // If no session token, redirect to login (except for login page itself)
-    if (!sessionToken && !pathname.includes("/login")) {
-      return NextResponse.redirect(new URL(`/${locale}/admin/login`, request.url));
+    // Always allow access to login page (user might be logging out or re-logging in)
+    if (pathname.includes("/login")) {
+      return response;
     }
-
-    // If has session token and trying to access login, redirect to dashboard
-    if (sessionToken && pathname.includes("/login")) {
-      return NextResponse.redirect(new URL(`/${locale}/admin/dashboard`, request.url));
+    
+    // If no session token, redirect to login
+    if (!sessionToken) {
+      return NextResponse.redirect(new URL(`/${locale}/admin/login`, request.url));
     }
   }
 

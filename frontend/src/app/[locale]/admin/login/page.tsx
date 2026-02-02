@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useRouter as useIntlRouter, usePathname } from "@/i18n/routing";
@@ -17,6 +17,32 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Clear any stale session on mount to ensure clean login state
+  useEffect(() => {
+    const clearStaleSession = async () => {
+      try {
+        const session = await authClient.getSession();
+        // If there's a session but it might be invalid, clear it
+        if (session?.data?.session) {
+          // Check if session is actually valid by trying to get token
+          const tokenResult = await authClient.token();
+          if (!tokenResult?.data?.token) {
+            // Invalid session, clear it
+            await authClient.signOut();
+          }
+        }
+      } catch (error) {
+        // If there's an error checking session, try to clear it
+        try {
+          await authClient.signOut();
+        } catch (e) {
+          // Ignore errors during cleanup
+        }
+      }
+    };
+    clearStaleSession();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

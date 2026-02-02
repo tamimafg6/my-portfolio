@@ -151,6 +151,7 @@
     "description": "My academic background",
     "current": "Current",
     "present": "Present",
+    "degreeFieldPreposition": "in",
     "achievements": "Achievements",
     "relevantCoursework": "Relevant Coursework",
     "items": {

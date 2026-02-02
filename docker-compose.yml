@@ -54,6 +54,8 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:password@auth-db:5432/auth
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+      BETTER_AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
       BETTER_AUTH_URL: http://auth-service:3001
       NODE_ENV: production
       PORT: 3001
@@ -114,6 +116,7 @@ services:
       NEXT_PUBLIC_API_URL: http://localhost:8080/api
       API_URL: http://backend:8080/api
       NEXT_PUBLIC_AUTH_URL: http://localhost:3001
+      AUTH_SERVICE_URL: http://auth-service:3001
       AUTH_URL: http://auth-service:3001
       NODE_ENV: production
     ports:

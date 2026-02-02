@@ -122,11 +122,25 @@ const skillIconMap: Record<string, React.ReactNode> = {
   "Tailwind CSS": <SiTailwindcss className="w-12 h-12" />,
 };
 
+interface Testimonial {
+  id: number;
+  name: string;
+  email: string;
+  role: string | null;
+  company: string | null;
+  content: string;
+  rating: number;
+  isApproved: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function HomePage() {
   const t = useTranslations("home");
   const locale = useLocale();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   useEffect(() => {
     // Fetch skills from Next.js API route
@@ -152,6 +166,23 @@ export default function HomePage() {
         setProjects(data);
       })
       .catch((err) => console.error("Failed to fetch projects:", err));
+
+    // Fetch approved testimonials from Next.js API route
+    fetch("/api/testimonials")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch testimonials");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Testimonials data received:", data);
+        // Only show approved testimonials (API already filters, but double-check)
+        const approved = Array.isArray(data) ? data.filter((t: Testimonial) => t.isApproved !== false) : [];
+        setTestimonials(approved);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch testimonials:", err);
+        setTestimonials([]);
+      });
   }, []);
 
   const formatDate = (dateStr: string) => {
@@ -160,10 +191,9 @@ export default function HomePage() {
     return date.toLocaleDateString(locale, { year: "numeric", month: "short" });
   };
 
-  // Get translations for experience, education, and testimonials
+  // Get translations for experience and education
   const tExp = useTranslations("experience");
   const tEdu = useTranslations("education");
-  const tTest = useTranslations("testimonials");
 
   const experiences = [
     {
@@ -192,7 +222,7 @@ export default function HomePage() {
     {
       id: 1,
       institution: "Champlain College",
-      degree: `${tEdu("items.1.degree")} en ${tEdu("items.1.field")}`,
+      degree: `${tEdu("items.1.degree")} ${tEdu("degreeFieldPreposition")} ${tEdu("items.1.field")}`,
       location: "Saint-Lambert, QC",
       startDate: "2023-08",
       endDate: "2026-05",
@@ -205,39 +235,6 @@ export default function HomePage() {
       ],
     },
   ];
-
-  const testimonials = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      role: tTest("items.1.role"),
-      quote: tTest("items.1.quote"),
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      role: tTest("items.2.role"),
-      quote: tTest("items.2.quote"),
-    },
-  ];
-
-  useEffect(() => {
-    // Fetch skills - use all skills for the grid
-    fetch("http://localhost:8080/api/skills")
-      .then((res) => res.json())
-      .then((data) => {
-        setSkills(data); // Show all skills
-      })
-      .catch((err) => console.error("Failed to fetch skills:", err));
-
-    // Fetch projects - show all projects
-    fetch("http://localhost:8080/api/projects")
-      .then((res) => res.json())
-      .then((data) => {
-        setProjects(data); // Show all projects
-      })
-      .catch((err) => console.error("Failed to fetch projects:", err));
-  }, []);
 
   // Handle hash navigation on page load
   useEffect(() => {
@@ -603,16 +600,6 @@ export default function HomePage() {
                   delay={idx * 0.15}
                 >
                   <div className="group relative bg-card rounded-2xl overflow-hidden border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 h-full flex flex-col">
-                    {/* Featured Badge */}
-                    {project.featured && (
-                      <div className="absolute top-4 right-4 z-10">
-                        <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg">
-                          <Sparkles className="w-3 h-3" />
-                          {t("projectsSection.featured")}
-                        </div>
-                      </div>
-                    )}
-
                     {/* Project Image */}
                     {project.image && (
                       <div className="relative h-56 bg-muted overflow-hidden">
@@ -795,7 +782,12 @@ export default function HomePage() {
             </ScrollAnimation>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {testimonials.map((testi, idx) => (
+              {testimonials.length === 0 ? (
+                <div className="col-span-2 text-center py-12 text-muted-foreground">
+                  <p>{t("testimonialsSection.noTestimonials") || "No testimonials yet. Check back soon!"}</p>
+                </div>
+              ) : (
+                testimonials.map((testi, idx) => (
                 <ScrollAnimation
                   key={testi.id}
                   animation={
@@ -805,7 +797,7 @@ export default function HomePage() {
                 >
                   <div className="p-8 bg-card border border-border rounded-2xl hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all">
                     <p className="text-lg text-foreground italic mb-6">
-                      “{testi.quote}”
+                      "{testi.content}"
                     </p>
                     <div className="flex items-center justify-between">
                       <div>
@@ -813,7 +805,13 @@ export default function HomePage() {
                           {testi.name}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {testi.role}
+                          {testi.role && testi.company
+                            ? `${testi.role} at ${testi.company}`
+                            : testi.role
+                            ? testi.role
+                            : testi.company
+                            ? testi.company
+                            : ""}
                         </p>
                       </div>
                       <span className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold flex items-center justify-center">
@@ -822,7 +820,8 @@ export default function HomePage() {
                     </div>
                   </div>
                 </ScrollAnimation>
-              ))}
+                ))
+              )}
             </div>
 
             <div className="text-center mt-10">

@@ -1,71 +1,117 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { getTranslations } from "next-intl/server";
 import { useLocale } from "next-intl";
 import ScrollAnimation from "@/components/ScrollAnimation";
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "testimonials" });
-
-  return {
-    title: t("title"),
-    description: t("description"),
-  };
-}
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Testimonial {
   id: number;
   name: string;
-  role: string;
-  company: string;
+  role: string | null;
+  company: string | null;
   content: string;
-  image?: string;
   rating: number;
+  email: string;
+  createdAt: string;
 }
 
 export default function TestimonialsPage() {
   const t = useTranslations("testimonials");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    role: "",
+    company: "",
+    content: "",
+    rating: 5,
+  });
 
-  // Create testimonials with translations
-  const testimonials: Testimonial[] = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      role: t("items.3.role"),
-      company: t("items.3.company"),
-      content: t("items.3.quote"),
-      rating: 5,
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      role: t("items.4.role"),
-      company: t("items.4.company"),
-      content: t("items.4.quote"),
-      rating: 5,
-    },
-    {
-      id: 3,
-      name: "Emily Rodriguez",
-      role: t("items.5.role"),
-      company: t("items.5.company"),
-      content: t("items.5.quote"),
-      rating: 5,
-    },
-    {
-      id: 4,
-      name: "David Kumar",
-      role: t("items.6.role"),
-      company: t("items.6.company"),
-      content: t("items.6.quote"),
-      rating: 5,
-    },
-  ];
+  // Fetch testimonials
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/testimonials");
+        if (res.ok) {
+          const data = await res.json();
+          setTestimonials(Array.isArray(data) ? data : []);
+        } else {
+          console.error("Failed to fetch testimonials:", res.status);
+          setTestimonials([]);
+        }
+      } catch (error) {
+        console.error("Error fetching testimonials:", error);
+        setTestimonials([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitMessage(null);
+
+    try {
+      const res = await fetch("/api/testimonials", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          role: formData.role || null,
+          company: formData.company || null,
+          content: formData.content,
+          rating: formData.rating,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSubmitMessage({ 
+          type: "success", 
+          text: data.message || t("submitSuccess") 
+        });
+        setFormData({ name: "", email: "", role: "", company: "", content: "", rating: 5 });
+        setShowForm(false);
+        // Refresh testimonials list
+        const refreshRes = await fetch("/api/testimonials");
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          setTestimonials(Array.isArray(refreshData) ? refreshData : []);
+        }
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          setSubmitMessage(null);
+        }, 5000);
+      } else {
+        const error = await res.json();
+        setSubmitMessage({ type: "error", text: error.error || t("submitError") });
+      }
+    } catch (error) {
+      console.error("Error submitting testimonial:", error);
+      setSubmitMessage({ type: "error", text: t("submitError") });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background py-20">
@@ -112,7 +158,17 @@ export default function TestimonialsPage() {
         </ScrollAnimation>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-          {testimonials.map((testimonial, index) => (
+          {isLoading ? (
+            <div className="col-span-2 text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">{tCommon("loading")}</p>
+            </div>
+          ) : testimonials.length === 0 ? (
+            <div className="col-span-2 text-center py-12 text-muted-foreground">
+              <p>No testimonials yet. Be the first to leave a review!</p>
+            </div>
+          ) : (
+            testimonials.map((testimonial, index) => (
             <ScrollAnimation
               key={testimonial.id}
               animation={
@@ -143,7 +199,7 @@ export default function TestimonialsPage() {
                 {/* Author Info */}
                 <div className="flex items-center gap-4 pt-6 border-t border-border">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
-                    {testimonial.name.charAt(0)}
+                    {testimonial.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <p className="text-foreground font-semibold">
@@ -167,22 +223,188 @@ export default function TestimonialsPage() {
                 </div>
               </div>
             </ScrollAnimation>
-          ))}
+            ))
+          )}
         </div>
 
-        {/* Call to action */}
+        {/* Submit Testimonial Form */}
         <ScrollAnimation animation="fade-in" delay={0.4}>
-          <div className="text-center mt-16 p-8 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-2xl border border-blue-500/20">
-            <h2 className="text-2xl font-bold text-foreground mb-4">
-              {t("cta.heading")}
-            </h2>
-            <p className="text-muted-foreground mb-6">{t("cta.description")}</p>
-            <a
-              href={`/${locale}/contact`}
-              className="inline-block px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300"
-            >
-              {t("cta.button")}
-            </a>
+          <div className="mt-16">
+            {/* Success/Error Message - Show even when form is closed */}
+            {submitMessage && !showForm && (
+              <div
+                className={`mb-6 p-6 rounded-lg text-center max-w-2xl mx-auto ${
+                  submitMessage.type === "success"
+                    ? "bg-green-500/10 text-green-500 border-2 border-green-500/30"
+                    : "bg-red-500/10 text-red-500 border-2 border-red-500/30"
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  {submitMessage.type === "success" ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                  <p className="font-semibold text-lg">{submitMessage.text}</p>
+                </div>
+              </div>
+            )}
+            
+            {!showForm ? (
+              <div className="text-center p-8 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-2xl border border-blue-500/20">
+                <h2 className="text-2xl font-bold text-foreground mb-4">
+                  {t("cta.heading")}
+                </h2>
+                <p className="text-muted-foreground mb-6">{t("cta.description")}</p>
+                <div className="flex gap-4 justify-center items-center">
+                  <Button
+                    onClick={() => {
+                      setShowForm(true);
+                      setSubmitMessage(null);
+                    }}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 rounded-lg"
+                  >
+                    {t("submit")}
+                  </Button>
+                  <a
+                    href={`/${locale}/contact`}
+                    className="inline-flex items-center justify-center px-8 py-3 border-2 border-blue-500 text-blue-500 rounded-lg font-semibold hover:bg-blue-500 hover:text-white transition-all duration-300 whitespace-nowrap"
+                  >
+                    {t("cta.button")}
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <Card className="max-w-2xl mx-auto">
+                <CardHeader>
+                  <CardTitle>{t("submit")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {submitMessage && (
+                    <div
+                      className={`mb-4 p-4 rounded-lg ${
+                        submitMessage.type === "success"
+                          ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                          : "bg-red-500/10 text-red-500 border border-red-500/20"
+                      }`}
+                    >
+                      {submitMessage.text}
+                    </div>
+                  )}
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="name" className="text-sm font-medium text-foreground">
+                          {t("yourName")} *
+                        </label>
+                        <Input
+                          id="name"
+                          placeholder={t("yourName")}
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="email" className="text-sm font-medium text-foreground">
+                          {t("yourEmail")} *
+                        </label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder={t("yourEmail")}
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="role" className="text-sm font-medium text-foreground">
+                          {t("yourPosition")}
+                        </label>
+                        <Input
+                          id="role"
+                          placeholder={t("yourPosition")}
+                          value={formData.role}
+                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="company" className="text-sm font-medium text-foreground">
+                          {t("yourCompany")}
+                        </label>
+                        <Input
+                          id="company"
+                          placeholder={t("yourCompany")}
+                          value={formData.company}
+                          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="rating" className="text-sm font-medium text-foreground">
+                        {t("rating")} *
+                      </label>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, rating: star })}
+                            className={`text-2xl transition-colors ${
+                              star <= formData.rating
+                                ? "text-yellow-500"
+                                : "text-muted-foreground/30"
+                            }`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="content" className="text-sm font-medium text-foreground">
+                        {t("yourMessage")} *
+                      </label>
+                      <Textarea
+                        id="content"
+                        placeholder={t("yourMessage")}
+                        value={formData.content}
+                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                        rows={5}
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-4">
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600"
+                      >
+                        {isSubmitting ? tCommon("loading") : t("submit")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowForm(false);
+                          setSubmitMessage(null);
+                          setFormData({ name: "", email: "", role: "", company: "", content: "", rating: 5 });
+                        }}
+                      >
+                        {tCommon("cancel")}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </ScrollAnimation>
       </div>

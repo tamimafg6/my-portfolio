@@ -101,6 +101,20 @@ export const contactInfo = pgTable("contact_info", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Testimonials
+export const testimonials = pgTable("testimonials", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  role: text("role"),
+  company: text("company"),
+  content: text("content").notNull(),
+  rating: integer("rating").notNull().default(5),
+  isApproved: boolean("is_approved").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Schemas for validation
 export const insertSkillSchema = createInsertSchema(skills);
 export const selectSkillSchema = createSelectSchema(skills);
@@ -119,3 +133,6 @@ export const selectContactMessageSchema = createSelectSchema(contactMessages);
 
 export const insertContactInfoSchema = createInsertSchema(contactInfo);
 export const selectContactInfoSchema = createSelectSchema(contactInfo);
+
+export const insertTestimonialSchema = createInsertSchema(testimonials);
+export const selectTestimonialSchema = createSelectSchema(testimonials);

@@ -27,22 +27,40 @@ export const verifyToken = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.error("No Bearer token in Authorization header");
       return res.status(401).json({ error: "No token provided" });
     }
 
     const token = authHeader.substring(7);
+    console.log("Verifying token, length:", token.length);
 
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET) as {
-      id: string;
+      id?: string;
+      sub?: string; // Some tokens use 'sub' instead of 'id'
       email: string;
       role: string;
     };
 
-    req.user = decoded;
+    console.log("Token decoded successfully, role:", decoded.role);
+
+    // Normalize role to lowercase for consistency
+    const normalizedRole = decoded.role?.toLowerCase() || "";
+
+    // Map 'sub' to 'id' if needed
+    req.user = {
+      id: decoded.id || decoded.sub || "",
+      email: decoded.email,
+      role: normalizedRole,
+    };
+    
+    console.log("Normalized role:", normalizedRole);
     next();
   } catch (error) {
     console.error("Token verification error:", error);
+    if (error instanceof jwt.JsonWebTokenError) {
+      console.error("JWT Error:", error.message);
+    }
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 };

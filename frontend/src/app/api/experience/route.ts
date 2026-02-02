@@ -1,40 +1,42 @@
 import { NextResponse } from "next/server";
 
-const API_URL =
-  process.env.API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://backend:8080/api";
+function getApiUrl(): string {
+  const url =
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:8080/api";
+  return url.replace(/\/$/, "");
+}
 
 export async function GET() {
   try {
-    const res = await fetch(`${API_URL}/experience`, {
+    const apiUrl = getApiUrl();
+    const url = `${apiUrl}/experience`;
+    const res = await fetch(url, {
       cache: "no-store",
-      headers: {
-        "Accept": "application/json; charset=utf-8",
-        "Accept-Charset": "utf-8",
-      },
+      headers: { Accept: "application/json; charset=utf-8" },
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch experience: ${res.status}`);
+      const text = await res.text();
+      console.error("[API experience] Backend error:", res.status, url, text);
+      return NextResponse.json(
+        { error: "Failed to fetch experience", details: text },
+        { status: res.status, headers: { "Content-Type": "application/json; charset=utf-8" } }
+      );
     }
 
-    const data = await res.json();
-    return NextResponse.json(data, {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-      },
+    const raw = await res.json();
+    const arr = Array.isArray(raw) ? raw : [];
+    return NextResponse.json(arr, {
+      headers: { "Content-Type": "application/json; charset=utf-8" },
     });
-  } catch (error) {
-    console.error("Error fetching experience:", error);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[API experience] Request failed:", msg);
     return NextResponse.json(
-      { error: "Failed to fetch experience" },
-      { 
-        status: 500,
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-        },
-      },
+      { error: "Failed to fetch experience", details: msg },
+      { status: 500, headers: { "Content-Type": "application/json; charset=utf-8" } }
     );
   }
 }

@@ -136,7 +136,7 @@ export default async function EducationPage({
                         {edu.institution}
                       </h2>
                       <p className="text-xl text-blue-500 font-semibold mb-4">
-                        {edu.degree} in {edu.field}
+                        {edu.degree} {t("degreeFieldPreposition")} {edu.field}
                       </p>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-muted-foreground">
                         <div className="flex items-center gap-2">

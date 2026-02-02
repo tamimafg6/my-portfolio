@@ -31,6 +31,13 @@ async function handleTokenRequest(request: NextRequest) {
     }
 
     const user = sessionResult.user;
+    const userRole = (user as any).role || "CUSTOMER";
+    
+    // Normalize role to lowercase for backend compatibility
+    // Backend expects lowercase "admin", but database may store "ADMIN"
+    const normalizedRole = userRole.toLowerCase();
+    
+    console.log(`[Token] User role: ${userRole} -> normalized: ${normalizedRole}`);
     
     // Generate JWT token manually using the same secret and config as Better Auth
     const jwtSecret = process.env.BETTER_AUTH_JWT_SECRET || 
@@ -50,7 +57,7 @@ async function handleTokenRequest(request: NextRequest) {
         sub: user.id,
         email: user.email,
         name: user.name || null,
-        role: (user as any).role || "CUSTOMER",
+        role: normalizedRole, // Use normalized lowercase role
         locale: (user as any).locale || "en",
         iss: process.env.BETTER_AUTH_JWT_ISS || process.env.AUTH_JWT_ISS || "passion-jerseys-auth",
         aud: process.env.BETTER_AUTH_JWT_AUD || process.env.AUTH_JWT_AUD || "passion-jerseys-api",

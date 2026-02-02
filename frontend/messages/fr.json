@@ -151,6 +151,7 @@
     "description": "Mon parcours académique",
     "current": "Actuel",
     "present": "Présent",
+    "degreeFieldPreposition": "en",
     "achievements": "Réalisations",
     "relevantCoursework": "Cours Pertinents",
     "items": {

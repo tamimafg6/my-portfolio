@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import {
@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import ScrollAnimation from "@/components/ScrollAnimation";
 import {
   FolderKanban,
   Code,
@@ -21,22 +20,98 @@ import {
   Settings,
   Eye,
   ArrowRight,
-  Sparkles,
-  TrendingUp,
-  Users,
-  FileText,
+  Plus,
+  MessageSquare,
 } from "lucide-react";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const locale = useLocale();
+  const tEdu = useTranslations("education");
   const { authorized, loading } = useAdminAccess();
-  const [stats] = useState({
-    projects: 12,
-    skills: 24,
-    experience: 3,
-    education: 2,
+  const [stats, setStats] = useState({
+    projects: 0,
+    skills: 0,
+    experience: 0,
+    education: 0,
+    testimonials: 0,
   });
+  const [experienceList, setExperienceList] = useState<
+    { id: number; companyEn: string; positionEn: string; startDate: string; endDate: string | null; isCurrent: boolean }[]
+  >([]);
+  const [educationList, setEducationList] = useState<
+    { id: number; institutionEn: string; degreeEn: string; fieldEn: string | null; startDate: string; endDate: string | null }[]
+  >([]);
+
+  // Fetch stats and experience/education data
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [projectsRes, skillsRes, experienceRes, educationRes, testimonialsRes] = await Promise.all([
+          fetch("/api/projects"),
+          fetch("/api/skills"),
+          fetch("/api/experience"),
+          fetch("/api/education"),
+          fetch("/api/testimonials/admin", { credentials: "include" }),
+        ]);
+
+        if (projectsRes.ok) {
+          const data = await projectsRes.json();
+          setStats((prev) => ({ ...prev, projects: Array.isArray(data) ? data.length : 0 }));
+        }
+        if (skillsRes.ok) {
+          const data = await skillsRes.json();
+          setStats((prev) => ({ ...prev, skills: Array.isArray(data) ? data.length : 0 }));
+        }
+        if (experienceRes.ok) {
+          const data = await experienceRes.json();
+          const list = Array.isArray(data) ? data : [];
+          setStats((prev) => ({ ...prev, experience: list.length }));
+          setExperienceList(
+            list.map((e: { id: number; companyEn: string; positionEn: string; startDate: string; endDate: string | null; isCurrent: boolean }) => ({
+              id: e.id,
+              companyEn: e.companyEn,
+              positionEn: e.positionEn,
+              startDate: e.startDate,
+              endDate: e.endDate,
+              isCurrent: e.isCurrent,
+            }))
+          );
+        }
+        if (educationRes.ok) {
+          const data = await educationRes.json();
+          const list = Array.isArray(data) ? data : [];
+          setStats((prev) => ({ ...prev, education: list.length }));
+          setEducationList(
+            list.map((e: { id: number; institutionEn: string; degreeEn: string; fieldEn: string | null; startDate: string; endDate: string | null }) => ({
+              id: e.id,
+              institutionEn: e.institutionEn,
+              degreeEn: e.degreeEn,
+              fieldEn: e.fieldEn,
+              startDate: e.startDate,
+              endDate: e.endDate,
+            }))
+          );
+        }
+        if (testimonialsRes.ok) {
+          const data = await testimonialsRes.json();
+          setStats((prev) => ({ ...prev, testimonials: Array.isArray(data) ? data.length : 0 }));
+        }
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    };
+
+    if (authorized) {
+      fetchStats();
+    }
+  }, [authorized]);
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+  };
 
   useEffect(() => {
     if (!loading && !authorized) {
@@ -65,11 +140,7 @@ export default function AdminDashboard() {
       title: "Projects",
       description: "Manage your portfolio projects",
       icon: FolderKanban,
-      color: "from-blue-500 to-cyan-500",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/20",
-      textColor: "text-blue-600 dark:text-blue-400",
-      route: `/${locale}/admin/projects`,
+      route: "/admin/projects",
       count: stats.projects,
     },
     {
@@ -77,11 +148,7 @@ export default function AdminDashboard() {
       title: "Skills",
       description: "Update your technical skills",
       icon: Code,
-      color: "from-green-500 to-emerald-500",
-      bgColor: "bg-green-500/10",
-      borderColor: "border-green-500/20",
-      textColor: "text-green-600 dark:text-green-400",
-      route: `/${locale}/admin/skills`,
+      route: "/admin/skills",
       count: stats.skills,
     },
     {
@@ -89,11 +156,7 @@ export default function AdminDashboard() {
       title: "Experience",
       description: "Add or edit work experience",
       icon: Briefcase,
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-500/10",
-      borderColor: "border-purple-500/20",
-      textColor: "text-purple-600 dark:text-purple-400",
-      route: `/${locale}/admin/experience`,
+      route: "/admin/experience",
       count: stats.experience,
     },
     {
@@ -101,216 +164,331 @@ export default function AdminDashboard() {
       title: "Education",
       description: "Update educational background",
       icon: GraduationCap,
-      color: "from-amber-500 to-orange-500",
-      bgColor: "bg-amber-500/10",
-      borderColor: "border-amber-500/20",
-      textColor: "text-amber-600 dark:text-amber-400",
-      route: `/${locale}/admin/education`,
+      route: "/admin/education",
       count: stats.education,
+    },
+    {
+      id: "testimonials",
+      title: "Testimonials",
+      description: "Review and manage testimonials",
+      icon: MessageSquare,
+      route: "/admin/testimonials",
+      count: stats.testimonials,
     },
     {
       id: "settings",
       title: "Settings",
       description: "Configure portfolio settings",
       icon: Settings,
-      color: "from-gray-500 to-slate-500",
-      bgColor: "bg-gray-500/10",
-      borderColor: "border-gray-500/20",
-      textColor: "text-gray-600 dark:text-gray-400",
-      route: `/${locale}/admin/settings`,
+      route: "/admin/settings",
     },
     {
       id: "portfolio",
       title: "View Portfolio",
       description: "Preview your public portfolio",
       icon: Eye,
-      color: "from-indigo-500 to-violet-500",
-      bgColor: "bg-indigo-500/10",
-      borderColor: "border-indigo-500/20",
-      textColor: "text-indigo-600 dark:text-indigo-400",
-      route: `/${locale}`,
+      route: "/",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header Section */}
-        <ScrollAnimation animation="fade-in" delay={0}>
-          <div className="mb-8 sm:mb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground">
-                  Admin Dashboard
-                </h1>
-                <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                  Welcome to your portfolio management dashboard
-                </p>
-              </div>
-            </div>
-          </div>
-        </ScrollAnimation>
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
+            Dashboard
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Overview of your portfolio content
+          </p>
+        </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <ScrollAnimation animation="slide-up" delay={0.1}>
-            <Card className="border-border/50 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-xs sm:text-sm">
-                    Total Projects
-                  </CardDescription>
-                  <div className="p-2 rounded-lg bg-blue-500/10">
-                    <FolderKanban className="w-4 h-4 text-blue-500" />
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 border-0 shadow-md">
+            <CardContent className="p-6 text-white">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-medium opacity-90">PROJECTS</p>
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <FolderKanban className="w-5 h-5" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                  {stats.projects}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  Active
-                </p>
-              </CardContent>
-            </Card>
-          </ScrollAnimation>
+              </div>
+              <div className="text-3xl font-bold mb-1">{stats.projects}</div>
+              <p className="text-xs opacity-75">Active projects</p>
+            </CardContent>
+          </Card>
 
-          <ScrollAnimation animation="slide-up" delay={0.15}>
-            <Card className="border-border/50 hover:border-green-500/50 transition-all duration-300 hover:shadow-lg">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-xs sm:text-sm">
-                    Skills
-                  </CardDescription>
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <Code className="w-4 h-4 text-green-500" />
-                  </div>
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-md">
+            <CardContent className="p-6 text-white">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-medium opacity-90">SKILLS</p>
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <Code className="w-5 h-5" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                  {stats.skills}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  Listed
-                </p>
-              </CardContent>
-            </Card>
-          </ScrollAnimation>
+              </div>
+              <div className="text-3xl font-bold mb-1">{stats.skills}</div>
+              <p className="text-xs opacity-75">Technical skills</p>
+            </CardContent>
+          </Card>
 
-          <ScrollAnimation animation="slide-up" delay={0.2}>
-            <Card className="border-border/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-xs sm:text-sm">
-                    Experience
-                  </CardDescription>
-                  <div className="p-2 rounded-lg bg-purple-500/10">
-                    <Briefcase className="w-4 h-4 text-purple-500" />
-                  </div>
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-md">
+            <CardContent className="p-6 text-white">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-medium opacity-90">EXPERIENCE</p>
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <Briefcase className="w-5 h-5" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                  {stats.experience}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <FileText className="w-3 h-3" />
-                  Entries
-                </p>
-              </CardContent>
-            </Card>
-          </ScrollAnimation>
+              </div>
+              <div className="text-3xl font-bold mb-1">{stats.experience}</div>
+              <p className="text-xs opacity-75">Work entries</p>
+            </CardContent>
+          </Card>
 
-          <ScrollAnimation animation="slide-up" delay={0.25}>
-            <Card className="border-border/50 hover:border-amber-500/50 transition-all duration-300 hover:shadow-lg">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-xs sm:text-sm">
-                    Education
-                  </CardDescription>
-                  <div className="p-2 rounded-lg bg-amber-500/10">
-                    <GraduationCap className="w-4 h-4 text-amber-500" />
-                  </div>
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-md">
+            <CardContent className="p-6 text-white">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-medium opacity-90">EDUCATION</p>
+                <div className="p-3 bg-white/20 rounded-lg">
+                  <GraduationCap className="w-5 h-5" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                  {stats.education}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  Records
-                </p>
-              </CardContent>
-            </Card>
-          </ScrollAnimation>
+              </div>
+              <div className="text-3xl font-bold mb-1">{stats.education}</div>
+              <p className="text-xs opacity-75">Education records</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Main Dashboard Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {dashboardItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <ScrollAnimation
-                key={item.id}
-                animation="slide-up"
-                delay={0.3 + index * 0.1}
-              >
-                <Card
-                  className={`group relative overflow-hidden border ${item.borderColor} bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer`}
-                  onClick={() => router.push(item.route)}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Quick Actions Card */}
+          <Card className="lg:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => router.push("/admin/projects")}
                 >
-                  {/* Gradient Background Effect */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
-                  />
-                  
-                  <CardHeader className="relative">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`p-3 rounded-xl bg-gradient-to-br ${item.color} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                        <Icon className="w-6 h-6 text-white" />
+                  <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">New Project</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => router.push("/admin/skills")}
+                >
+                  <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">New Skill</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => router.push("/admin/experience")}
+                >
+                  <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Experience</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => router.push("/admin/education")}
+                >
+                  <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Education</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => router.push("/admin/testimonials")}
+                >
+                  <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Testimonials</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => router.push("/")}
+                >
+                  <Eye className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">View Portfolio</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Testimonials Summary Card */}
+          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Testimonials
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="text-center">
+                <div className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  {stats.testimonials}
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Total reviews
+                </p>
+                <Button
+                  variant="default"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => router.push("/admin/testimonials")}
+                >
+                  Manage Testimonials
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Experience & Education Data */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Experience */}
+          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Experience
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-200 dark:border-gray-700"
+                onClick={() => router.push("/admin/experience")}
+              >
+                View all
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              {experienceList.length === 0 ? (
+                <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                  No experience entries yet.
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {experienceList.map((exp) => (
+                    <li
+                      key={exp.id}
+                      className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                      onClick={() => router.push("/admin/experience")}
+                    >
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                        {exp.positionEn}
                       </div>
-                      {item.count !== undefined && (
-                        <div className={`px-3 py-1 rounded-full ${item.bgColor} border ${item.borderColor}`}>
-                          <span className={`text-sm font-semibold ${item.textColor}`}>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {exp.companyEn}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        {formatDate(exp.startDate)}
+                        {exp.isCurrent ? " – Present" : exp.endDate ? ` – ${formatDate(exp.endDate)}` : ""}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Education */}
+          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Education
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-200 dark:border-gray-700"
+                onClick={() => router.push("/admin/education")}
+              >
+                View all
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              {educationList.length === 0 ? (
+                <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                  No education entries yet.
+                </div>
+              ) : (
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {educationList.map((edu) => (
+                    <li
+                      key={edu.id}
+                      className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                      onClick={() => router.push("/admin/education")}
+                    >
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                        {edu.degreeEn}
+                        {edu.fieldEn ? ` ${tEdu("degreeFieldPreposition")} ${edu.fieldEn}` : ""}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {edu.institutionEn}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        {formatDate(edu.startDate)}
+                        {edu.endDate ? ` – ${formatDate(edu.endDate)}` : ""}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Sections */}
+        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+          <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Content Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {dashboardItems.filter(item => item.id !== "portfolio").map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.id}
+                    className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                    onClick={() => router.push(item.route)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700">
+                          <Icon className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                            {item.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {item.count !== undefined && (
+                          <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
                             {item.count}
                           </span>
-                        </div>
-                      )}
+                        )}
+                        <ArrowRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      </div>
                     </div>
-                    <CardTitle className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
-                      {item.title}
-                    </CardTitle>
-                    <CardDescription className="text-sm sm:text-base mt-2">
-                      {item.description}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="relative">
-                    <Button
-                      variant="default"
-                      className={`w-full bg-gradient-to-r ${item.color} hover:opacity-90 text-white font-semibold shadow-lg group-hover:shadow-xl transition-all duration-300`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(item.route);
-                      }}
-                    >
-                      {item.id === "portfolio" ? "View Portfolio" : `Manage ${item.title}`}
-                      <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              </ScrollAnimation>
-            );
-          })}
-        </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

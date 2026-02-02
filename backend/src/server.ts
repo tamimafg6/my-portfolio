@@ -7,6 +7,7 @@ import projectsRouter from "./routes/projects.js";
 import experienceRouter from "./routes/experience.js";
 import educationRouter from "./routes/education.js";
 import contactRouter from "./routes/contact.js";
+import testimonialsRouter from "./routes/testimonials.js";
 import { closeConnection } from "./lib/db.js";
 
 dotenv.config();
@@ -47,6 +48,7 @@ app.use("/api/projects", projectsRouter);
 app.use("/api/experience", experienceRouter);
 app.use("/api/education", educationRouter);
 app.use("/api/contact", contactRouter);
+app.use("/api/testimonials", testimonialsRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

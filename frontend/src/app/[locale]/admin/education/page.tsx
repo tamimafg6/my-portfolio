@@ -42,6 +42,7 @@ export default function AdminEducationPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [education, setEducation] = useState<Education[]>([]);
   const [isLoadingEducation, setIsLoadingEducation] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     institutionEn: "",
     institutionAr: "",
@@ -64,27 +65,30 @@ export default function AdminEducationPage() {
     }
   }, [authorized, loading, router, locale]);
 
-  // Fetch education
-  useEffect(() => {
-    const fetchEducation = async () => {
-      try {
-        setIsLoadingEducation(true);
-        const res = await fetch("/api/education");
-        if (res.ok) {
-          const data = await res.json();
-          setEducation(Array.isArray(data) ? data : []);
-        } else {
-          console.error("Failed to fetch education:", res.status);
-          setEducation([]);
-        }
-      } catch (error) {
-        console.error("Error fetching education:", error);
+  const fetchEducation = async () => {
+    try {
+      setIsLoadingEducation(true);
+      setFetchError(null);
+      const res = await fetch("/api/education");
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data)) {
+        setEducation(data);
+      } else {
         setEducation([]);
-      } finally {
-        setIsLoadingEducation(false);
+        setFetchError(
+          data?.error || (res.ok ? "Invalid response" : `Failed to load (${res.status})`)
+        );
       }
-    };
+    } catch (error) {
+      console.error("Error fetching education:", error);
+      setEducation([]);
+      setFetchError("Could not reach the server. Is the backend running?");
+    } finally {
+      setIsLoadingEducation(false);
+    }
+  };
 
+  useEffect(() => {
     if (authorized) {
       fetchEducation();
     }
@@ -191,6 +195,14 @@ export default function AdminEducationPage() {
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-4 text-muted-foreground">Loading education...</p>
+              </div>
+            ) : fetchError ? (
+              <div className="text-center py-12">
+                <p className="text-destructive font-medium mb-2">Error loading education</p>
+                <p className="text-sm text-muted-foreground mb-4">{fetchError}</p>
+                <Button variant="outline" onClick={() => fetchEducation()}>
+                  Retry
+                </Button>
               </div>
             ) : education.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
