@@ -28,6 +28,18 @@ interface Skill {
   order: number;
 }
 
+const CATEGORY_TO_KEY: Record<string, string> = {
+  "Programming Languages": "categoryProgrammingLanguages",
+  "Frameworks": "categoryFrameworks",
+  "Databases & Cloud": "categoryDatabasesAndCloud",
+  "Tools": "categoryTools",
+  "Operating Systems": "categoryOperatingSystems",
+  "Databases": "categoryDatabases",
+  "Cloud": "categoryCloud",
+  "DevOps": "categoryDevOps",
+  "Other": "categoryOther",
+};
+
 export default function AdminSkillsPage() {
   const router = useRouter();
   const locale = useLocale();
@@ -248,10 +260,10 @@ export default function AdminSkillsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-lg font-semibold text-foreground">
-                            {skill.nameEn}
+                            {locale === "fr" ? (skill.nameAr || skill.nameEn) : skill.nameEn}
                           </h3>
                           <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                            {skill.category}
+                            {CATEGORY_TO_KEY[skill.category] ? t(CATEGORY_TO_KEY[skill.category]) : skill.category}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -284,7 +296,7 @@ export default function AdminSkillsPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => setDeleteConfirm({ id: skill.id, name: skill.nameEn })}
+                          onClick={() => setDeleteConfirm({ id: skill.id, name: locale === "fr" ? (skill.nameAr || skill.nameEn) : skill.nameEn })}
                           aria-label="Delete skill"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />

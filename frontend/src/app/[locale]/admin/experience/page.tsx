@@ -274,7 +274,7 @@ export default function AdminExperiencePage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-lg font-semibold text-foreground">
-                            {exp.positionEn}
+                            {locale === "fr" ? (exp.positionAr || exp.positionEn) : exp.positionEn}
                           </h3>
                           {exp.isCurrent && (
                             <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-500/10 text-green-500 border border-green-500/20">
@@ -283,11 +283,11 @@ export default function AdminExperiencePage() {
                           )}
                         </div>
                         <p className="text-base font-medium text-foreground mb-2">
-                          {exp.companyEn}
+                          {locale === "fr" ? (exp.companyAr || exp.companyEn) : exp.companyEn}
                         </p>
-                        {exp.descriptionEn && (
+                        {(locale === "fr" ? exp.descriptionAr : exp.descriptionEn) && (
                           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {exp.descriptionEn}
+                            {locale === "fr" ? (exp.descriptionAr || exp.descriptionEn) : exp.descriptionEn}
                           </p>
                         )}
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -329,7 +329,7 @@ export default function AdminExperiencePage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => setDeleteConfirm({ id: exp.id, name: `${exp.positionEn} at ${exp.companyEn}` })}
+                          onClick={() => setDeleteConfirm({ id: exp.id, name: `${locale === "fr" ? (exp.positionAr || exp.positionEn) : exp.positionEn} - ${locale === "fr" ? (exp.companyAr || exp.companyEn) : exp.companyEn}` })}
                           aria-label="Delete experience"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />

@@ -282,19 +282,19 @@ export default function AdminEducationPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-foreground mb-1">
-                          {edu.degreeEn}
+                          {locale === "fr" ? (edu.degreeAr || edu.degreeEn) : edu.degreeEn}
                         </h3>
                         <p className="text-base font-medium text-foreground mb-2">
-                          {edu.institutionEn}
+                          {locale === "fr" ? (edu.institutionAr || edu.institutionEn) : edu.institutionEn}
                         </p>
-                        {edu.fieldEn && (
+                        {(locale === "fr" ? edu.fieldAr : edu.fieldEn) && (
                           <p className="text-sm text-muted-foreground mb-2">
-                            {edu.fieldEn}
+                            {locale === "fr" ? (edu.fieldAr || edu.fieldEn) : edu.fieldEn}
                           </p>
                         )}
-                        {edu.descriptionEn && (
+                        {(locale === "fr" ? edu.descriptionAr : edu.descriptionEn) && (
                           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {edu.descriptionEn}
+                            {locale === "fr" ? (edu.descriptionAr || edu.descriptionEn) : edu.descriptionEn}
                           </p>
                         )}
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -339,7 +339,7 @@ export default function AdminEducationPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => setDeleteConfirm({ id: edu.id, name: `${edu.degreeEn} at ${edu.institutionEn}` })}
+                          onClick={() => setDeleteConfirm({ id: edu.id, name: `${locale === "fr" ? (edu.degreeAr || edu.degreeEn) : edu.degreeEn} - ${locale === "fr" ? (edu.institutionAr || edu.institutionEn) : edu.institutionEn}` })}
                           aria-label="Delete education"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />

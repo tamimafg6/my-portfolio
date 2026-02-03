@@ -250,16 +250,16 @@ export default function AdminProjectsPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-lg font-semibold text-foreground">
-                            {project.titleEn}
+                            {locale === "fr" ? (project.titleAr || project.titleEn) : project.titleEn}
                           </h3>
                           {project.featured && (
                             <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                              Featured
+                              {t("featured")}
                             </span>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                          {project.descriptionEn}
+                          {locale === "fr" ? (project.descriptionAr || project.descriptionEn) : project.descriptionEn}
                         </p>
                         {project.technologies && (
                           <div className="flex flex-wrap gap-2 mb-3">
@@ -313,7 +313,7 @@ export default function AdminProjectsPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => setDeleteConfirm({ id: project.id, name: project.titleEn })}
+                          onClick={() => setDeleteConfirm({ id: project.id, name: locale === "fr" ? (project.titleAr || project.titleEn) : project.titleEn })}
                           aria-label="Delete project"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
