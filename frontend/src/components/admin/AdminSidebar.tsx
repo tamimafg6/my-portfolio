@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "@/i18n/routing";
-import { useLocale } from "next-intl";
-import Link from "next/link";
+import { Link, usePathname } from "@/i18n/routing";
+import { useLocale, useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -16,6 +15,9 @@ import {
   Menu,
   X,
   MessageSquare,
+  Heart,
+  Languages,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
@@ -29,53 +31,20 @@ interface NavItem {
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("sidebar");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      route: "/admin/dashboard",
-    },
-    {
-      id: "projects",
-      label: "Projects",
-      icon: FolderKanban,
-      route: "/admin/projects",
-    },
-    {
-      id: "skills",
-      label: "Skills",
-      icon: Code,
-      route: "/admin/skills",
-    },
-    {
-      id: "experience",
-      label: "Experience",
-      icon: Briefcase,
-      route: "/admin/experience",
-    },
-    {
-      id: "education",
-      label: "Education",
-      icon: GraduationCap,
-      route: "/admin/education",
-    },
-    {
-      id: "testimonials",
-      label: "Testimonials",
-      icon: MessageSquare,
-      route: "/admin/testimonials",
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-      route: "/admin/settings",
-    },
+    { id: "dashboard", label: t("dashboard"), icon: LayoutDashboard, route: "/admin/dashboard" },
+    { id: "projects", label: t("projects"), icon: FolderKanban, route: "/admin/projects" },
+    { id: "skills", label: t("skills"), icon: Code, route: "/admin/skills" },
+    { id: "experience", label: t("experience"), icon: Briefcase, route: "/admin/experience" },
+    { id: "education", label: t("education"), icon: GraduationCap, route: "/admin/education" },
+    { id: "testimonials", label: t("testimonials"), icon: MessageSquare, route: "/admin/testimonials" },
+    { id: "hobbies", label: t("hobbies"), icon: Heart, route: "/admin/hobbies" },
+    { id: "messages", label: t("messages"), icon: MessageSquare, route: "/admin/messages" },
+    { id: "settings", label: t("settings"), icon: Mail, route: "/admin/settings" },
   ];
 
   const isActive = (route: string) => {
@@ -133,8 +102,8 @@ export default function AdminSidebar() {
                 <LayoutDashboard className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-lg text-foreground">Admin Panel</h2>
-                <p className="text-xs text-muted-foreground">Portfolio Management</p>
+                <h2 className="font-bold text-lg text-foreground">{t("adminPanel")}</h2>
+                <p className="text-xs text-muted-foreground">{t("portfolioManagement")}</p>
               </div>
             </div>
           </div>
@@ -164,13 +133,29 @@ export default function AdminSidebar() {
 
           {/* Footer Actions */}
           <div className="p-4 border-t border-border space-y-2">
+            {/* Language Toggle - full navigation so locale and messages reload */}
+            <Button
+              variant="ghost"
+              onClick={() => {
+                const newLocale = locale === "en" ? "fr" : "en";
+                const path = typeof window !== "undefined" ? window.location.pathname : "";
+                const pathWithoutLocale = path.replace(/^\/(en|fr)/, "").trim() || "admin";
+                const newPath = `/${newLocale}/${pathWithoutLocale}`;
+                window.location.href = newPath;
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full justify-start gap-3 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            >
+              <Languages className="w-5 h-5" />
+              <span className="font-medium">{locale === "en" ? t("switchToFrench") : t("switchToEnglish")}</span>
+            </Button>
             <Link
               href="/"
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             >
               <Eye className="w-5 h-5" />
-              <span className="font-medium">View Portfolio</span>
+              <span className="font-medium">{t("viewPortfolio")}</span>
             </Link>
             <Button
               variant="ghost"
@@ -178,7 +163,7 @@ export default function AdminSidebar() {
               className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-500/10"
             >
               <LogOut className="w-5 h-5" />
-              <span className="font-medium">Logout</span>
+              <span className="font-medium">{t("logout")}</span>
             </Button>
           </div>
         </div>

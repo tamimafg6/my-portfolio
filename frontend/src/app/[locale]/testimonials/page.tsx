@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { validateTestimonialForm, capLength, LIMITS } from "@/lib/form-validation";
 
 interface Testimonial {
   id: number;
@@ -37,6 +38,7 @@ export default function TestimonialsPage() {
     content: "",
     rating: 5,
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Fetch testimonials
   useEffect(() => {
@@ -64,6 +66,14 @@ export default function TestimonialsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
+    const result = validateTestimonialForm(formData);
+    if (!result.ok) {
+      setFieldErrors(result.errors);
+      setSubmitMessage({ type: "error", text: Object.values(result.errors)[0] ?? t("submitError") });
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitMessage(null);
 
@@ -73,14 +83,7 @@ export default function TestimonialsPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          role: formData.role || null,
-          company: formData.company || null,
-          content: formData.content,
-          rating: formData.rating,
-        }),
+        body: JSON.stringify(result.data),
       });
 
       if (res.ok) {
@@ -97,10 +100,7 @@ export default function TestimonialsPage() {
           const refreshData = await refreshRes.json();
           setTestimonials(Array.isArray(refreshData) ? refreshData : []);
         }
-        // Clear success message after 5 seconds
-        setTimeout(() => {
-          setSubmitMessage(null);
-        }, 5000);
+        setTimeout(() => setSubmitMessage(null), 5000);
       } else {
         const error = await res.json();
         setSubmitMessage({ type: "error", text: error.error || t("submitError") });
@@ -177,20 +177,6 @@ export default function TestimonialsPage() {
               delay={index * 0.1}
             >
               <div className="bg-card backdrop-blur-sm p-8 rounded-2xl border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group relative">
-                {/* Rating Stars */}
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <svg
-                      key={i}
-                      className="w-5 h-5 text-yellow-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-
                 {/* Testimonial Content */}
                 <blockquote className="text-foreground text-lg mb-6 italic leading-relaxed">
                   "{testimonial.content}"
@@ -305,9 +291,15 @@ export default function TestimonialsPage() {
                           id="name"
                           placeholder={t("yourName")}
                           value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, name: capLength(e.target.value, LIMITS.name) });
+                            if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: "" }));
+                          }}
                           required
+                          maxLength={LIMITS.name}
+                          className={fieldErrors.name ? "border-red-500" : ""}
                         />
+                        {fieldErrors.name && <p className="text-sm text-red-500" role="alert">{fieldErrors.name}</p>}
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="email" className="text-sm font-medium text-foreground">
@@ -318,9 +310,15 @@ export default function TestimonialsPage() {
                           type="email"
                           placeholder={t("yourEmail")}
                           value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, email: capLength(e.target.value, LIMITS.email) });
+                            if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: "" }));
+                          }}
                           required
+                          maxLength={LIMITS.email}
+                          className={fieldErrors.email ? "border-red-500" : ""}
                         />
+                        {fieldErrors.email && <p className="text-sm text-red-500" role="alert">{fieldErrors.email}</p>}
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -332,7 +330,8 @@ export default function TestimonialsPage() {
                           id="role"
                           placeholder={t("yourPosition")}
                           value={formData.role}
-                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, role: capLength(e.target.value, LIMITS.role) })}
+                          maxLength={LIMITS.role}
                         />
                       </div>
                       <div className="space-y-2">
@@ -343,29 +342,9 @@ export default function TestimonialsPage() {
                           id="company"
                           placeholder={t("yourCompany")}
                           value={formData.company}
-                          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, company: capLength(e.target.value, LIMITS.company) })}
+                          maxLength={LIMITS.company}
                         />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="rating" className="text-sm font-medium text-foreground">
-                        {t("rating")} *
-                      </label>
-                      <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => setFormData({ ...formData, rating: star })}
-                            className={`text-2xl transition-colors ${
-                              star <= formData.rating
-                                ? "text-yellow-500"
-                                : "text-muted-foreground/30"
-                            }`}
-                          >
-                            ★
-                          </button>
-                        ))}
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -376,10 +355,16 @@ export default function TestimonialsPage() {
                         id="content"
                         placeholder={t("yourMessage")}
                         value={formData.content}
-                        onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                        onChange={(e) => {
+                          setFormData({ ...formData, content: capLength(e.target.value, LIMITS.content) });
+                          if (fieldErrors.content) setFieldErrors((prev) => ({ ...prev, content: "" }));
+                        }}
                         rows={5}
                         required
+                        maxLength={LIMITS.content}
+                        className={fieldErrors.content ? "border-red-500" : ""}
                       />
+                      {fieldErrors.content && <p className="text-sm text-red-500" role="alert">{fieldErrors.content}</p>}
                     </div>
                     <div className="flex gap-4">
                       <Button

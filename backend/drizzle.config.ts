@@ -5,7 +5,7 @@ import postgres from "postgres";
 const connectionString = process.env.DATABASE_URL!;
 
 export default {
-  schema: "./src/db/schema/*",
+  schema: ["./src/db/schema/auth.ts", "./src/db/schema/portfolio.ts"],
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {

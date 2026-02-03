@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,8 +35,12 @@ interface Project {
 export default function AdminProjectsPage() {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("admin.projectsPage");
+  const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [formData, setFormData] = useState({
@@ -88,7 +92,7 @@ export default function AdminProjectsPage() {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">{tCommon("loading")}</p>
         </div>
       </div>
     );
@@ -98,54 +102,108 @@ export default function AdminProjectsPage() {
     return null;
   }
 
+  const emptyForm = () => ({
+    titleEn: "",
+    titleAr: "",
+    descriptionEn: "",
+    descriptionAr: "",
+    technologies: "",
+    githubUrl: "",
+    url: "",
+    featured: false,
+  });
+
+  const openEditModal = (project: Project) => {
+    setEditingProject(project);
+    setFormData({
+      titleEn: project.titleEn,
+      titleAr: project.titleAr || "",
+      descriptionEn: project.descriptionEn || "",
+      descriptionAr: project.descriptionAr || "",
+      technologies: project.technologies || "",
+      githubUrl: project.githubUrl || "",
+      url: project.url || "",
+      featured: project.featured ?? false,
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingProject(null);
+    setFormData(emptyForm());
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
     try {
-      const res = await fetch("/api/projects", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          titleEn: formData.titleEn,
-          titleAr: formData.titleAr || formData.titleEn,
-          descriptionEn: formData.descriptionEn,
-          descriptionAr: formData.descriptionAr || formData.descriptionEn,
-          technologies: formData.technologies,
-          githubUrl: formData.githubUrl || null,
-          url: formData.url || null,
-          featured: formData.featured,
-          order: projects.length,
-        }),
-      });
-
-      if (res.ok) {
-        const newProject = await res.json();
-        setProjects([...projects, newProject]);
-        setFormData({ 
-          titleEn: "", 
-          titleAr: "", 
-          descriptionEn: "", 
-          descriptionAr: "", 
-          technologies: "", 
-          githubUrl: "", 
-          url: "",
-          featured: false,
+      const payload = {
+        titleEn: formData.titleEn,
+        titleAr: formData.titleAr || formData.titleEn,
+        descriptionEn: formData.descriptionEn,
+        descriptionAr: formData.descriptionAr || formData.descriptionEn,
+        technologies: formData.technologies,
+        githubUrl: formData.githubUrl || null,
+        url: formData.url || null,
+        featured: formData.featured,
+        order: editingProject ? editingProject.order : projects.length,
+      };
+      if (editingProject) {
+        const res = await fetch(`/api/projects/${editingProject.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
         });
-        setIsModalOpen(false);
+        if (res.ok) {
+          const updated = await res.json();
+          setProjects(projects.map((p) => (p.id === editingProject.id ? updated : p)));
+          closeModal();
+        } else {
+          const err = await res.json();
+          alert(err.error || t("failedUpdate"));
+        }
       } else {
-        const error = await res.json();
-        console.error("Failed to create project:", error);
-        alert("Failed to create project. Please try again.");
+        const res = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const newProject = await res.json();
+          setProjects([...projects, newProject]);
+          closeModal();
+        } else {
+          const error = await res.json();
+          alert(error.error || t("failedCreate"));
+        }
       }
     } catch (error) {
-      console.error("Failed to create project:", error);
-      alert("Failed to create project. Please try again.");
+      console.error("Failed to save project:", error);
+      alert(t("failedSave"));
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
+    try {
+      const res = await fetch(`/api/projects/${deleteConfirm.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        setProjects(projects.filter((p) => p.id !== deleteConfirm.id));
+        setDeleteConfirm(null);
+      } else {
+        alert(t("failedDelete"));
+      }
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      alert(t("failedDelete"));
     }
   };
 
@@ -154,32 +212,32 @@ export default function AdminProjectsPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Projects Management</h1>
-            <p className="text-muted-foreground mt-2">Manage your portfolio projects</p>
+            <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
+            <p className="text-muted-foreground mt-2">{t("subtitle")}</p>
           </div>
-          <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
+          <Button className="gap-2" onClick={() => { setEditingProject(null); setFormData(emptyForm()); setIsModalOpen(true); }}>
             <Plus className="w-4 h-4" />
-            Add New Project
+            {t("addNew")}
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Projects</CardTitle>
+            <CardTitle>{t("title").replace(" Management", "")}</CardTitle>
             <CardDescription>
-              {projects.length} {projects.length === 1 ? "project" : "projects"} in your portfolio
+              {t("projectsCount", { count: projects.length })} {t("inPortfolio")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoadingProjects ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-4 text-muted-foreground">Loading projects...</p>
+                <p className="mt-4 text-muted-foreground">{t("loading")}</p>
               </div>
             ) : projects.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <FolderKanban className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>No projects yet. Create your first project to get started.</p>
+                <p>{t("empty")}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -247,34 +305,16 @@ export default function AdminProjectsPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => {
-                            // TODO: Implement edit functionality
-                            console.log("Edit project:", project.id);
-                          }}
+                          onClick={() => openEditModal(project)}
+                          aria-label="Edit project"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={async () => {
-                            if (confirm("Are you sure you want to delete this project?")) {
-                              try {
-                                const res = await fetch(`/api/projects/${project.id}`, {
-                                  method: "DELETE",
-                                  credentials: "include",
-                                });
-                                if (res.ok) {
-                                  setProjects(projects.filter((p) => p.id !== project.id));
-                                } else {
-                                  alert("Failed to delete project");
-                                }
-                              } catch (error) {
-                                console.error("Failed to delete project:", error);
-                                alert("Failed to delete project");
-                              }
-                            }
-                          }}
+                          onClick={() => setDeleteConfirm({ id: project.id, name: project.titleEn })}
+                          aria-label="Delete project"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
@@ -288,20 +328,20 @@ export default function AdminProjectsPage() {
         </Card>
       </div>
 
-      {/* Add Project Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {/* Add/Edit Project Modal */}
+      <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) closeModal(); }}>
+        <DialogContent className="max-w-4xl w-[85vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Project</DialogTitle>
+            <DialogTitle>{editingProject ? t("edit") : t("addNew")}</DialogTitle>
             <DialogDescription>
-              Add a new project to your portfolio
+              {editingProject ? t("edit") : t("add")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="titleEn" className="text-sm font-medium text-foreground">
-                  Project Name (English) *
+                  {t("titleEn")} *
                 </label>
                 <Input
                   id="titleEn"
@@ -313,7 +353,7 @@ export default function AdminProjectsPage() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="titleAr" className="text-sm font-medium text-foreground">
-                  Project Name (French)
+                  {t("titleAr")}
                 </label>
                 <Input
                   id="titleAr"
@@ -326,33 +366,35 @@ export default function AdminProjectsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="descriptionEn" className="text-sm font-medium text-foreground">
-                  Description (English) *
+                  {t("descriptionEn")} *
                 </label>
                 <Textarea
                   id="descriptionEn"
                   placeholder="Describe your project in English..."
                   value={formData.descriptionEn}
                   onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
-                  rows={4}
+                  rows={10}
+                  className="min-h-[260px] resize-y"
                   required
                 />
               </div>
               <div className="space-y-2">
                 <label htmlFor="descriptionAr" className="text-sm font-medium text-foreground">
-                  Description (French)
+                  {t("descriptionAr")}
                 </label>
                 <Textarea
                   id="descriptionAr"
                   placeholder="Décrivez votre projet en français..."
                   value={formData.descriptionAr}
                   onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
-                  rows={4}
+                  rows={10}
+                  className="min-h-[260px] resize-y"
                 />
               </div>
             </div>
             <div className="space-y-2">
               <label htmlFor="technologies" className="text-sm font-medium text-foreground">
-                Technologies *
+                {t("technologies")} *
               </label>
               <Input
                 id="technologies"
@@ -365,7 +407,7 @@ export default function AdminProjectsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="githubUrl" className="text-sm font-medium text-foreground">
-                  GitHub URL
+                  {t("githubUrl")}
                 </label>
                 <Input
                   id="githubUrl"
@@ -377,7 +419,7 @@ export default function AdminProjectsPage() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="url" className="text-sm font-medium text-foreground">
-                  Live Demo URL
+                  {t("url")}
                 </label>
                 <Input
                   id="url"
@@ -397,23 +439,45 @@ export default function AdminProjectsPage() {
                 className="w-4 h-4 rounded border-border"
               />
               <label htmlFor="featured" className="text-sm font-medium text-foreground">
-                Mark as Featured
+                {t("featured")}
               </label>
             </div>
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 disabled={isSubmitting}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Project"}
+                {isSubmitting ? t("saving") : editingProject ? tCommon("save") : t("add")}
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!deleteConfirm} onOpenChange={(open) => { if (!open) setDeleteConfirm(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("deleteConfirm")}</DialogTitle>
+            <DialogDescription>
+              {deleteConfirm
+                ? `"${deleteConfirm.name}"`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              {tCommon("delete")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -115,16 +115,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const contentType = res.headers.get("content-type");
+    console.log("[Admin Testimonials] Response content-type:", contentType);
+    
     const data = await res.json();
+    console.log("[Admin Testimonials] Data received:", Array.isArray(data) ? `Array with ${data.length} items` : typeof data);
+    
     return NextResponse.json(data, {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
       },
     });
-  } catch (error) {
-    console.error("Error fetching testimonials:", error);
+  } catch (error: any) {
+    console.error("[Admin Testimonials] Error in route handler:", error?.message || error);
+    console.error("[Admin Testimonials] Error stack:", error?.stack);
     return NextResponse.json(
-      { error: "Failed to fetch testimonials" },
+      { error: "Failed to fetch testimonials", details: error?.message || String(error) },
       { 
         status: 500,
         headers: {

@@ -22,11 +22,15 @@ import {
   ArrowRight,
   Plus,
   MessageSquare,
+  Heart,
+  Mail,
 } from "lucide-react";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("admin.dashboardPage");
+  const tCommon = useTranslations("common");
   const tEdu = useTranslations("education");
   const { authorized, loading } = useAdminAccess();
   const [stats, setStats] = useState({
@@ -35,6 +39,7 @@ export default function AdminDashboard() {
     experience: 0,
     education: 0,
     testimonials: 0,
+    messages: 0,
   });
   const [experienceList, setExperienceList] = useState<
     { id: number; companyEn: string; positionEn: string; startDate: string; endDate: string | null; isCurrent: boolean }[]
@@ -47,12 +52,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [projectsRes, skillsRes, experienceRes, educationRes, testimonialsRes] = await Promise.all([
+        const [projectsRes, skillsRes, experienceRes, educationRes, testimonialsRes, messagesRes] = await Promise.all([
           fetch("/api/projects"),
           fetch("/api/skills"),
           fetch("/api/experience"),
           fetch("/api/education"),
           fetch("/api/testimonials/admin", { credentials: "include" }),
+          fetch("/api/contact/messages", { credentials: "include" }),
         ]);
 
         if (projectsRes.ok) {
@@ -97,6 +103,10 @@ export default function AdminDashboard() {
           const data = await testimonialsRes.json();
           setStats((prev) => ({ ...prev, testimonials: Array.isArray(data) ? data.length : 0 }));
         }
+        if (messagesRes.ok) {
+          const data = await messagesRes.json();
+          setStats((prev) => ({ ...prev, messages: Array.isArray(data) ? data.length : 0 }));
+        }
       } catch (error) {
         console.error("Error fetching stats:", error);
       }
@@ -110,7 +120,7 @@ export default function AdminDashboard() {
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", { year: "numeric", month: "short", timeZone: "UTC" });
   };
 
   useEffect(() => {
@@ -124,7 +134,7 @@ export default function AdminDashboard() {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">{tCommon("loading")}</p>
         </div>
       </div>
     );
@@ -135,60 +145,14 @@ export default function AdminDashboard() {
   }
 
   const dashboardItems = [
-    {
-      id: "projects",
-      title: "Projects",
-      description: "Manage your portfolio projects",
-      icon: FolderKanban,
-      route: "/admin/projects",
-      count: stats.projects,
-    },
-    {
-      id: "skills",
-      title: "Skills",
-      description: "Update your technical skills",
-      icon: Code,
-      route: "/admin/skills",
-      count: stats.skills,
-    },
-    {
-      id: "experience",
-      title: "Experience",
-      description: "Add or edit work experience",
-      icon: Briefcase,
-      route: "/admin/experience",
-      count: stats.experience,
-    },
-    {
-      id: "education",
-      title: "Education",
-      description: "Update educational background",
-      icon: GraduationCap,
-      route: "/admin/education",
-      count: stats.education,
-    },
-    {
-      id: "testimonials",
-      title: "Testimonials",
-      description: "Review and manage testimonials",
-      icon: MessageSquare,
-      route: "/admin/testimonials",
-      count: stats.testimonials,
-    },
-    {
-      id: "settings",
-      title: "Settings",
-      description: "Configure portfolio settings",
-      icon: Settings,
-      route: "/admin/settings",
-    },
-    {
-      id: "portfolio",
-      title: "View Portfolio",
-      description: "Preview your public portfolio",
-      icon: Eye,
-      route: "/",
-    },
+    { id: "projects", title: t("projects"), description: t("projectsDesc"), icon: FolderKanban, route: "/admin/projects", count: stats.projects },
+    { id: "skills", title: t("skills"), description: t("skillsDesc"), icon: Code, route: "/admin/skills", count: stats.skills },
+    { id: "experience", title: t("experience"), description: t("experienceDesc"), icon: Briefcase, route: "/admin/experience", count: stats.experience },
+    { id: "education", title: t("education"), description: t("educationDesc"), icon: GraduationCap, route: "/admin/education", count: stats.education },
+    { id: "testimonials", title: t("testimonials"), description: t("testimonialsDesc"), icon: MessageSquare, route: "/admin/testimonials", count: stats.testimonials },
+    { id: "messages", title: t("messages"), description: t("messagesDesc"), icon: Mail, route: "/admin/messages", count: stats.messages },
+    { id: "settings", title: t("settings"), description: t("settingsDesc"), icon: Settings, route: "/admin/settings" },
+    { id: "portfolio", title: t("viewPortfolio"), description: t("viewPortfolioDesc"), icon: Eye, route: "/" },
   ];
 
   return (
@@ -197,10 +161,10 @@ export default function AdminDashboard() {
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
-            Dashboard
+            {t("title")}
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Overview of your portfolio content
+            {t("subtitle")}
           </p>
         </div>
 
@@ -209,52 +173,52 @@ export default function AdminDashboard() {
           <Card className="bg-gradient-to-br from-green-500 to-green-600 border-0 shadow-md">
             <CardContent className="p-6 text-white">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-medium opacity-90">PROJECTS</p>
+                <p className="text-sm font-medium opacity-90">{t("projects").toUpperCase()}</p>
                 <div className="p-3 bg-white/20 rounded-lg">
                   <FolderKanban className="w-5 h-5" />
                 </div>
               </div>
               <div className="text-3xl font-bold mb-1">{stats.projects}</div>
-              <p className="text-xs opacity-75">Active projects</p>
+              <p className="text-xs opacity-75">{t("activeProjects")}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-md">
             <CardContent className="p-6 text-white">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-medium opacity-90">SKILLS</p>
+                <p className="text-sm font-medium opacity-90">{t("skills").toUpperCase()}</p>
                 <div className="p-3 bg-white/20 rounded-lg">
                   <Code className="w-5 h-5" />
                 </div>
               </div>
               <div className="text-3xl font-bold mb-1">{stats.skills}</div>
-              <p className="text-xs opacity-75">Technical skills</p>
+              <p className="text-xs opacity-75">{t("technicalSkills")}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-md">
             <CardContent className="p-6 text-white">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-medium opacity-90">EXPERIENCE</p>
+                <p className="text-sm font-medium opacity-90">{t("experience").toUpperCase()}</p>
                 <div className="p-3 bg-white/20 rounded-lg">
                   <Briefcase className="w-5 h-5" />
                 </div>
               </div>
               <div className="text-3xl font-bold mb-1">{stats.experience}</div>
-              <p className="text-xs opacity-75">Work entries</p>
+              <p className="text-xs opacity-75">{t("workEntries")}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-md">
             <CardContent className="p-6 text-white">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-medium opacity-90">EDUCATION</p>
+                <p className="text-sm font-medium opacity-90">{t("education").toUpperCase()}</p>
                 <div className="p-3 bg-white/20 rounded-lg">
                   <GraduationCap className="w-5 h-5" />
                 </div>
               </div>
               <div className="text-3xl font-bold mb-1">{stats.education}</div>
-              <p className="text-xs opacity-75">Education records</p>
+              <p className="text-xs opacity-75">{t("educationRecords")}</p>
             </CardContent>
           </Card>
         </div>
@@ -265,7 +229,7 @@ export default function AdminDashboard() {
           <Card className="lg:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
             <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Quick Actions
+                {t("quickActions")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -276,7 +240,7 @@ export default function AdminDashboard() {
                   onClick={() => router.push("/admin/projects")}
                 >
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">New Project</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("newProject")}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -284,7 +248,7 @@ export default function AdminDashboard() {
                   onClick={() => router.push("/admin/skills")}
                 >
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">New Skill</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("newSkill")}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -292,7 +256,7 @@ export default function AdminDashboard() {
                   onClick={() => router.push("/admin/experience")}
                 >
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Experience</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("addExperience")}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -300,7 +264,7 @@ export default function AdminDashboard() {
                   onClick={() => router.push("/admin/education")}
                 >
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Education</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("addEducation")}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -308,7 +272,15 @@ export default function AdminDashboard() {
                   onClick={() => router.push("/admin/testimonials")}
                 >
                   <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Testimonials</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("testimonials")}</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => router.push("/admin/hobbies")}
+                >
+                  <Heart className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("hobbies")}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -316,7 +288,7 @@ export default function AdminDashboard() {
                   onClick={() => router.push("/")}
                 >
                   <Eye className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">View Portfolio</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("viewPortfolio")}</span>
                 </Button>
               </div>
             </CardContent>
@@ -326,7 +298,7 @@ export default function AdminDashboard() {
           <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
             <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Testimonials
+                {t("testimonials")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -335,14 +307,14 @@ export default function AdminDashboard() {
                   {stats.testimonials}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Total reviews
+                  {t("totalReviews")}
                 </p>
                 <Button
                   variant="default"
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   onClick={() => router.push("/admin/testimonials")}
                 >
-                  Manage Testimonials
+                  {t("manageTestimonialsBtn")}
                 </Button>
               </div>
             </CardContent>
@@ -355,7 +327,7 @@ export default function AdminDashboard() {
           <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
             <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Experience
+                {t("experience")}
               </CardTitle>
               <Button
                 variant="outline"
@@ -363,13 +335,13 @@ export default function AdminDashboard() {
                 className="border-gray-200 dark:border-gray-700"
                 onClick={() => router.push("/admin/experience")}
               >
-                View all
+                {t("viewAll")}
               </Button>
             </CardHeader>
             <CardContent className="p-0">
               {experienceList.length === 0 ? (
                 <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                  No experience entries yet.
+                  {t("noExperienceYet")}
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -387,7 +359,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                         {formatDate(exp.startDate)}
-                        {exp.isCurrent ? " – Present" : exp.endDate ? ` – ${formatDate(exp.endDate)}` : ""}
+                        {exp.isCurrent ? ` – ${t("present")}` : exp.endDate ? ` – ${formatDate(exp.endDate)}` : ""}
                       </div>
                     </li>
                   ))}
@@ -400,7 +372,7 @@ export default function AdminDashboard() {
           <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
             <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Education
+                {t("education")}
               </CardTitle>
               <Button
                 variant="outline"
@@ -408,13 +380,13 @@ export default function AdminDashboard() {
                 className="border-gray-200 dark:border-gray-700"
                 onClick={() => router.push("/admin/education")}
               >
-                View all
+                {t("viewAll")}
               </Button>
             </CardHeader>
             <CardContent className="p-0">
               {educationList.length === 0 ? (
                 <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                  No education entries yet.
+                  {t("noEducationYet")}
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -447,7 +419,7 @@ export default function AdminDashboard() {
         <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
           <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Content Management
+              {t("contentManagement")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">

@@ -2,7 +2,15 @@ import { getTranslations } from "next-intl/server";
 import { Briefcase, Calendar, MapPin, ArrowRight } from "lucide-react";
 import ScrollAnimation from "@/components/ScrollAnimation";
 
-interface Experience {
+function getApiUrl(): string {
+  const url =
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:8080/api";
+  return url.replace(/\/$/, "");
+}
+
+interface ExperienceItem {
   id: number;
   company: string;
   position: string;
@@ -10,10 +18,9 @@ interface Experience {
   startDate: string;
   endDate: string;
   current: boolean;
+  description: string;
   responsibilities: string[];
 }
-
-// Experience data will be created in the component using translations
 
 export default async function ExperiencePage({
   params,
@@ -24,44 +31,57 @@ export default async function ExperiencePage({
   const t = await getTranslations("experience");
 
   const formatDate = (dateStr: string) => {
-    const [year, month] = dateStr.split("-");
-    const date = new Date(parseInt(year), parseInt(month) - 1);
+    if (!dateStr) return "";
+    const [year, month] = dateStr.split("-").map((s) => s.replace(/T.*/, ""));
+    if (!year) return "";
+    const date = new Date(parseInt(year, 10), parseInt(month || "1", 10) - 1);
     return date.toLocaleDateString(locale, { year: "numeric", month: "short" });
   };
 
-  // Create experiences with translations
-  const experiences: Experience[] = [
-    {
-      id: 1,
-      company: "Immo 1ère",
-      position: t("items.1.position"),
-      location: "Montreal, QC",
-      startDate: "2024-07",
-      endDate: "",
-      current: true,
-      responsibilities: [
-        t("items.1.responsibilities.0"),
-        t("items.1.responsibilities.1"),
-        t("items.1.responsibilities.2"),
-        t("items.1.responsibilities.3"),
-      ],
-    },
-    {
-      id: 2,
-      company: "Champlain College",
-      position: t("items.2.position"),
-      location: "Saint-Lambert, QC",
-      startDate: "2025-09",
-      endDate: "2025-10",
-      current: false,
-      responsibilities: [
-        t("items.2.responsibilities.0"),
-        t("items.2.responsibilities.1"),
-        t("items.2.responsibilities.2"),
-        t("items.2.responsibilities.3"),
-      ],
-    },
-  ];
+  // Fetch experience from API (no cache so admin changes show immediately)
+  let experiences: ExperienceItem[] = [];
+  try {
+    const apiUrl = getApiUrl();
+    const res = await fetch(`${apiUrl}/experience`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : [];
+      experiences = list.map((ex: {
+        id: number;
+        companyEn: string;
+        companyAr?: string;
+        positionEn: string;
+        positionAr?: string;
+        descriptionEn: string | null;
+        descriptionAr: string | null;
+        startDate: string;
+        endDate: string | null;
+        isCurrent: boolean;
+        location: string | null;
+      }) => {
+        const description = locale === "fr" ? (ex.descriptionAr || ex.descriptionEn || "") : (ex.descriptionEn || ex.descriptionAr || "");
+        const responsibilities = description
+          ? description.split(/\n+/).map((s) => s.trim()).filter(Boolean)
+          : [];
+        return {
+          id: ex.id,
+          company: locale === "fr" ? (ex.companyAr || ex.companyEn) : ex.companyEn,
+          position: locale === "fr" ? (ex.positionAr || ex.positionEn) : ex.positionEn,
+          location: ex.location || "",
+          startDate: ex.startDate ? String(ex.startDate).slice(0, 7) : "",
+          endDate: ex.endDate ? String(ex.endDate).slice(0, 7) : "",
+          current: ex.isCurrent ?? false,
+          description,
+          responsibilities: responsibilities.length > 0 ? responsibilities : [description].filter(Boolean),
+        };
+      });
+    }
+  } catch (_) {}
+
+  // Fallback to empty so page still renders
+  if (experiences.length === 0) {
+    experiences = [];
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
@@ -115,7 +135,14 @@ export default async function ExperiencePage({
             <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-500 via-purple-500 to-blue-500 opacity-30"></div>
 
             {/* Experience items */}
-            {experiences.map((exp, index) => (
+            {experiences.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground">
+                <Briefcase className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>{t("subtitle")}</p>
+                <p className="text-sm mt-2">No experience entries yet.</p>
+              </div>
+            ) : (
+            experiences.map((exp, index) => (
               <ScrollAnimation
                 key={exp.id}
                 animation={
@@ -194,26 +221,31 @@ export default async function ExperiencePage({
                           {t("keyResponsibilities")}
                         </h4>
 
-                        {/* Responsibilities list */}
-                        <ul className="space-y-3">
-                          {exp.responsibilities.map((resp, idx) => (
-                            <li
-                              key={idx}
-                              className="flex items-start gap-3 group/item"
-                            >
-                              <ArrowRight className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 group-hover/item:translate-x-1 transition-transform" />
-                              <span className="text-foreground leading-relaxed">
-                                {resp}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                        {/* Description / responsibilities */}
+                        {exp.responsibilities.length > 0 ? (
+                          <ul className="space-y-3">
+                            {exp.responsibilities.map((resp, idx) => (
+                              <li
+                                key={idx}
+                                className="flex items-start gap-3 group/item"
+                              >
+                                <ArrowRight className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5 group-hover/item:translate-x-1 transition-transform" />
+                                <span className="text-foreground leading-relaxed">
+                                  {resp}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : exp.description ? (
+                          <p className="text-foreground leading-relaxed whitespace-pre-wrap">{exp.description}</p>
+                        ) : null}
                       </div>
                     </div>
                   </div>
                 </div>
               </ScrollAnimation>
-            ))}
+            ))
+            )}
           </div>
         </div>
       </div>

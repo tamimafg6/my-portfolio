@@ -1,5 +1,13 @@
-import { db } from "./index";
-import * as schema from "./schema";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "..", "..", "..", ".env") });
+dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
+
+const { db } = await import("./index.js");
+const schema = await import("./schema/index.js");
 
 async function seed() {
   console.log("🌱 Seeding database...");
@@ -10,99 +18,42 @@ async function seed() {
   await db.delete(schema.skills);
   await db.delete(schema.workExperience);
   await db.delete(schema.education);
+  await db.delete(schema.contactInfo);
+  await db.delete(schema.resume);
+  await db.delete(schema.hobbies);
 
-  // Seed skills
+  // Seed skills — aligned with CV: categories, levels (5 = comfortable, 4 = familiar), icon ids, order
   await db.insert(schema.skills).values([
-    {
-      nameEn: "Java",
-      nameAr: "Java",
-      category: "Programming Languages",
-      level: 5,
-    },
-    {
-      nameEn: "C#",
-      nameAr: "C#",
-      category: "Programming Languages",
-      level: 5,
-    },
-    {
-      nameEn: "Kotlin",
-      nameAr: "Kotlin",
-      category: "Programming Languages",
-      level: 4,
-    },
-    {
-      nameEn: "JavaScript",
-      nameAr: "JavaScript",
-      category: "Programming Languages",
-      level: 5,
-    },
-    {
-      nameEn: "SQL",
-      nameAr: "SQL",
-      category: "Programming Languages",
-      level: 5,
-    },
-    {
-      nameEn: "Spring Boot",
-      nameAr: "Spring Boot",
-      category: "Frameworks",
-      level: 5,
-    },
-    {
-      nameEn: "ASP.NET MVC",
-      nameAr: "ASP.NET MVC",
-      category: "Frameworks",
-      level: 4,
-    },
-    {
-      nameEn: "Next.js",
-      nameAr: "Next.js",
-      category: "Frameworks",
-      level: 4,
-    },
-    {
-      nameEn: "SQL Server",
-      nameAr: "SQL Server",
-      category: "Databases",
-      level: 5,
-    },
-    {
-      nameEn: "Azure SQL",
-      nameAr: "Azure SQL",
-      category: "Cloud",
-      level: 4,
-    },
-    {
-      nameEn: "Docker",
-      nameAr: "Docker",
-      category: "DevOps",
-      level: 5,
-    },
-    {
-      nameEn: "Git & GitHub",
-      nameAr: "Git & GitHub",
-      category: "Tools",
-      level: 5,
-    },
-    {
-      nameEn: "IntelliJ IDEA",
-      nameAr: "IntelliJ IDEA",
-      category: "Tools",
-      level: 5,
-    },
-    {
-      nameEn: "VS Code",
-      nameAr: "VS Code",
-      category: "Tools",
-      level: 5,
-    },
-    {
-      nameEn: "Linux",
-      nameAr: "Linux",
-      category: "Operating Systems",
-      level: 4,
-    },
+    // Programming Languages (Comfortable: 5, Familiar: 4)
+    { nameEn: "Java", nameAr: "Java", category: "Programming Languages", level: 5, icon: "java", order: 0 },
+    { nameEn: "C#", nameAr: "C#", category: "Programming Languages", level: 5, icon: "c-sharp", order: 1 },
+    { nameEn: "Kotlin", nameAr: "Kotlin", category: "Programming Languages", level: 5, icon: "kotlin", order: 2 },
+    { nameEn: "HTML/CSS", nameAr: "HTML/CSS", category: "Programming Languages", level: 5, icon: "html-css", order: 3 },
+    { nameEn: "JavaScript", nameAr: "JavaScript", category: "Programming Languages", level: 5, icon: "javascript", order: 4 },
+    { nameEn: "SQL", nameAr: "SQL", category: "Programming Languages", level: 5, icon: "sql", order: 5 },
+    { nameEn: "PHP", nameAr: "PHP", category: "Programming Languages", level: 4, icon: "php", order: 6 },
+    { nameEn: "Swift", nameAr: "Swift", category: "Programming Languages", level: 4, icon: "swift", order: 7 },
+    // Frameworks
+    { nameEn: "Spring Boot", nameAr: "Spring Boot", category: "Frameworks", level: 5, icon: "spring-boot", order: 0 },
+    { nameEn: "Spring WebFlux", nameAr: "Spring WebFlux", category: "Frameworks", level: 4, icon: "spring-webflux", order: 1 },
+    { nameEn: "ASP.NET MVC", nameAr: "ASP.NET MVC", category: "Frameworks", level: 5, icon: "asp-net-mvc", order: 2 },
+    { nameEn: "JUnit", nameAr: "JUnit", category: "Frameworks", level: 5, icon: "junit", order: 3 },
+    { nameEn: "Next.js", nameAr: "Next.js", category: "Frameworks", level: 5, icon: "next-js", order: 4 },
+    { nameEn: "React", nameAr: "React", category: "Frameworks", level: 4, icon: "react", order: 5 },
+    // Databases & Cloud (single category so section looks full)
+    { nameEn: "SQL Server", nameAr: "SQL Server", category: "Databases & Cloud", level: 5, icon: "sql-server", order: 0 },
+    { nameEn: "Azure SQL", nameAr: "Azure SQL", category: "Databases & Cloud", level: 5, icon: "azure-sql", order: 1 },
+    { nameEn: "REST APIs", nameAr: "API REST", category: "Databases & Cloud", level: 5, icon: "rest-apis", order: 2 },
+    { nameEn: "Postman", nameAr: "Postman", category: "Databases & Cloud", level: 5, icon: "postman", order: 3 },
+    // Tools
+    { nameEn: "Linux", nameAr: "Linux", category: "Tools", level: 5, icon: "linux", order: 0 },
+    { nameEn: "Git & GitHub", nameAr: "Git & GitHub", category: "Tools", level: 5, icon: "git-github", order: 1 },
+    { nameEn: "IntelliJ IDEA", nameAr: "IntelliJ IDEA", category: "Tools", level: 5, icon: "intellij-idea", order: 2 },
+    { nameEn: "VS Code", nameAr: "VS Code", category: "Tools", level: 5, icon: "vs-code", order: 3 },
+    { nameEn: "Visual Studio", nameAr: "Visual Studio", category: "Tools", level: 5, icon: "visual-studio", order: 4 },
+    { nameEn: "Docker", nameAr: "Docker", category: "Tools", level: 5, icon: "docker", order: 5 },
+    { nameEn: "Jira", nameAr: "Jira", category: "Tools", level: 4, icon: "jira", order: 6 },
+    { nameEn: "Gradle", nameAr: "Gradle", category: "Tools", level: 4, icon: "gradle", order: 7 },
   ]);
 
   // Seed projects
@@ -195,6 +146,24 @@ async function seed() {
       gpa: null,
       order: 0,
     },
+  ]);
+
+  // Seed contact info (single row)
+  await db.insert(schema.contactInfo).values({
+    email: "tamim.afghanyar@gmail.com",
+    phone: "514-953-9598",
+    address: "Saint-Jean-sur-Richelieu, Quebec",
+    linkedIn: "https://www.linkedin.com/in/tamim-afghanyar/",
+    github: null,
+    twitter: null,
+    website: null,
+  });
+
+  // Resume: no seed row — CV is set only after admin uploads a PDF in Settings.
+  // Seed hobbies
+  await db.insert(schema.hobbies).values([
+    { titleEn: "Coding & Side Projects", titleAr: "Code et projets personnels", descriptionEn: "Building small apps and exploring new tech", descriptionAr: "Créer des applis et explorer de nouvelles technologies", order: 0 },
+    { titleEn: "Reading", titleAr: "Lecture", descriptionEn: "Tech blogs and software books", descriptionAr: "Blogs tech et livres sur le logiciel", order: 1 },
   ]);
 
   console.log("✅ Database seeded successfully!");

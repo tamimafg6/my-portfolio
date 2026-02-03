@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,8 +38,12 @@ interface Education {
 export default function AdminEducationPage() {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("admin.educationPage");
+  const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEducation, setEditingEducation] = useState<Education | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
   const [education, setEducation] = useState<Education[]>([]);
   const [isLoadingEducation, setIsLoadingEducation] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -99,7 +103,7 @@ export default function AdminEducationPage() {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">{tCommon("loading")}</p>
         </div>
       </div>
     );
@@ -109,63 +113,122 @@ export default function AdminEducationPage() {
     return null;
   }
 
+  const emptyForm = () => ({
+    institutionEn: "",
+    institutionAr: "",
+    degreeEn: "",
+    degreeAr: "",
+    fieldEn: "",
+    fieldAr: "",
+    location: "",
+    startDate: "",
+    endDate: "",
+    gpa: "",
+    descriptionEn: "",
+    descriptionAr: "",
+  });
+
+  const openEditModal = (edu: Education) => {
+    setEditingEducation(edu);
+    setFormData({
+      institutionEn: edu.institutionEn,
+      institutionAr: edu.institutionAr || "",
+      degreeEn: edu.degreeEn,
+      degreeAr: edu.degreeAr || "",
+      fieldEn: edu.fieldEn || "",
+      fieldAr: edu.fieldAr || "",
+      location: edu.location || "",
+      startDate: edu.startDate ? String(edu.startDate).slice(0, 7) : "",
+      endDate: edu.endDate ? String(edu.endDate).slice(0, 7) : "",
+      gpa: edu.gpa || "",
+      descriptionEn: edu.descriptionEn || "",
+      descriptionAr: edu.descriptionAr || "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingEducation(null);
+    setFormData(emptyForm());
+  };
+
+  const buildPayload = () => ({
+    institutionEn: formData.institutionEn,
+    institutionAr: formData.institutionAr || formData.institutionEn,
+    degreeEn: formData.degreeEn,
+    degreeAr: formData.degreeAr || formData.degreeEn,
+    fieldEn: formData.fieldEn || null,
+    fieldAr: formData.fieldAr || null,
+    location: formData.location || null,
+    startDate: new Date(formData.startDate + "-01").toISOString(),
+    endDate: formData.endDate ? new Date(formData.endDate + "-01").toISOString() : null,
+    gpa: formData.gpa || null,
+    descriptionEn: formData.descriptionEn || null,
+    descriptionAr: formData.descriptionAr || null,
+    order: editingEducation ? editingEducation.order : education.length,
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
     try {
-      // Note: Backend POST endpoint may not exist yet, but we'll try
-      const res = await fetch("/api/education", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          institutionEn: formData.institutionEn,
-          institutionAr: formData.institutionAr || formData.institutionEn,
-          degreeEn: formData.degreeEn,
-          degreeAr: formData.degreeAr || formData.degreeEn,
-          fieldEn: formData.fieldEn || null,
-          fieldAr: formData.fieldAr || null,
-          location: formData.location,
-          startDate: new Date(formData.startDate + "-01").toISOString(),
-          endDate: formData.endDate ? new Date(formData.endDate + "-01").toISOString() : null,
-          gpa: formData.gpa || null,
-          descriptionEn: formData.descriptionEn || null,
-          descriptionAr: formData.descriptionAr || null,
-          order: education.length,
-        }),
-      });
-
-      if (res.ok) {
-        const newEducation = await res.json();
-        setEducation([...education, newEducation]);
-        setFormData({
-          institutionEn: "",
-          institutionAr: "",
-          degreeEn: "",
-          degreeAr: "",
-          fieldEn: "",
-          fieldAr: "",
-          location: "",
-          startDate: "",
-          endDate: "",
-          gpa: "",
-          descriptionEn: "",
-          descriptionAr: "",
+      const payload = buildPayload();
+      if (editingEducation) {
+        const res = await fetch(`/api/education/${editingEducation.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
         });
-        setIsModalOpen(false);
+        if (res.ok) {
+          const updated = await res.json();
+          setEducation(education.map((ed) => (ed.id === editingEducation.id ? updated : ed)));
+          closeModal();
+        } else {
+          const err = await res.json();
+          alert(err.error || "Failed to update education.");
+        }
       } else {
-        const error = await res.json();
-        console.error("Failed to create education:", error);
-        alert("Failed to create education. The backend endpoint may not be implemented yet.");
+        const res = await fetch("/api/education", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const newEducation = await res.json();
+          setEducation([...education, newEducation]);
+          closeModal();
+        } else {
+          const err = await res.json();
+          alert(err.error || t("failedCreate"));
+        }
       }
     } catch (error) {
-      console.error("Failed to create education:", error);
-      alert("Failed to create education. Please check if the backend endpoint exists.");
+      console.error("Failed to save education:", error);
+      alert("Failed to save education.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
+    try {
+      const res = await fetch(`/api/education/${deleteConfirm.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        setEducation(education.filter((e) => e.id !== deleteConfirm.id));
+        setDeleteConfirm(null);
+      } else {
+        alert(t("failedDelete"));
+      }
+    } catch (error) {
+      console.error("Failed to delete education:", error);
+      alert(t("failedDelete"));
     }
   };
 
@@ -174,40 +237,40 @@ export default function AdminEducationPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Education Management</h1>
-            <p className="text-muted-foreground mt-2">Manage your educational background</p>
+            <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
+            <p className="text-muted-foreground mt-2">{t("subtitle")}</p>
           </div>
-          <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
+          <Button className="gap-2" onClick={() => { setEditingEducation(null); setFormData(emptyForm()); setIsModalOpen(true); }}>
             <Plus className="w-4 h-4" />
-            Add Education
+            {t("addNew")}
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Education</CardTitle>
+            <CardTitle>{t("title")}</CardTitle>
             <CardDescription>
-              {education.length} {education.length === 1 ? "entry" : "entries"} in your portfolio
+              {t("entriesCount", { count: education.length })} {t("inPortfolio")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoadingEducation ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-4 text-muted-foreground">Loading education...</p>
+                <p className="mt-4 text-muted-foreground">{t("loading")}</p>
               </div>
             ) : fetchError ? (
               <div className="text-center py-12">
-                <p className="text-destructive font-medium mb-2">Error loading education</p>
+                <p className="text-destructive font-medium mb-2">{t("errorLoading")}</p>
                 <p className="text-sm text-muted-foreground mb-4">{fetchError}</p>
                 <Button variant="outline" onClick={() => fetchEducation()}>
-                  Retry
+                  {t("retry")}
                 </Button>
               </div>
             ) : education.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <GraduationCap className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>No education entries yet. Add your first education entry to get started.</p>
+                <p>{t("empty")}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -246,14 +309,16 @@ export default function AdminEducationPage() {
                             {new Date(edu.startDate).toLocaleDateString("en-US", {
                               month: "short",
                               year: "numeric",
+                              timeZone: "UTC",
                             })}
                             {" - "}
                             {edu.endDate
                               ? new Date(edu.endDate).toLocaleDateString("en-US", {
                                   month: "short",
                                   year: "numeric",
+                                  timeZone: "UTC",
                                 })
-                              : "Present"}
+                              : t("present")}
                           </div>
                           {edu.gpa && (
                             <div className="text-sm text-muted-foreground">
@@ -266,34 +331,16 @@ export default function AdminEducationPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => {
-                            // TODO: Implement edit functionality
-                            console.log("Edit education:", edu.id);
-                          }}
+                          onClick={() => openEditModal(edu)}
+                          aria-label="Edit education"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={async () => {
-                            if (confirm("Are you sure you want to delete this education entry?")) {
-                              try {
-                                const res = await fetch(`/api/education/${edu.id}`, {
-                                  method: "DELETE",
-                                  credentials: "include",
-                                });
-                                if (res.ok) {
-                                  setEducation(education.filter((e) => e.id !== edu.id));
-                                } else {
-                                  alert("Failed to delete education entry");
-                                }
-                              } catch (error) {
-                                console.error("Failed to delete education:", error);
-                                alert("Failed to delete education entry");
-                              }
-                            }
-                          }}
+                          onClick={() => setDeleteConfirm({ id: edu.id, name: `${edu.degreeEn} at ${edu.institutionEn}` })}
+                          aria-label="Delete education"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
@@ -307,13 +354,13 @@ export default function AdminEducationPage() {
         </Card>
       </div>
 
-      {/* Add Education Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {/* Add/Edit Education Modal */}
+      <Dialog open={isModalOpen} onOpenChange={(open) => { if (!open) closeModal(); }}>
+        <DialogContent className="max-w-4xl w-[85vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Education</DialogTitle>
+            <DialogTitle>{editingEducation ? t("edit") : t("add")}</DialogTitle>
             <DialogDescription>
-              Add a new education entry to your portfolio
+              {editingEducation ? t("editDescription") : t("addDescription")}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -332,7 +379,7 @@ export default function AdminEducationPage() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="institutionAr" className="text-sm font-medium text-foreground">
-                  Institution (French)
+                  {t("institutionAr")}
                 </label>
                 <Input
                   id="institutionAr"
@@ -357,7 +404,7 @@ export default function AdminEducationPage() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="degreeAr" className="text-sm font-medium text-foreground">
-                  Degree (French)
+                  {t("degreeAr")}
                 </label>
                 <Input
                   id="degreeAr"
@@ -381,7 +428,7 @@ export default function AdminEducationPage() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="fieldAr" className="text-sm font-medium text-foreground">
-                  Field of Study (French)
+                  {t("fieldAr")}
                 </label>
                 <Input
                   id="fieldAr"
@@ -406,7 +453,7 @@ export default function AdminEducationPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="startDate" className="text-sm font-medium text-foreground">
-                  Start Date *
+                  {t("startDate")} *
                 </label>
                 <Input
                   id="startDate"
@@ -429,9 +476,9 @@ export default function AdminEducationPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <label htmlFor="gpa" className="text-sm font-medium text-foreground">
-                GPA
-              </label>
+<label htmlFor="gpa" className="text-sm font-medium text-foreground">
+              {t("gpa")}
+            </label>
               <Input
                 id="gpa"
                 placeholder="e.g., 3.8/4.0"
@@ -442,14 +489,15 @@ export default function AdminEducationPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="descriptionEn" className="text-sm font-medium text-foreground">
-                  Description (English)
+                  {t("descriptionEn")}
                 </label>
                 <Textarea
                   id="descriptionEn"
                   placeholder="Describe your education..."
                   value={formData.descriptionEn}
                   onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
-                  rows={3}
+                  rows={10}
+                  className="min-h-[260px] resize-y"
                 />
               </div>
               <div className="space-y-2">
@@ -461,7 +509,8 @@ export default function AdminEducationPage() {
                   placeholder="Décrivez votre formation..."
                   value={formData.descriptionAr}
                   onChange={(e) => setFormData({ ...formData, descriptionAr: e.target.value })}
-                  rows={3}
+                  rows={10}
+                  className="min-h-[260px] resize-y"
                 />
               </div>
             </div>
@@ -469,16 +518,36 @@ export default function AdminEducationPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 disabled={isSubmitting}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Education"}
+                {isSubmitting ? tCommon("loading") : editingEducation ? t("edit") : t("add")}
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={!!deleteConfirm} onOpenChange={(open) => { if (!open) setDeleteConfirm(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("deleteConfirm")}</DialogTitle>
+            <DialogDescription>
+              {deleteConfirm ? t("deleteConfirmMessage", { name: deleteConfirm.name }) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              {tCommon("delete")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -64,8 +64,9 @@ export default function Navbar() {
     { href: "/projects", label: t("projects"), sectionId: "projects" },
     { href: "/experience", label: t("experience"), sectionId: "experience" },
     { href: "/education", label: t("education"), sectionId: "education" },
+    { href: "/hobbies", label: t("hobbies"), sectionId: "hobbies" },
     { href: "/testimonials", label: t("testimonials"), sectionId: "testimonials" },
-    { href: "/contact", label: t("contact"), sectionId: "contact" },
+    { href: "/contact", label: t("contact"), sectionId: "contact-form" },
   ];
 
   const scrollToSection = (sectionId: string) => {

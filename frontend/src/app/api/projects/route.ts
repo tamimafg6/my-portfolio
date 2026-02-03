@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminToken } from "@/lib/api/get-admin-token";
 
 const API_URL =
   process.env.API_URL ||
@@ -41,20 +42,26 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const token = await getAdminToken(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: "No token provided" },
+        { status: 401, headers: { "Content-Type": "application/json; charset=utf-8" } }
+      );
+    }
     const body = await request.json();
     const res = await fetch(`${API_URL}/projects`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "Accept": "application/json; charset=utf-8",
-        "Cookie": request.headers.get("cookie") || "",
+        "Authorization": `Bearer ${token}`,
       },
-      credentials: "include",
       body: JSON.stringify(body),
     });
 
     if (!res.ok) {
-      const error = await res.json();
+      const error = await res.json().catch(() => ({}));
       return NextResponse.json(
         { error: error.error || "Failed to create project" },
         { 

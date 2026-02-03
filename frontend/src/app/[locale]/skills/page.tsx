@@ -1,19 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import ScrollAnimation from "@/components/ScrollAnimation";
-import {
-  SiTypescript,
-  SiJavascript,
-  SiReact,
-  SiNextdotjs,
-  SiTailwindcss,
-  SiSpringboot,
-  SiPostgresql,
-  SiDocker,
-  SiGit,
-  SiGithub,
-  SiLinux,
-} from "react-icons/si";
-import { FaJava, FaNode } from "react-icons/fa6";
+import { getSkillIcon } from "@/lib/skill-icons";
 
 // Use internal Docker network URL for server-side, public URL for client-side
 const API_URL =
@@ -31,67 +18,6 @@ interface Skill {
   order: number;
 }
 
-// Map skill names to icons
-const skillIconMap: Record<string, React.ReactNode> = {
-  Java: <FaJava className="w-12 h-12" />,
-  "C#": (
-    <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-500 text-lg">
-      #
-    </div>
-  ),
-  Kotlin: (
-    <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-600">
-      K
-    </div>
-  ),
-  JavaScript: <SiJavascript className="w-12 h-12" />,
-  SQL: (
-    <div className="w-12 h-12 flex items-center justify-center text-xl font-bold">
-      SQL
-    </div>
-  ),
-  "Spring Boot": <SiSpringboot className="w-12 h-12" />,
-  "ASP.NET MVC": (
-    <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">
-      ASP
-    </div>
-  ),
-  "Next.js": <SiNextdotjs className="w-12 h-12" />,
-  "SQL Server": (
-    <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">
-      MSSQL
-    </div>
-  ),
-  "Azure SQL": (
-    <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">
-      Azure
-    </div>
-  ),
-  Docker: <SiDocker className="w-12 h-12" />,
-  "Git & GitHub": <SiGit className="w-12 h-12" />,
-  "IntelliJ IDEA": (
-    <div className="w-12 h-12 flex items-center justify-center font-bold text-orange-600">
-      I
-    </div>
-  ),
-  "VS Code": (
-    <div className="w-12 h-12 flex items-center justify-center text-blue-500 font-bold">
-      &lt;&gt;
-    </div>
-  ),
-  Linux: <SiLinux className="w-12 h-12" />,
-  React: <SiReact className="w-12 h-12" />,
-  TypeScript: <SiTypescript className="w-12 h-12" />,
-  "Node.js": <FaNode className="w-12 h-12" />,
-  "Express.js": (
-    <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">
-      EXP
-    </div>
-  ),
-  PostgreSQL: <SiPostgresql className="w-12 h-12" />,
-  "Tailwind CSS": <SiTailwindcss className="w-12 h-12" />,
-};
-
 export default async function SkillsPage({
   params,
 }: {
@@ -104,18 +30,40 @@ export default async function SkillsPage({
   const res = await fetch(`${API_URL}/skills`, { cache: "no-store" });
   const allSkills: Skill[] = await res.json();
 
-  // Group skills by category
-  const groupedSkills = allSkills.reduce(
+  // Group skills by category and sort within each (by order)
+  const grouped = allSkills.reduce(
     (acc, skill) => {
       const category = skill.category || "Other";
-      if (!acc[category]) {
-        acc[category] = [];
-      }
+      if (!acc[category]) acc[category] = [];
       acc[category].push(skill);
       return acc;
     },
     {} as Record<string, Skill[]>,
   );
+  // Sort each category by skill order, then display categories in a fixed order so section looks full
+  const categoryOrder = [
+    "Programming Languages",
+    "Frameworks",
+    "Databases & Cloud",
+    "Tools",
+    "Operating Systems",
+    "Databases",
+    "Cloud",
+    "DevOps",
+    "Other",
+  ];
+  const groupedSkills: Record<string, Skill[]> = {};
+  for (const cat of categoryOrder) {
+    if (grouped[cat]) {
+      groupedSkills[cat] = [...grouped[cat]].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+  }
+  // Append any category not in categoryOrder
+  for (const cat of Object.keys(grouped)) {
+    if (!groupedSkills[cat]) {
+      groupedSkills[cat] = [...grouped[cat]].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+  }
 
   return (
     <div className="min-h-screen py-16 bg-background">
@@ -161,7 +109,7 @@ export default async function SkillsPage({
                           className="flex flex-col items-center justify-center p-6 rounded-lg bg-card border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group"
                         >
                           <div className="text-4xl mb-3 text-foreground group-hover:scale-110 transition-transform duration-300">
-                            {skillIconMap[skill.nameEn] || (
+                            {getSkillIcon(skill) ?? (
                               <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 rounded font-bold text-white text-sm">
                                 {skill.nameEn.charAt(0)}
                               </div>

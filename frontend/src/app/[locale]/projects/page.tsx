@@ -123,7 +123,7 @@ export default async function ProjectsPage({
                     </h3>
 
                     {/* Description */}
-                    <p className="text-foreground mb-6 line-clamp-3 leading-relaxed flex-1">
+                    <p className="text-foreground mb-6 leading-relaxed flex-1">
                       {locale === "fr"
                         ? project.descriptionAr || project.descriptionEn
                         : project.descriptionEn}

@@ -2,10 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter as useIntlRouter, usePathname } from "@/i18n/routing";
 import { authClient } from "@/lib/auth-client";
 import { parseAuthError } from "@/shared/lib/auth/parse-error";
+
+const ADMIN_ERROR_KEYS = [
+  "emailRequired",
+  "passwordRequired",
+  "loginFailed",
+  "loginFailedNoData",
+  "accessDenied",
+  "tokenFailed",
+  "sessionFailed",
+  "unexpectedError",
+] as const;
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +24,7 @@ export default function AdminLoginPage() {
   const router = useIntlRouter();
   const locale = useLocale();
   const pathname = usePathname();
+  const t = useTranslations("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -50,13 +62,13 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     if (!email || email.trim().length === 0) {
-      setError("Email is required");
+      setError("emailRequired");
       setLoading(false);
       return;
     }
 
     if (!password || password.length === 0) {
-      setError("Password is required");
+      setError("passwordRequired");
       setLoading(false);
       return;
     }
@@ -73,7 +85,7 @@ export default function AdminLoginPage() {
         | { data?: unknown };
 
       if ("error" in resultWithError && resultWithError.error) {
-        const defaultMessage = "Login failed. Please check your credentials.";
+        const defaultMessage = t("loginFailed");
         const errorMessage = parseAuthError(
           resultWithError.error,
           defaultMessage,
@@ -85,7 +97,7 @@ export default function AdminLoginPage() {
 
       // Check if signIn was successful by checking for data
       if (!("data" in resultWithError) || !resultWithError.data) {
-        setError("Login failed. No response data received.");
+        setError("loginFailedNoData");
         setLoading(false);
         return;
       }
@@ -129,7 +141,7 @@ export default function AdminLoginPage() {
             const payload = JSON.parse(atob(padded));
 
             if (payload.role?.toLowerCase() !== "admin") {
-              setError("Access denied. Admin privileges required.");
+              setError("accessDenied");
               await authClient.signOut();
               setLoading(false);
               return;
@@ -145,43 +157,44 @@ export default function AdminLoginPage() {
           window.location.href = dashboardUrl;
           return; // Exit early, don't set loading to false
         } else {
-          setError("Failed to retrieve authentication token. Please try again.");
+          setError("tokenFailed");
           setLoading(false);
         }
       } else {
-        // More detailed error message
-        setError(
-          "Failed to establish session. Please check that the auth service is running and accessible.",
-        );
+        setError("sessionFailed");
         setLoading(false);
       }
     } catch (err) {
-      const errorMessage = parseAuthError(err, "An unexpected error occurred");
+      const errorMessage = parseAuthError(err, t("unexpectedError"));
       setError(errorMessage);
       setLoading(false);
     }
   };
 
+  const displayError = error && (ADMIN_ERROR_KEYS as readonly string[]).includes(error)
+    ? t(error as (typeof ADMIN_ERROR_KEYS)[number])
+    : error;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg shadow-lg border">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Admin Login</h1>
+          <h1 className="text-3xl font-bold">{t("login")}</h1>
           <p className="text-muted-foreground mt-2">
-            Sign in to access the portfolio admin panel
+            {t("loginSubtitle")}
           </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          {error && (
+          {displayError && (
             <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-md">
-              {error}
+              {displayError}
             </div>
           )}
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-2">
-              Email
+              {t("email")}
             </label>
             <input
               id="email"
@@ -200,7 +213,7 @@ export default function AdminLoginPage() {
               htmlFor="password"
               className="block text-sm font-medium mb-2"
             >
-              Password
+              {t("password")}
             </label>
             <input
               id="password"
@@ -219,7 +232,7 @@ export default function AdminLoginPage() {
             disabled={loading}
             className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? t("signingIn") : t("signIn")}
           </button>
         </form>
       </div>

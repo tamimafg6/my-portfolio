@@ -1,19 +1,26 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import path from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import skillsRouter from "./routes/skills.js";
 import projectsRouter from "./routes/projects.js";
 import experienceRouter from "./routes/experience.js";
 import educationRouter from "./routes/education.js";
 import contactRouter from "./routes/contact.js";
+import resumeRouter from "./routes/resume.js";
+import profileRouter from "./routes/profile.js";
+import hobbiesRouter from "./routes/hobbies.js";
 import testimonialsRouter from "./routes/testimonials.js";
 import { closeConnection } from "./lib/db.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 
 // Middleware
 app.use(helmet());
@@ -48,6 +55,9 @@ app.use("/api/projects", projectsRouter);
 app.use("/api/experience", experienceRouter);
 app.use("/api/education", educationRouter);
 app.use("/api/contact", contactRouter);
+app.use("/api/resume", resumeRouter);
+app.use("/api/profile", profileRouter);
+app.use("/api/hobbies", hobbiesRouter);
 app.use("/api/testimonials", testimonialsRouter);
 
 // 404 handler

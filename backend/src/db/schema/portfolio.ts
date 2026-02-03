@@ -87,7 +87,7 @@ export const contactMessages = pgTable("contact_messages", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Contact Info
+// Contact Info (includes profile photo URL for "about me" photo)
 export const contactInfo = pgTable("contact_info", {
   id: serial("id").primaryKey(),
   email: text("email").notNull(),
@@ -97,6 +97,33 @@ export const contactInfo = pgTable("contact_info", {
   github: text("github"),
   twitter: text("twitter"),
   website: text("website"),
+  profilePhotoUrl: text("profile_photo_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Resume (single row: optional per-locale PDFs + button labels)
+export const resume = pgTable("resume", {
+  id: serial("id").primaryKey(),
+  /** Legacy single file; used as fallback when fileUrlEn/fileUrlAr missing */
+  fileUrl: text("file_url"),
+  /** English CV PDF key (e.g. resume-en.pdf) */
+  fileUrlEn: text("file_url_en"),
+  /** French CV PDF key (e.g. resume-fr.pdf) */
+  fileUrlAr: text("file_url_ar"),
+  labelEn: text("label_en").notNull().default("Resume"),
+  labelAr: text("label_ar").notNull().default("CV"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Hobbies
+export const hobbies = pgTable("hobbies", {
+  id: serial("id").primaryKey(),
+  titleEn: text("title_en").notNull(),
+  titleAr: text("title_ar").notNull(),
+  descriptionEn: text("description_en"),
+  descriptionAr: text("description_ar"),
+  order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -133,6 +160,12 @@ export const selectContactMessageSchema = createSelectSchema(contactMessages);
 
 export const insertContactInfoSchema = createInsertSchema(contactInfo);
 export const selectContactInfoSchema = createSelectSchema(contactInfo);
+
+export const insertResumeSchema = createInsertSchema(resume);
+export const selectResumeSchema = createSelectSchema(resume);
+
+export const insertHobbySchema = createInsertSchema(hobbies);
+export const selectHobbySchema = createSelectSchema(hobbies);
 
 export const insertTestimonialSchema = createInsertSchema(testimonials);
 export const selectTestimonialSchema = createSelectSchema(testimonials);

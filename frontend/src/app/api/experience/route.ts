@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getAdminToken } from "@/lib/api/get-admin-token";
 
 function getApiUrl(): string {
   const url =
@@ -38,5 +39,33 @@ export async function GET() {
       { error: "Failed to fetch experience", details: msg },
       { status: 500, headers: { "Content-Type": "application/json; charset=utf-8" } }
     );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const token = await getAdminToken(request);
+    if (!token) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    const body = await request.json();
+    const res = await fetch(`${getApiUrl()}/experience`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return NextResponse.json({ error: err.error || "Failed to create experience" }, { status: res.status });
+    }
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("[API experience] POST error:", error);
+    return NextResponse.json({ error: "Failed to create experience" }, { status: 500 });
   }
 }

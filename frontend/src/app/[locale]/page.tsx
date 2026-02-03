@@ -19,19 +19,12 @@ import TypingEffect from "@/components/TypingEffect";
 import ScrollAnimation from "@/components/ScrollAnimation";
 import GeometricBackground from "@/components/GeometricBackground";
 import Image from "next/image";
-import {
-  SiTypescript,
-  SiJavascript,
-  SiReact,
-  SiNextdotjs,
-  SiTailwindcss,
-  SiSpringboot,
-  SiPostgresql,
-  SiDocker,
-  SiGit,
-} from "react-icons/si";
-import { FaJava, FaNode } from "react-icons/fa6";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { validateContactForm, validateTestimonialForm, capLength, LIMITS } from "@/lib/form-validation";
+import { getSkillIcon } from "@/lib/skill-icons";
 
 interface Skill {
   id: number;
@@ -57,71 +50,6 @@ interface Project {
   order: number;
 }
 
-// Map skill names to icons
-const skillIconMap: Record<string, React.ReactNode> = {
-  Java: <FaJava className="w-12 h-12" />,
-  "C#": (
-    <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-500 text-lg">
-      #
-    </div>
-  ),
-  Kotlin: (
-    <div className="w-12 h-12 flex items-center justify-center font-bold text-purple-600">
-      K
-    </div>
-  ),
-  JavaScript: <SiJavascript className="w-12 h-12" />,
-  SQL: (
-    <div className="w-12 h-12 flex items-center justify-center text-xl font-bold">
-      SQL
-    </div>
-  ),
-  "Spring Boot": <SiSpringboot className="w-12 h-12" />,
-  "ASP.NET MVC": (
-    <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">
-      ASP
-    </div>
-  ),
-  "Next.js": <SiNextdotjs className="w-12 h-12" />,
-  "SQL Server": (
-    <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">
-      MSSQL
-    </div>
-  ),
-  "Azure SQL": (
-    <div className="w-12 h-12 flex items-center justify-center text-xs font-bold">
-      Azure
-    </div>
-  ),
-  Docker: <SiDocker className="w-12 h-12" />,
-  "Git & GitHub": <SiGit className="w-12 h-12" />,
-  "IntelliJ IDEA": (
-    <div className="w-12 h-12 flex items-center justify-center font-bold text-orange-600">
-      I
-    </div>
-  ),
-  "VS Code": (
-    <div className="w-12 h-12 flex items-center justify-center text-blue-500 font-bold">
-      &lt;&gt;
-    </div>
-  ),
-  Linux: (
-    <div className="w-12 h-12 flex items-center justify-center font-bold">
-      LNX
-    </div>
-  ),
-  React: <SiReact className="w-12 h-12" />,
-  TypeScript: <SiTypescript className="w-12 h-12" />,
-  "Node.js": <FaNode className="w-12 h-12" />,
-  "Express.js": (
-    <div className="w-12 h-12 flex items-center justify-center text-sm font-bold">
-      EXP
-    </div>
-  ),
-  PostgreSQL: <SiPostgresql className="w-12 h-12" />,
-  "Tailwind CSS": <SiTailwindcss className="w-12 h-12" />,
-};
-
 interface Testimonial {
   id: number;
   name: string;
@@ -137,104 +65,249 @@ interface Testimonial {
 
 export default function HomePage() {
   const t = useTranslations("home");
+  const tContact = useTranslations("contact");
+  const tTestimonials = useTranslations("testimonials");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [hobbies, setHobbies] = useState<{ id: number; titleEn: string; titleAr: string; descriptionEn: string | null; descriptionAr: string | null }[]>([]);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState<string | null>(null);
+  const [contactFormData, setContactFormData] = useState({ name: "", email: "", message: "" });
+  const [isContactSubmitting, setIsContactSubmitting] = useState(false);
+  const [contactSubmitStatus, setContactSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [contactFieldErrors, setContactFieldErrors] = useState<Record<string, string>>({});
+  const [testimonialFormData, setTestimonialFormData] = useState({ name: "", email: "", role: "", company: "", content: "", rating: 5 });
+  const [isTestimonialSubmitting, setIsTestimonialSubmitting] = useState(false);
+  const [testimonialSubmitMessage, setTestimonialSubmitMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [testimonialFieldErrors, setTestimonialFieldErrors] = useState<Record<string, string>>({});
+  const [experiences, setExperiences] = useState<
+    { id: number; company: string; position: string; location: string; startDate: string; endDate: string; current: boolean; summary: string }[]
+  >([]);
+  const [education, setEducation] = useState<
+    { id: number; institution: string; degree: string; location: string; startDate: string; endDate: string; current: boolean; coursework: string[] }[]
+  >([]);
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
+  const [resumeLabel, setResumeLabel] = useState<string>("Resume");
+  const [githubUrl, setGithubUrl] = useState<string | null>(null);
+  const [linkedInUrl, setLinkedInUrl] = useState<string | null>(null);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [showTestimonialForm, setShowTestimonialForm] = useState(false);
 
-  useEffect(() => {
-    // Fetch skills from Next.js API route
-    fetch("/api/skills")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch skills");
-        return res.json();
-      })
+  const fetchHomeData = () => {
+    const opts = { cache: "no-store" as RequestCache };
+    // Fetch skills
+    fetch("/api/skills", opts)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setSkills(Array.isArray(data) ? data : []))
+      .catch(() => setSkills([]));
+    // Fetch projects
+    fetch("/api/projects", opts)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setProjects(Array.isArray(data) ? data : []))
+      .catch(() => setProjects([]));
+    // Fetch testimonials
+    fetch("/api/testimonials", opts)
+      .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        console.log("Skills data received:", data);
-        setSkills(data);
-      })
-      .catch((err) => console.error("Failed to fetch skills:", err));
-
-    // Fetch projects from Next.js API route
-    fetch("/api/projects")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch projects");
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Projects data received:", data);
-        setProjects(data);
-      })
-      .catch((err) => console.error("Failed to fetch projects:", err));
-
-    // Fetch approved testimonials from Next.js API route
-    fetch("/api/testimonials")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch testimonials");
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Testimonials data received:", data);
-        // Only show approved testimonials (API already filters, but double-check)
         const approved = Array.isArray(data) ? data.filter((t: Testimonial) => t.isApproved !== false) : [];
         setTestimonials(approved);
       })
-      .catch((err) => {
-        console.error("Failed to fetch testimonials:", err);
-        setTestimonials([]);
-      });
-  }, []);
-
-  const formatDate = (dateStr: string) => {
-    const [year, month] = dateStr.split("-");
-    const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString(locale, { year: "numeric", month: "short" });
+      .catch(() => setTestimonials([]));
+    // Fetch hobbies
+    fetch("/api/hobbies", opts)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setHobbies(Array.isArray(data) ? data : []))
+      .catch(() => setHobbies([]));
+    // Fetch experience (so home section updates when admin edits)
+    fetch("/api/experience", opts)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setExperiences(
+          list.map(
+            (ex: {
+              id: number;
+              companyEn: string;
+              companyAr?: string;
+              positionEn: string;
+              positionAr?: string;
+              location: string | null;
+              startDate: string;
+              endDate: string | null;
+              isCurrent: boolean;
+              descriptionEn: string | null;
+              descriptionAr: string | null;
+            }) => ({
+              id: ex.id,
+              company: locale === "fr" ? ex.companyAr || ex.companyEn : ex.companyEn,
+              position: locale === "fr" ? ex.positionAr || ex.positionEn : ex.positionEn,
+              location: ex.location || "",
+              startDate: ex.startDate ? String(ex.startDate).slice(0, 7) : "",
+              endDate: ex.endDate ? String(ex.endDate).slice(0, 7) : "",
+              current: ex.isCurrent ?? false,
+              summary: locale === "fr" ? ex.descriptionAr || ex.descriptionEn || "" : ex.descriptionEn || ex.descriptionAr || "",
+            })
+          )
+        );
+      })
+      .catch(() => setExperiences([]));
+    // Fetch education (so home section updates when admin edits)
+    fetch("/api/education", opts)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setEducation(
+          list.map(
+            (edu: {
+              id: number;
+              institutionEn: string;
+              institutionAr?: string;
+              degreeEn: string;
+              degreeAr?: string;
+              fieldEn: string | null;
+              fieldAr?: string | null;
+              location: string | null;
+              startDate: string;
+              endDate: string | null;
+              descriptionEn: string | null;
+              descriptionAr: string | null;
+            }) => {
+              const institution = locale === "fr" ? edu.institutionAr || edu.institutionEn : edu.institutionEn;
+              const degree = locale === "fr"
+                ? `${edu.degreeAr || edu.degreeEn}${edu.fieldAr ? ` ${edu.fieldAr}` : ""}`
+                : `${edu.degreeEn}${edu.fieldEn ? ` ${edu.fieldEn}` : ""}`;
+              const desc = locale === "fr" ? edu.descriptionAr || edu.descriptionEn || "" : edu.descriptionEn || edu.descriptionAr || "";
+              const coursework = desc ? desc.split(/\n+/).map((s) => s.trim()).filter(Boolean) : [];
+              return {
+                id: edu.id,
+                institution,
+                degree: degree.trim(),
+                location: edu.location || "",
+                startDate: edu.startDate ? String(edu.startDate).slice(0, 7) : "",
+                endDate: edu.endDate ? String(edu.endDate).slice(0, 7) : "",
+                current: !edu.endDate,
+                coursework: coursework.length > 0 ? coursework : (desc ? [desc] : []),
+              };
+            }
+          )
+        );
+      })
+      .catch(() => setEducation([]));
+    // Fetch contact info (profile photo + social links) - cache-bust so saved URLs are used
+    fetch(`/api/contact/info?_=${Date.now()}`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.profilePhotoUrl) {
+          setProfilePhotoUrl(data.profilePhotoUrl);
+        }
+        setGithubUrl(data?.github ?? null);
+        setLinkedInUrl(data?.linkedIn ?? data?.linkedin ?? null);
+      })
+      .catch(() => {});
+    // Fetch resume (use locale-specific file if available)
+    fetch("/api/resume", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const url =
+          locale === "fr"
+            ? (data?.fileUrlAr ?? data?.fileUrl)
+            : (data?.fileUrlEn ?? data?.fileUrl);
+        if (url) {
+          setResumeUrl(url);
+          setResumeLabel(locale === "fr" ? (data?.labelAr ?? "CV") : (data?.labelEn ?? "Resume"));
+        } else {
+          setResumeUrl(null);
+        }
+      })
+      .catch(() => {});
   };
 
-  // Get translations for experience and education
-  const tExp = useTranslations("experience");
-  const tEdu = useTranslations("education");
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactFieldErrors({});
+    const result = validateContactForm(contactFormData);
+    if (!result.ok) {
+      setContactFieldErrors(result.errors);
+      setContactSubmitStatus("error");
+      return;
+    }
+    setIsContactSubmitting(true);
+    setContactSubmitStatus("idle");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result.data),
+      });
+      if (res.ok) {
+        setContactSubmitStatus("success");
+        setContactFormData({ name: "", email: "", message: "" });
+        setTimeout(() => setContactSubmitStatus("idle"), 5000);
+      } else {
+        setContactSubmitStatus("error");
+      }
+    } catch (error) {
+      setContactSubmitStatus("error");
+    } finally {
+      setIsContactSubmitting(false);
+    }
+  };
 
-  const experiences = [
-    {
-      id: 1,
-      company: "Immo 1ère",
-      position: tExp("items.1.position"),
-      location: "Montreal, QC",
-      startDate: "2024-07",
-      endDate: "",
-      current: true,
-      summary: tExp("items.1.summary"),
-    },
-    {
-      id: 2,
-      company: "Champlain College",
-      position: tExp("items.2.position"),
-      location: "Saint-Lambert, QC",
-      startDate: "2025-09",
-      endDate: "2025-10",
-      current: false,
-      summary: tExp("items.2.summary"),
-    },
-  ];
+  const handleTestimonialSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTestimonialFieldErrors({});
+    const result = validateTestimonialForm(testimonialFormData);
+    if (!result.ok) {
+      setTestimonialFieldErrors(result.errors);
+      setTestimonialSubmitMessage({ type: "error", text: Object.values(result.errors)[0] ?? tTestimonials("submitError") });
+      return;
+    }
+    setIsTestimonialSubmitting(true);
+    setTestimonialSubmitMessage(null);
+    try {
+      const res = await fetch("/api/testimonials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result.data),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTestimonialSubmitMessage({ 
+          type: "success", 
+          text: data.message || tTestimonials("submitSuccess") 
+        });
+        setTestimonialFormData({ name: "", email: "", role: "", company: "", content: "", rating: 5 });
+        setTimeout(() => setTestimonialSubmitMessage(null), 5000);
+      } else {
+        const error = await res.json();
+        setTestimonialSubmitMessage({ type: "error", text: error.error || tTestimonials("submitError") });
+      }
+    } catch (error) {
+      setTestimonialSubmitMessage({ type: "error", text: tTestimonials("submitError") });
+    } finally {
+      setIsTestimonialSubmitting(false);
+    }
+  };
 
-  const education = [
-    {
-      id: 1,
-      institution: "Champlain College",
-      degree: `${tEdu("items.1.degree")} ${tEdu("degreeFieldPreposition")} ${tEdu("items.1.field")}`,
-      location: "Saint-Lambert, QC",
-      startDate: "2023-08",
-      endDate: "2026-05",
-      current: true,
-      coursework: [
-        tEdu("items.1.coursework.0"),
-        tEdu("items.1.coursework.1"),
-        tEdu("items.1.coursework.2"),
-        tEdu("items.1.coursework.3"),
-      ],
-    },
-  ];
+  useEffect(() => {
+    fetchHomeData();
+  }, [locale]);
+
+  // Refetch when user returns to this tab (e.g. after editing in admin) so home sections stay in sync
+  useEffect(() => {
+    const onFocus = () => fetchHomeData();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [locale]);
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const [year, month] = dateStr.split("-");
+    const date = new Date(parseInt(year, 10), parseInt(month || "1", 10) - 1);
+    return date.toLocaleDateString(locale, { year: "numeric", month: "short", timeZone: "UTC" });
+  };
 
   // Handle hash navigation on page load
   useEffect(() => {
@@ -289,7 +362,7 @@ export default function HomePage() {
             </ScrollAnimation>
             <ScrollAnimation animation="slide-up" delay={0.1}>
               <p className="text-2xl md:text-3xl font-semibold text-foreground/80 mb-6">
-                Full-Stack Software Engineer
+                {t("hero.title")}
               </p>
             </ScrollAnimation>
             <ScrollAnimation animation="slide-up" delay={0.2}>
@@ -298,25 +371,31 @@ export default function HomePage() {
               </p>
             </ScrollAnimation>
 
-            {/* Social Links */}
+            {/* Social Links - use URLs saved in Settings */}
             <ScrollAnimation animation="slide-up" delay={0.3}>
               <div className="flex gap-4 mb-12 justify-center">
-                <Link
-                  href="https://github.com/tamimafg6"
-                  target="_blank"
-                  className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
-                  aria-label="GitHub"
-                >
-                  <Github className="w-6 h-6 text-foreground" />
-                </Link>
-                <Link
-                  href="https://www.linkedin.com/in/tamim-afghanyar-2026852b3"
-                  target="_blank"
-                  className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin className="w-6 h-6 text-foreground" />
-                </Link>
+                {githubUrl && (
+                  <Link
+                    href={githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
+                    aria-label="GitHub"
+                  >
+                    <Github className="w-6 h-6 text-foreground" />
+                  </Link>
+                )}
+                {linkedInUrl && (
+                  <Link
+                    href={linkedInUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
+                    aria-label="LinkedIn"
+                  >
+                    <Linkedin className="w-6 h-6 text-foreground" />
+                  </Link>
+                )}
               </div>
             </ScrollAnimation>
 
@@ -357,9 +436,6 @@ export default function HomePage() {
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
             <ScrollAnimation animation="slide-in-from-left" delay={0.05}>
               <div className="space-y-6">
-                <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
-                  <Sparkles className="w-4 h-4" /> {t("about.badge")}
-                </span>
                 <h2 className="text-4xl md:text-5xl font-bold text-foreground">
                   {t("about.title")}
                 </h2>
@@ -377,57 +453,37 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
+                <div className="pt-2">
+                  <Link
+                    href={`/${locale}/about`}
+                    className="inline-flex items-center gap-2 text-blue-500 hover:text-blue-400 font-semibold"
+                  >
+                    {t("about.snapshot.viewFull")} <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
             </ScrollAnimation>
 
             <ScrollAnimation animation="slide-in-from-right" delay={0.1}>
-              <div className="p-8 md:p-10 bg-card border border-border rounded-2xl shadow-xl shadow-blue-500/5 hover:border-blue-500/50 transition-all">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {t("about.snapshot.title")}
-                      </h3>
-                      <div className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                        {t("about.snapshot.fullStack")}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                      <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
-                        <p className="text-xs uppercase tracking-wide text-blue-500 font-semibold mb-1">
-                          {t("about.snapshot.focus")}
-                        </p>
-                        <p className="text-foreground">{t("about.snapshot.focusValue")}</p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/20">
-                        <p className="text-xs uppercase tracking-wide text-purple-500 font-semibold mb-1">
-                          {t("about.snapshot.backend")}
-                        </p>
-                        <p className="text-foreground">{t("about.snapshot.backendValue")}</p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-                        <p className="text-xs uppercase tracking-wide text-emerald-500 font-semibold mb-1">
-                          {t("about.snapshot.passion")}
-                        </p>
-                        <p className="text-foreground">{t("about.snapshot.passionValue")}</p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
-                        <p className="text-xs uppercase tracking-wide text-amber-500 font-semibold mb-1">
-                          {t("about.snapshot.softSkills")}
-                        </p>
-                        <p className="text-foreground">
-                          {t("about.snapshot.softSkillsValue")}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="pt-2">
-                      <Link
-                        href={`/${locale}/about`}
-                        className="inline-flex items-center gap-2 text-blue-500 hover:text-blue-400 font-semibold"
-                      >
-                        {t("about.snapshot.viewFull")} <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </div>
+              <div className="flex flex-col items-center justify-center">
+                {profilePhotoUrl ? (
+                  <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-border shadow-xl shadow-blue-500/10">
+                    <Image
+                      src="/api/profile/photo"
+                      alt="Profile"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 224px, (max-width: 768px) 256px, 288px"
+                      unoptimized
+                    />
                   </div>
+                ) : (
+                  <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full bg-muted border-4 border-border flex items-center justify-center">
+                    <span className="text-4xl font-bold text-muted-foreground">
+                      {t("about.title").charAt(0)}
+                    </span>
+                  </div>
+                )}
               </div>
             </ScrollAnimation>
           </div>
@@ -507,16 +563,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Skills Section */}
+      {/* Skills Section – horizontal infinite scroll, pause on hover */}
       <section
         id="skills"
-        className="relative py-20 bg-background"
+        className="relative py-20 bg-background overflow-hidden"
         style={{ zIndex: 1 }}
       >
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <ScrollAnimation animation="fade-in" delay={0}>
-              <div className="text-center mb-16">
+              <div className="text-center mb-12">
                 <h2 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
                   {t("skillsSection.title")}
                 </h2>
@@ -527,35 +583,26 @@ export default function HomePage() {
               </div>
             </ScrollAnimation>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mb-12">
-              {skills.map((skill, idx) => (
-                <ScrollAnimation
-                  key={skill.id}
-                  animation="slide-up"
-                  delay={idx * 0.03}
-                >
-                  <div className="flex flex-col items-center justify-center p-6 rounded-lg bg-card border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group">
-                    <div className="text-4xl mb-3 text-foreground group-hover:scale-110 transition-transform duration-300">
-                      {skillIconMap[skill.nameEn] || (
-                        <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 rounded font-bold text-white text-sm">
-                          {skill.nameEn.charAt(0)}
+            <div className="skill-scroll-container overflow-hidden mb-12">
+              <div className="animate-skill-scroll flex w-max gap-4">
+                {[...skills, ...skills].map((skill, idx) => (
+                  <div
+                    key={`${skill.id}-${idx}`}
+                    className="flex shrink-0 flex-col items-center justify-center min-w-[140px] p-5 rounded-xl bg-card border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group"
+                  >
+                    <div className="text-4xl mb-2 text-foreground group-hover:scale-110 transition-transform duration-300 flex items-center justify-center w-12 h-12">
+                      {getSkillIcon(skill) ?? (
+                        <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg font-bold text-white text-lg shadow-lg">
+                          {skill.nameEn.slice(0, 2).toUpperCase()}
                         </div>
                       )}
                     </div>
                     <p className="font-semibold text-center text-sm text-foreground">
                       {locale === "fr" ? skill.nameAr : skill.nameEn}
                     </p>
-                    <div className="mt-2 flex gap-1">
-                      {[...Array(Math.round(skill.level))].map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-1.5 h-1.5 rounded-full bg-blue-500"
-                        ></div>
-                      ))}
-                    </div>
                   </div>
-                </ScrollAnimation>
-              ))}
+                ))}
+              </div>
             </div>
 
             <div className="text-center">
@@ -619,7 +666,7 @@ export default function HomePage() {
                         {locale === "fr" ? project.titleAr || project.titleEn : project.titleEn}
                       </h3>
 
-                      <p className="text-foreground mb-6 line-clamp-3 leading-relaxed flex-1">
+                      <p className="text-foreground mb-6 leading-relaxed flex-1">
                         {locale === "fr" ? project.descriptionAr || project.descriptionEn : project.descriptionEn}
                       </p>
 
@@ -762,6 +809,103 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Hobbies Section */}
+      {hobbies.length > 0 && (
+        <section
+          id="hobbies"
+          className="relative py-20"
+          style={{ zIndex: 1 }}
+        >
+          <div className="container mx-auto px-4">
+            <div className="max-w-6xl mx-auto">
+              <ScrollAnimation animation="fade-in" delay={0}>
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+                    {t("hobbies.title")}
+                  </h2>
+                  <p className="text-lg text-muted-foreground">
+                    {t("hobbies.description")}
+                  </p>
+                </div>
+              </ScrollAnimation>
+              <div className="grid md:grid-cols-2 gap-6">
+                {hobbies.map((h, idx) => (
+                  <ScrollAnimation
+                    key={h.id}
+                    animation={idx % 2 === 0 ? "slide-in-from-left" : "slide-in-from-right"}
+                    delay={idx * 0.1}
+                  >
+                    <div className="p-6 bg-card border border-border rounded-2xl hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all">
+                      <h3 className="text-xl font-semibold text-foreground mb-2">
+                        {locale === "fr" ? h.titleAr : h.titleEn}
+                      </h3>
+                      {(locale === "fr" ? h.descriptionAr : h.descriptionEn) && (
+                        <p className="text-muted-foreground">
+                          {locale === "fr" ? h.descriptionAr : h.descriptionEn}
+                        </p>
+                      )}
+                    </div>
+                  </ScrollAnimation>
+                ))}
+              </div>
+
+              <div className="text-center mt-10">
+                <Link
+                  href={`/${locale}/hobbies`}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-border hover:border-blue-500/50 text-foreground hover:text-blue-500 transition-colors"
+                >
+                  {t("hobbies.viewFull")} <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Resume Section */}
+      {resumeUrl && (
+        <section
+          id="resume"
+          className="relative py-20 bg-muted/30"
+          style={{ zIndex: 1 }}
+        >
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <ScrollAnimation animation="fade-in" delay={0}>
+                <div className="bg-card border border-border rounded-2xl p-10 md:p-12 text-center hover:border-blue-500/50 transition-all">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mb-6">
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+                    {locale === "fr" ? "Télécharger mon CV" : "Download My Resume"}
+                  </h2>
+                  <p className="text-lg text-muted-foreground mb-8">
+                    {locale === "fr" 
+                      ? "Consultez mon parcours complet, mes compétences et mon expérience professionnelle"
+                      : "View my complete background, skills, and professional experience"
+                    }
+                  </p>
+                  <a
+                    href={`/api/resume/file?locale=${locale}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download={locale === "fr" ? "cv.pdf" : "resume.pdf"}
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all hover:scale-[1.02]"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {resumeLabel || (locale === "fr" ? "Télécharger le CV" : "Download Resume")}
+                  </a>
+                </div>
+              </ScrollAnimation>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Testimonials Section */}
       <section
         id="testimonials"
@@ -832,13 +976,211 @@ export default function HomePage() {
                 {t("testimonialsSection.viewAll")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
+
+            {/* Testimonial Submission Form */}
+            <ScrollAnimation animation="fade-in" delay={0.4}>
+              <div className="mt-16 max-w-2xl mx-auto">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    {tTestimonials("submit")}
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    {tTestimonials("subheading")}
+                  </p>
+                  <Button
+                    onClick={() => setShowTestimonialForm(!showTestimonialForm)}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
+                  >
+                    {showTestimonialForm ? tTestimonials("hideFormButton") : tTestimonials("showFormButton")}
+                  </Button>
+                </div>
+
+                {showTestimonialForm && (
+                  <div className="bg-card border border-border rounded-2xl p-8 hover:border-blue-500/50 transition-all">
+                    {testimonialSubmitMessage && (
+                      <div
+                        className={`mb-4 p-4 rounded-lg ${
+                          testimonialSubmitMessage.type === "success"
+                            ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                            : "bg-red-500/10 text-red-500 border border-red-500/20"
+                        }`}
+                      >
+                        {testimonialSubmitMessage.text}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleTestimonialSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Input
+                          placeholder={tTestimonials("yourName")}
+                          value={testimonialFormData.name}
+                          onChange={(e) => {
+                            setTestimonialFormData({ ...testimonialFormData, name: capLength(e.target.value, LIMITS.name) });
+                            if (testimonialFieldErrors.name) setTestimonialFieldErrors((prev) => ({ ...prev, name: "" }));
+                          }}
+                          maxLength={LIMITS.name}
+                          className={testimonialFieldErrors.name ? "border-red-500" : ""}
+                        />
+                        {testimonialFieldErrors.name && <p className="text-sm text-red-500 mt-1">{testimonialFieldErrors.name}</p>}
+                      </div>
+                      <div>
+                        <Input
+                          type="email"
+                          placeholder={tTestimonials("yourEmail")}
+                          value={testimonialFormData.email}
+                          onChange={(e) => {
+                            setTestimonialFormData({ ...testimonialFormData, email: capLength(e.target.value, LIMITS.email) });
+                            if (testimonialFieldErrors.email) setTestimonialFieldErrors((prev) => ({ ...prev, email: "" }));
+                          }}
+                          maxLength={LIMITS.email}
+                          className={testimonialFieldErrors.email ? "border-red-500" : ""}
+                        />
+                        {testimonialFieldErrors.email && <p className="text-sm text-red-500 mt-1">{testimonialFieldErrors.email}</p>}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        placeholder={tTestimonials("yourPosition")}
+                        value={testimonialFormData.role}
+                        onChange={(e) => setTestimonialFormData({ ...testimonialFormData, role: capLength(e.target.value, LIMITS.role) })}
+                        maxLength={LIMITS.role}
+                      />
+                      <Input
+                        placeholder={tTestimonials("yourCompany")}
+                        value={testimonialFormData.company}
+                        onChange={(e) => setTestimonialFormData({ ...testimonialFormData, company: capLength(e.target.value, LIMITS.company) })}
+                        maxLength={LIMITS.company}
+                      />
+                    </div>
+                    <div>
+                      <Textarea
+                        placeholder={tTestimonials("yourMessage")}
+                        value={testimonialFormData.content}
+                        onChange={(e) => {
+                          setTestimonialFormData({ ...testimonialFormData, content: capLength(e.target.value, LIMITS.content) });
+                          if (testimonialFieldErrors.content) setTestimonialFieldErrors((prev) => ({ ...prev, content: "" }));
+                        }}
+                        rows={4}
+                        maxLength={LIMITS.content}
+                        className={`resize-none ${testimonialFieldErrors.content ? "border-red-500" : ""}`}
+                      />
+                      {testimonialFieldErrors.content && <p className="text-sm text-red-500 mt-1">{testimonialFieldErrors.content}</p>}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={isTestimonialSubmitting}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
+                    >
+                      {isTestimonialSubmitting ? tCommon("loading") : tTestimonials("submit")}
+                    </Button>
+                  </form>
+                </div>
+                )}
+              </div>
+            </ScrollAnimation>
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
+      {/* Contact Form Section */}
       <section
-        id="contact"
+        id="contact-form"
+        className="relative py-20 bg-background"
+        style={{ zIndex: 1 }}
+      >
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <ScrollAnimation animation="fade-in" delay={0}>
+              <div className="text-center mb-12">
+                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+                  {tContact("title", { default: "Get In Touch" })}
+                </h2>
+                <p className="text-lg text-muted-foreground mb-6">
+                  {tContact("subtitle", { default: "Have a question or want to work together?" })}
+                </p>
+                <Button
+                  onClick={() => setShowContactForm(!showContactForm)}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
+                >
+                  {showContactForm ? tContact("hideFormButton") : tContact("showFormButton")}
+                </Button>
+              </div>
+            </ScrollAnimation>
+
+            {showContactForm && (
+              <ScrollAnimation animation="slide-up" delay={0.1}>
+                <div className="bg-card border border-border rounded-2xl p-8 hover:border-blue-500/50 transition-all">
+                  {contactSubmitStatus === "success" && (
+                    <div className="mb-4 p-4 rounded-lg bg-green-500/10 text-green-500 border border-green-500/20">
+                      {tContact("form.successMessage", { default: "Message sent successfully!" })}
+                    </div>
+                  )}
+                  {contactSubmitStatus === "error" && (
+                    <div className="mb-4 p-4 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20">
+                      {tContact("form.errorMessage", { default: "Failed to send message. Please try again." })}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <div>
+                      <Input
+                        placeholder={tContact("form.name", { default: "Your Name" })}
+                        value={contactFormData.name}
+                        onChange={(e) => {
+                          setContactFormData({ ...contactFormData, name: capLength(e.target.value, LIMITS.name) });
+                          if (contactFieldErrors.name) setContactFieldErrors((prev) => ({ ...prev, name: "" }));
+                        }}
+                        maxLength={LIMITS.name}
+                        className={contactFieldErrors.name ? "border-red-500" : ""}
+                      />
+                      {contactFieldErrors.name && <p className="text-sm text-red-500 mt-1">{contactFieldErrors.name}</p>}
+                    </div>
+                    <div>
+                      <Input
+                        type="email"
+                        placeholder={tContact("form.email", { default: "Your Email" })}
+                        value={contactFormData.email}
+                        onChange={(e) => {
+                          setContactFormData({ ...contactFormData, email: capLength(e.target.value, LIMITS.email) });
+                          if (contactFieldErrors.email) setContactFieldErrors((prev) => ({ ...prev, email: "" }));
+                        }}
+                        maxLength={LIMITS.email}
+                        className={contactFieldErrors.email ? "border-red-500" : ""}
+                      />
+                      {contactFieldErrors.email && <p className="text-sm text-red-500 mt-1">{contactFieldErrors.email}</p>}
+                    </div>
+                    <div>
+                      <Textarea
+                        placeholder={tContact("form.message", { default: "Your Message" })}
+                        value={contactFormData.message}
+                        onChange={(e) => {
+                          setContactFormData({ ...contactFormData, message: capLength(e.target.value, LIMITS.message) });
+                          if (contactFieldErrors.message) setContactFieldErrors((prev) => ({ ...prev, message: "" }));
+                        }}
+                        rows={5}
+                        maxLength={LIMITS.message}
+                        className={`resize-none ${contactFieldErrors.message ? "border-red-500" : ""}`}
+                      />
+                      {contactFieldErrors.message && <p className="text-sm text-red-500 mt-1">{contactFieldErrors.message}</p>}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={isContactSubmitting}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
+                    >
+                      {isContactSubmitting ? tContact("form.sending", { default: "Sending..." }) : tContact("form.send", { default: "Send Message" })}
+                    </Button>
+                  </form>
+                </div>
+              </ScrollAnimation>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact CTA Section */}
+      <section
         className="relative py-20 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10"
         style={{ zIndex: 1 }}
       >

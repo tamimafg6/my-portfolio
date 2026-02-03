@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminToken } from "@/lib/api/get-admin-token";
 
 const API_URL =
   process.env.API_URL ||
@@ -41,15 +42,21 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const token = await getAdminToken(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: "No token provided. Please log in again." },
+        { status: 401 }
+      );
+    }
     const body = await request.json();
     const res = await fetch(`${API_URL}/skills`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "Accept": "application/json; charset=utf-8",
-        "Cookie": request.headers.get("cookie") || "",
+        "Authorization": `Bearer ${token}`,
       },
-      credentials: "include",
       body: JSON.stringify(body),
     });
 

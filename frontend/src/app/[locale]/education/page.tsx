@@ -9,6 +9,14 @@ import {
 } from "lucide-react";
 import ScrollAnimation from "@/components/ScrollAnimation";
 
+function getApiUrl(): string {
+  const url =
+    process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:8080/api";
+  return url.replace(/\/$/, "");
+}
+
 interface Education {
   id: number;
   institution: string;
@@ -23,8 +31,6 @@ interface Education {
   achievements: string[];
 }
 
-// Education data will be created in the component using translations
-
 export default async function EducationPage({
   params,
 }: {
@@ -34,37 +40,59 @@ export default async function EducationPage({
   const t = await getTranslations("education");
 
   const formatDate = (dateStr: string) => {
-    const [year, month] = dateStr.split("-");
-    const date = new Date(parseInt(year), parseInt(month) - 1);
+    if (!dateStr) return "";
+    const [year, month] = dateStr.split("-").map((s) => (s || "").replace(/T.*/, ""));
+    if (!year) return "";
+    const date = new Date(parseInt(year, 10), parseInt(month || "1", 10) - 1);
     return date.toLocaleDateString(locale, { year: "numeric", month: "short" });
   };
 
-  // Create education with translations
-  const education: Education[] = [
-    {
-      id: 1,
-      institution: "Champlain College",
-      degree: t("items.1.degree"),
-      field: t("items.1.field"),
-      location: "Saint-Lambert, QC",
-      startDate: "2023-08",
-      endDate: "2026-05",
-      current: true,
-      coursework: [
-        t("items.1.coursework.0"),
-        t("items.1.coursework.1"),
-        t("items.1.coursework.2"),
-        t("items.1.coursework.3"),
-        t("items.1.coursework.4"),
-        t("items.1.coursework.5"),
-      ],
-      achievements: [
-        t("items.1.achievements.0"),
-        t("items.1.achievements.1"),
-        t("items.1.achievements.2"),
-      ],
-    },
-  ];
+  // Fetch education from API (no cache so admin changes show immediately)
+  let education: Education[] = [];
+  try {
+    const apiUrl = getApiUrl();
+    const res = await fetch(`${apiUrl}/education`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : [];
+      education = list.map(
+        (edu: {
+          id: number;
+          institutionEn: string;
+          institutionAr?: string;
+          degreeEn: string;
+          degreeAr?: string;
+          fieldEn: string | null;
+          fieldAr?: string | null;
+          location: string | null;
+          startDate: string;
+          endDate: string | null;
+          descriptionEn: string | null;
+          descriptionAr: string | null;
+          gpa: string | null;
+        }) => {
+          const institution = locale === "fr" ? edu.institutionAr || edu.institutionEn : edu.institutionEn;
+          const degree = locale === "fr" ? edu.degreeAr || edu.degreeEn : edu.degreeEn;
+          const field = locale === "fr" ? edu.fieldAr || edu.fieldEn || "" : edu.fieldEn || edu.fieldAr || "";
+          const desc = locale === "fr" ? edu.descriptionAr || edu.descriptionEn || "" : edu.descriptionEn || edu.descriptionAr || "";
+          const coursework = desc ? desc.split(/\n+/).map((s) => s.trim()).filter(Boolean) : [];
+          return {
+            id: edu.id,
+            institution,
+            degree,
+            field: field.trim(),
+            location: edu.location || "",
+            startDate: edu.startDate ? String(edu.startDate).slice(0, 7) : "",
+            endDate: edu.endDate ? String(edu.endDate).slice(0, 7) : "",
+            current: !edu.endDate,
+            gpa: edu.gpa ?? undefined,
+            coursework: coursework.length > 0 ? coursework : (desc ? [desc] : []),
+            achievements: [], // not in DB schema; leave empty
+          };
+        }
+      );
+    }
+  } catch (_) {}
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
@@ -113,7 +141,13 @@ export default async function EducationPage({
 
         {/* Education items */}
         <div className="max-w-4xl mx-auto space-y-8">
-          {education.map((edu, index) => (
+          {education.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <GraduationCap className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p>{t("empty")}</p>
+            </div>
+          ) : (
+          education.map((edu, index) => (
             <ScrollAnimation
               key={edu.id}
               animation="fade-in"
@@ -136,7 +170,8 @@ export default async function EducationPage({
                         {edu.institution}
                       </h2>
                       <p className="text-xl text-blue-500 font-semibold mb-4">
-                        {edu.degree} {t("degreeFieldPreposition")} {edu.field}
+                        {edu.degree}
+                        {edu.field ? ` ${t("degreeFieldPreposition")} ${edu.field}` : ""}
                       </p>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-muted-foreground">
                         <div className="flex items-center gap-2">
@@ -207,7 +242,8 @@ export default async function EducationPage({
                 </div>
               </div>
             </ScrollAnimation>
-          ))}
+          ))
+          )}
         </div>
       </div>
     </div>

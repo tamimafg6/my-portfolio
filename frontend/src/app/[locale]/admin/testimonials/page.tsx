@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Star,
+  Trash2,
 } from "lucide-react";
 
 interface Testimonial {
@@ -39,13 +39,15 @@ interface Testimonial {
 export default function AdminTestimonialsPage() {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("admin.testimonialsPage");
+  const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [testimonialToReject, setTestimonialToReject] = useState<number | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [testimonialToDelete, setTestimonialToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     if (!loading && !authorized) {
@@ -124,46 +126,31 @@ export default function AdminTestimonialsPage() {
     }
   };
 
-  const handleRejectClick = (id: number) => {
-    setTestimonialToReject(id);
-    setRejectDialogOpen(true);
+  const handleDeleteClick = (id: number) => {
+    setTestimonialToDelete(id);
+    setDeleteDialogOpen(true);
   };
 
-  const handleRejectConfirm = async () => {
-    if (testimonialToReject === null) return;
+  const handleDeleteConfirm = async () => {
+    if (testimonialToDelete === null) return;
 
     try {
-      setActionLoading(testimonialToReject);
-      console.log("[Reject] Starting reject (delete) for testimonial ID:", testimonialToReject);
-      
-      const res = await fetch(`/api/testimonials/${testimonialToReject}`, {
+      setActionLoading(testimonialToDelete);
+      const res = await fetch(`/api/testimonials/${testimonialToDelete}`, {
         method: "DELETE",
         credentials: "include",
       });
 
-      console.log("[Reject] Delete response status:", res.status);
-      
       if (res.ok) {
-        // Remove from list immediately
-        setTestimonials(prev => prev.filter(t => t.id !== testimonialToReject));
-        console.log("[Reject] Testimonial deleted successfully");
-        setRejectDialogOpen(false);
-        setTestimonialToReject(null);
+        setTestimonials((prev) => prev.filter((t) => t.id !== testimonialToDelete));
+        setDeleteDialogOpen(false);
+        setTestimonialToDelete(null);
       } else {
-        const errorText = await res.text();
-        console.error("[Reject] Failed to delete testimonial:", res.status, errorText);
-        let errorMessage = `Failed to reject testimonial (${res.status})`;
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData?.error || errorMessage;
-        } catch (e) {
-          errorMessage = errorText || errorMessage;
-        }
-        alert(errorMessage);
+        const errorData = await res.json().catch(() => ({}));
+        alert(errorData?.error || t("failedReject"));
       }
-    } catch (error: any) {
-      console.error("[Reject] Error rejecting testimonial:", error);
-      alert(`Error rejecting testimonial: ${error?.message || "Please try again."}`);
+    } catch (error: unknown) {
+      alert(t("failedReject"));
     } finally {
       setActionLoading(null);
     }
@@ -243,18 +230,16 @@ export default function AdminTestimonialsPage() {
             <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600">
               <MessageSquare className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">Testimonials Management</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
           </div>
-          <p className="text-muted-foreground mt-2">
-            Review and manage testimonials submitted by users
-          </p>
+          <p className="text-muted-foreground mt-2">{t("subtitle")}</p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Total Testimonials</CardDescription>
+              <CardDescription>{t("title")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-foreground">{testimonials.length}</div>
@@ -262,7 +247,7 @@ export default function AdminTestimonialsPage() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Approved</CardDescription>
+              <CardDescription>{t("approved")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600 dark:text-green-400">
@@ -272,7 +257,7 @@ export default function AdminTestimonialsPage() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Pending Review</CardDescription>
+              <CardDescription>{t("pendingReview")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
@@ -291,7 +276,7 @@ export default function AdminTestimonialsPage() {
           <Card className="border-red-500/20">
             <CardContent className="py-12 text-center">
               <MessageSquare className="w-16 h-16 mx-auto mb-4 text-red-500 opacity-50" />
-              <p className="text-red-500 font-semibold mb-2">Error loading testimonials</p>
+              <p className="text-red-500 font-semibold mb-2">{t("loading").replace("...", "")}</p>
               <p className="text-muted-foreground text-sm">{fetchError}</p>
               <Button
                 onClick={() => {
@@ -335,7 +320,7 @@ export default function AdminTestimonialsPage() {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
                   <Clock className="w-6 h-6 text-amber-500" />
-                  Pending Review ({pendingTestimonials.length})
+                  {t("pendingReview")} ({pendingTestimonials.length})
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {pendingTestimonials.map((testimonial) => (
@@ -356,39 +341,31 @@ export default function AdminTestimonialsPage() {
                             </CardDescription>
                           </div>
                           <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
-                            Pending
+                            {t("pending")}
                           </Badge>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex gap-1 mb-4">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className="w-4 h-4 fill-yellow-500 text-yellow-500"
-                            />
-                          ))}
-                        </div>
                         <p className="text-foreground mb-4 italic">"{testimonial.content}"</p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <Button
                             size="sm"
                             onClick={() => handleApprove(testimonial.id)}
                             disabled={actionLoading === testimonial.id}
-                            className="flex-1 bg-green-600 hover:bg-green-700"
+                            className="flex-1 min-w-[100px] bg-green-600 hover:bg-green-700"
                           >
                             <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Approve
+                            {t("approve")}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleRejectClick(testimonial.id)}
+                            onClick={() => handleDeleteClick(testimonial.id)}
                             disabled={actionLoading === testimonial.id}
-                            className="flex-1"
+                            className="flex-1 min-w-[100px] text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Reject
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {t("delete")}
                           </Button>
                         </div>
                       </CardContent>
@@ -403,7 +380,7 @@ export default function AdminTestimonialsPage() {
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
                   <CheckCircle2 className="w-6 h-6 text-green-500" />
-                  Approved ({approvedTestimonials.length})
+                  {t("approved")} ({approvedTestimonials.length})
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {approvedTestimonials.map((testimonial) => (
@@ -424,43 +401,32 @@ export default function AdminTestimonialsPage() {
                             </CardDescription>
                           </div>
                           <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
-                            Approved
-                          </Badge>
+{t("approved")}
+                            </Badge>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex gap-1 mb-4">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className="w-4 h-4 fill-yellow-500 text-yellow-500"
-                            />
-                          ))}
-                        </div>
                         <p className="text-foreground mb-4 italic">"{testimonial.content}"</p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              // For approved testimonials, "reject" means unapprove (set to false)
-                              handleRejectUnapprove(testimonial.id);
-                            }}
+                            onClick={() => handleRejectUnapprove(testimonial.id)}
                             disabled={actionLoading === testimonial.id}
-                            className="flex-1"
+                            className="flex-1 min-w-[100px]"
                           >
                             <XCircle className="w-4 h-4 mr-2" />
-                            Unapprove
+                            {t("reject")}
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleRejectClick(testimonial.id)}
+                            onClick={() => handleDeleteClick(testimonial.id)}
                             disabled={actionLoading === testimonial.id}
-                            className="flex-1"
+                            className="flex-1 min-w-[100px] text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Reject
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {t("delete")}
                           </Button>
                         </div>
                       </CardContent>
@@ -472,32 +438,30 @@ export default function AdminTestimonialsPage() {
           </div>
         )}
 
-        {/* Reject Confirmation Dialog */}
-        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Reject Testimonial</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to reject and delete this testimonial? This action cannot be undone.
-              </DialogDescription>
+              <DialogTitle>{t("deleteConfirmTitle")}</DialogTitle>
+              <DialogDescription>{t("deleteConfirmDescription")}</DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button
                 variant="outline"
                 onClick={() => {
-                  setRejectDialogOpen(false);
-                  setTestimonialToReject(null);
+                  setDeleteDialogOpen(false);
+                  setTestimonialToDelete(null);
                 }}
                 disabled={actionLoading !== null}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 variant="destructive"
-                onClick={handleRejectConfirm}
+                onClick={handleDeleteConfirm}
                 disabled={actionLoading !== null}
               >
-                {actionLoading !== null ? "Rejecting..." : "Reject"}
+                {actionLoading !== null ? tCommon("loading") : t("delete")}
               </Button>
             </DialogFooter>
           </DialogContent>

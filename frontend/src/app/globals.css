@@ -253,3 +253,21 @@ html.dark body {
 .delay-500 {
   animation-delay: 500ms;
 }
+
+/* Skills horizontal infinite scroll – pause on hover */
+@keyframes skill-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-skill-scroll {
+  animation: skill-scroll 40s linear infinite;
+}
+
+.skill-scroll-container:hover .animate-skill-scroll {
+  animation-play-state: paused;
+}

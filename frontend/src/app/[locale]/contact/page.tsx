@@ -1,13 +1,25 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Phone, MapPin, Send, Sparkles } from "lucide-react";
 import ScrollAnimation from "@/components/ScrollAnimation";
+import { validateContactForm, capLength, LIMITS } from "@/lib/form-validation";
+
+interface ContactInfo {
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+}
 
 export default function ContactPage() {
   const t = useTranslations("contact");
   const locale = useLocale();
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    email: null,
+    phone: null,
+    address: null,
+  });
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -17,17 +29,48 @@ export default function ContactPage() {
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch("/api/contact/info", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data === "object") {
+          setContactInfo({
+            email: data.email ?? null,
+            phone: data.phone ?? null,
+            address: data.address ?? null,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
+    const result = validateContactForm(formData);
+    if (!result.ok) {
+      setFieldErrors(result.errors);
+      setSubmitStatus("error");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus("idle");
 
     try {
-      // Simulate form submission
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setSubmitStatus("success");
-      setFormData({ name: "", email: "", message: "" });
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result.data),
+      });
+      if (res.ok) {
+        setSubmitStatus("success");
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        setSubmitStatus("error");
+      }
     } catch (error) {
       setSubmitStatus("error");
     } finally {
@@ -38,10 +81,13 @@ export default function ContactPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
+    const { name, value } = e.target;
+    const maxLen = name === "name" ? LIMITS.name : name === "email" ? LIMITS.email : LIMITS.message;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: capLength(value, maxLen),
     }));
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const content = {
@@ -151,53 +197,59 @@ export default function ContactPage() {
               </div>
 
               <div className="space-y-6">
-                <div className="group flex items-start gap-4 p-6 bg-card border border-border rounded-xl hover:border-blue-500/50 transition-all hover:shadow-lg hover:shadow-blue-500/10">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0 border border-blue-500/20 group-hover:scale-110 transition-transform">
-                    <Mail className="w-6 h-6 text-blue-500" />
+                {contactInfo.email && (
+                  <div className="group flex items-start gap-4 p-6 bg-card border border-border rounded-xl hover:border-blue-500/50 transition-all hover:shadow-lg hover:shadow-blue-500/10">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0 border border-blue-500/20 group-hover:scale-110 transition-transform">
+                      <Mail className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1 text-foreground">
+                        {pageContent.email}
+                      </h3>
+                      <a
+                        href={`mailto:${contactInfo.email}`}
+                        className="text-muted-foreground hover:text-blue-500 transition-colors"
+                      >
+                        {contactInfo.email}
+                      </a>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold mb-1 text-foreground">
-                      {pageContent.email}
-                    </h3>
-                    <a
-                      href="mailto:tamim.afghanyar@gmail.com"
-                      className="text-muted-foreground hover:text-blue-500 transition-colors"
-                    >
-                      tamim.afghanyar@gmail.com
-                    </a>
-                  </div>
-                </div>
+                )}
 
-                <div className="group flex items-start gap-4 p-6 bg-card border border-border rounded-xl hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 border border-purple-500/20 group-hover:scale-110 transition-transform">
-                    <Phone className="w-6 h-6 text-purple-500" />
+                {contactInfo.phone && (
+                  <div className="group flex items-start gap-4 p-6 bg-card border border-border rounded-xl hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 border border-purple-500/20 group-hover:scale-110 transition-transform">
+                      <Phone className="w-6 h-6 text-purple-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1 text-foreground">
+                        {pageContent.phone}
+                      </h3>
+                      <a
+                        href={`tel:${contactInfo.phone.replace(/\D/g, "")}`}
+                        className="text-muted-foreground hover:text-purple-500 transition-colors"
+                      >
+                        {contactInfo.phone}
+                      </a>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold mb-1 text-foreground">
-                      {pageContent.phone}
-                    </h3>
-                    <a
-                      href="tel:+15149539598"
-                      className="text-muted-foreground hover:text-purple-500 transition-colors"
-                    >
-                      514-953-9598
-                    </a>
-                  </div>
-                </div>
+                )}
 
-                <div className="group flex items-start gap-4 p-6 bg-card border border-border rounded-xl hover:border-emerald-500/50 transition-all hover:shadow-lg hover:shadow-emerald-500/10">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/10 to-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                    <MapPin className="w-6 h-6 text-emerald-500" />
+                {contactInfo.address && (
+                  <div className="group flex items-start gap-4 p-6 bg-card border border-border rounded-xl hover:border-emerald-500/50 transition-all hover:shadow-lg hover:shadow-emerald-500/10">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/10 to-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                      <MapPin className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1 text-foreground">
+                        {pageContent.location}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {contactInfo.address}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold mb-1 text-foreground">
-                      {pageContent.location}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Saint-Jean-sur-Richelieu, Quebec
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </ScrollAnimation>
@@ -223,12 +275,18 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-border rounded-lg 
+                    maxLength={LIMITS.name}
+                    aria-invalid={!!fieldErrors.name}
+                    aria-describedby={fieldErrors.name ? "name-error" : undefined}
+                    className={`w-full px-4 py-3 border rounded-lg 
                              bg-background text-foreground
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                             hover:border-blue-500/50 transition-colors"
+                             hover:border-blue-500/50 transition-colors ${fieldErrors.name ? "border-red-500" : "border-border"}`}
                     placeholder={pageContent.namePlaceholder}
                   />
+                  {fieldErrors.name && (
+                    <p id="name-error" className="mt-1 text-sm text-red-500" role="alert">{fieldErrors.name}</p>
+                  )}
                 </div>
 
                 <div>
@@ -245,12 +303,18 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-border rounded-lg 
+                    maxLength={LIMITS.email}
+                    aria-invalid={!!fieldErrors.email}
+                    aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                    className={`w-full px-4 py-3 border rounded-lg 
                              bg-background text-foreground
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                             hover:border-blue-500/50 transition-colors"
+                             hover:border-blue-500/50 transition-colors ${fieldErrors.email ? "border-red-500" : "border-border"}`}
                     placeholder={pageContent.emailPlaceholder}
                   />
+                  {fieldErrors.email && (
+                    <p id="email-error" className="mt-1 text-sm text-red-500" role="alert">{fieldErrors.email}</p>
+                  )}
                 </div>
 
                 <div>
@@ -266,13 +330,19 @@ export default function ContactPage() {
                     value={formData.message}
                     onChange={handleChange}
                     required
+                    maxLength={LIMITS.message}
                     rows={5}
-                    className="w-full px-4 py-3 border border-border rounded-lg 
+                    aria-invalid={!!fieldErrors.message}
+                    aria-describedby={fieldErrors.message ? "message-error" : undefined}
+                    className={`w-full px-4 py-3 border rounded-lg 
                              bg-background text-foreground
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                             hover:border-blue-500/50 transition-colors resize-none"
+                             hover:border-blue-500/50 transition-colors resize-none ${fieldErrors.message ? "border-red-500" : "border-border"}`}
                     placeholder={pageContent.messagePlaceholder}
                   />
+                  {fieldErrors.message && (
+                    <p id="message-error" className="mt-1 text-sm text-red-500" role="alert">{fieldErrors.message}</p>
+                  )}
                 </div>
 
                 {submitStatus === "success" && (

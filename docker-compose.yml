@@ -82,6 +82,12 @@ services:
       FRONTEND_URL: http://frontend:3000
       AUTH_SERVICE_URL: http://auth-service:3001
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+      # DigitalOcean Spaces (object storage for resume + profile photo)
+      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT}
+      DO_SPACES_BUCKET: ${DO_SPACES_BUCKET}
+      DO_SPACES_ACCESS_KEY_ID: ${DO_SPACES_ACCESS_KEY_ID}
+      DO_SPACES_SECRET_ACCESS_KEY: ${DO_SPACES_SECRET_ACCESS_KEY}
+      DO_SPACES_CDN_URL: ${DO_SPACES_CDN_URL:-}
     ports:
       - "8080:8080"
     depends_on:
