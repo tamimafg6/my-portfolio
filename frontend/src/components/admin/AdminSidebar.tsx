@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link, usePathname } from "@/i18n/routing";
+import { usePathname, useRouter } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -31,24 +32,71 @@ interface NavItem {
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const locale = useLocale();
-  const t = useTranslations("sidebar");
+  const t = useTranslations("admin.sidebar");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
-    { id: "dashboard", label: t("dashboard"), icon: LayoutDashboard, route: "/admin/dashboard" },
-    { id: "projects", label: t("projects"), icon: FolderKanban, route: "/admin/projects" },
-    { id: "skills", label: t("skills"), icon: Code, route: "/admin/skills" },
-    { id: "experience", label: t("experience"), icon: Briefcase, route: "/admin/experience" },
-    { id: "education", label: t("education"), icon: GraduationCap, route: "/admin/education" },
-    { id: "testimonials", label: t("testimonials"), icon: MessageSquare, route: "/admin/testimonials" },
-    { id: "hobbies", label: t("hobbies"), icon: Heart, route: "/admin/hobbies" },
-    { id: "messages", label: t("messages"), icon: MessageSquare, route: "/admin/messages" },
-    { id: "settings", label: t("settings"), icon: Mail, route: "/admin/settings" },
+    {
+      id: "dashboard",
+      label: t("dashboard"),
+      icon: LayoutDashboard,
+      route: "/admin/dashboard",
+    },
+    {
+      id: "projects",
+      label: t("projects"),
+      icon: FolderKanban,
+      route: "/admin/projects",
+    },
+    {
+      id: "skills",
+      label: t("skills"),
+      icon: Code,
+      route: "/admin/skills",
+    },
+    {
+      id: "experience",
+      label: t("experience"),
+      icon: Briefcase,
+      route: "/admin/experience",
+    },
+    {
+      id: "education",
+      label: t("education"),
+      icon: GraduationCap,
+      route: "/admin/education",
+    },
+    {
+      id: "testimonials",
+      label: t("testimonials"),
+      icon: MessageSquare,
+      route: "/admin/testimonials",
+    },
+    {
+      id: "hobbies",
+      label: t("hobbies"),
+      icon: Heart,
+      route: "/admin/hobbies",
+    },
+    {
+      id: "messages",
+      label: t("messages"),
+      icon: MessageSquare,
+      route: "/admin/messages",
+    },
+    {
+      id: "settings",
+      label: t("settings"),
+      icon: Mail,
+      route: "/admin/settings",
+    },
   ];
 
   const isActive = (route: string) => {
-    return pathname === `/${locale}${route}` || pathname === route;
+    const pathWithLocale = `/${locale}${route}`;
+    return pathname === pathWithLocale || pathname === route || pathname?.endsWith(route);
   };
 
   const handleLogout = async () => {
@@ -102,8 +150,8 @@ export default function AdminSidebar() {
                 <LayoutDashboard className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-lg text-foreground">{t("adminPanel")}</h2>
-                <p className="text-xs text-muted-foreground">{t("portfolioManagement")}</p>
+                <h2 className="font-bold text-lg text-foreground">{t("panelTitle")}</h2>
+                <p className="text-xs text-muted-foreground">{t("panelSubtitle")}</p>
               </div>
             </div>
           </div>
@@ -116,7 +164,7 @@ export default function AdminSidebar() {
               return (
                 <Link
                   key={item.id}
-                  href={item.route}
+                  href={`/${locale}${item.route}`}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     active
@@ -133,29 +181,29 @@ export default function AdminSidebar() {
 
           {/* Footer Actions */}
           <div className="p-4 border-t border-border space-y-2">
-            {/* Language Toggle - full navigation so locale and messages reload */}
+            {/* Language Toggle */}
             <Button
               variant="ghost"
               onClick={() => {
                 const newLocale = locale === "en" ? "fr" : "en";
-                const path = typeof window !== "undefined" ? window.location.pathname : "";
-                const pathWithoutLocale = path.replace(/^\/(en|fr)/, "").trim() || "admin";
-                const newPath = `/${newLocale}/${pathWithoutLocale}`;
-                window.location.href = newPath;
+                const currentPath = pathname || "";
+                const pathWithoutLocale = currentPath.replace(/^\/(en|fr)/, "") || "/";
+                // Navigate to same path with new locale so language persists
+                window.location.href = `/${newLocale}${pathWithoutLocale}`;
                 setIsMobileMenuOpen(false);
               }}
               className="w-full justify-start gap-3 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             >
               <Languages className="w-5 h-5" />
-              <span className="font-medium">{locale === "en" ? t("switchToFrench") : t("switchToEnglish")}</span>
+              <span className="font-medium">{locale === "en" ? "Français" : "English"}</span>
             </Button>
             <Link
-              href="/"
+              href={locale ? `/${locale}` : "/"}
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
             >
               <Eye className="w-5 h-5" />
-              <span className="font-medium">{t("viewPortfolio")}</span>
+              <span className="font-medium">View Portfolio</span>
             </Link>
             <Button
               variant="ghost"
@@ -163,7 +211,7 @@ export default function AdminSidebar() {
               className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-500/10"
             >
               <LogOut className="w-5 h-5" />
-              <span className="font-medium">{t("logout")}</span>
+              <span className="font-medium">Logout</span>
             </Button>
           </div>
         </div>

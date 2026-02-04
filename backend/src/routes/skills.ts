@@ -70,15 +70,18 @@ router.put("/:id", adminOnly, async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const { nameEn, nameAr, category, level, icon, order } = req.body;
 
+    const nameEnVal = nameEn !== undefined && nameEn !== null ? String(nameEn).trim() : undefined;
+    const nameArVal = nameAr !== undefined ? (String(nameAr).trim() || nameEnVal || "").trim() || nameEnVal || "" : undefined;
+
     const [updatedSkill] = await db
       .update(skills)
       .set({
-        nameEn,
-        nameAr,
-        category,
-        level,
-        icon,
-        order,
+        ...(nameEnVal !== undefined && { nameEn: nameEnVal }),
+        ...(nameArVal !== undefined && { nameAr: nameArVal }),
+        ...(category !== undefined && { category }),
+        ...(level !== undefined && { level: Math.min(5, Math.max(0, Number(level))) }),
+        ...(icon !== undefined && { icon: icon || null }),
+        ...(order !== undefined && { order: Number(order) ?? 0 }),
         updatedAt: new Date(),
       })
       .where(eq(skills.id, id))

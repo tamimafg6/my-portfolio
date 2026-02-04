@@ -168,15 +168,15 @@ export default function AdminHobbiesPage() {
             setIsModalOpen(true);
           }}>
             <Plus className="w-4 h-4" />
-            {t("addNew")}
+            {t("addHobby")}
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>{t("title")}</CardTitle>
+            <CardTitle>{t("cardTitle")}</CardTitle>
             <CardDescription>
-              {hobbies.length}
+              {hobbies.length === 1 ? t("entryCount", { count: hobbies.length }) : t("entryCountPlural", { count: hobbies.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -239,8 +239,10 @@ export default function AdminHobbiesPage() {
       }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? t("edit") : t("addNew")}</DialogTitle>
-            <DialogDescription>{t("subtitle")}</DialogDescription>
+            <DialogTitle>{editingId ? t("editHobby") : t("addHobby")}</DialogTitle>
+            <DialogDescription>
+              {editingId ? t("editDescription") : t("addDescription")}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -254,7 +256,7 @@ export default function AdminHobbiesPage() {
               />
             </div>
             <div>
-              <label htmlFor="titleAr" className="text-sm font-medium text-foreground">Title (French)</label>
+              <label htmlFor="titleAr" className="text-sm font-medium text-foreground">{t("titleAr")}</label>
               <Input
                 id="titleAr"
                 value={formData.titleAr}
@@ -272,7 +274,7 @@ export default function AdminHobbiesPage() {
               />
             </div>
             <div>
-              <label htmlFor="descriptionAr" className="text-sm font-medium text-foreground">Description (French)</label>
+              <label htmlFor="descriptionAr" className="text-sm font-medium text-foreground">{t("descriptionAr")}</label>
               <Input
                 id="descriptionAr"
                 value={formData.descriptionAr}
@@ -285,7 +287,7 @@ export default function AdminHobbiesPage() {
                 {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? tCommon("loading") : t("add")}
+                {isSubmitting ? t("adding") : (editingId ? tCommon("save") : t("addHobby"))}
               </Button>
             </div>
           </form>

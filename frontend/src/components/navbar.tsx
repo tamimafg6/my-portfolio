@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { LanguageSwitcher } from "./language-switcher";
 import { Button } from "./ui/button";
-import { Menu, X, LogIn, LogOut } from "lucide-react";
+import { Menu, X, LogIn, LogOut, FileDown } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
 import { authClient } from "@/lib/auth-client";
@@ -65,16 +65,23 @@ export default function Navbar() {
     { href: "/experience", label: t("experience"), sectionId: "experience" },
     { href: "/education", label: t("education"), sectionId: "education" },
     { href: "/hobbies", label: t("hobbies"), sectionId: "hobbies" },
-    { href: "/testimonials", label: t("testimonials"), sectionId: "testimonials" },
+    {
+      href: "/testimonials",
+      label: t("testimonials"),
+      sectionId: "testimonials",
+    },
     { href: "/contact", label: t("contact"), sectionId: "contact-form" },
   ];
+
+  const resumeUrl = `/api/resume/file?locale=${locale}`;
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
       const navbarHeight = 64; // h-16 = 64px
       const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - navbarHeight;
 
       window.scrollTo({
         top: offsetPosition,
@@ -83,9 +90,12 @@ export default function Navbar() {
     }
   };
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string | null) => {
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string | null,
+  ) => {
     e.preventDefault();
-    
+
     // Close mobile menu if open
     setIsOpen(false);
 
@@ -98,7 +108,7 @@ export default function Navbar() {
 
     // Check if we're on the home page
     const isHomePage = pathname === `/${locale}` || pathname === "/";
-    
+
     if (isHomePage) {
       // If on home page, scroll to section
       scrollToSection(sectionId);
@@ -143,8 +153,18 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            {!isCheckingSession && (
-              isLoggedIn ? (
+            <a
+              href={resumeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              <FileDown className="h-4 w-4" />
+              {t("resume")}
+            </a>
+            {!isCheckingSession &&
+              (isLoggedIn ? (
                 <Button
                   variant="outline"
                   size="sm"
@@ -161,8 +181,7 @@ export default function Navbar() {
                     {t("login")}
                   </Button>
                 </Link>
-              )
-            )}
+              ))}
             <ThemeToggle />
             <LanguageSwitcher />
           </div>
@@ -198,8 +217,18 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            {!isCheckingSession && (
-              isLoggedIn ? (
+            <a
+              href={resumeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              <FileDown className="h-4 w-4" />
+              {t("resume")}
+            </a>
+            {!isCheckingSession &&
+              (isLoggedIn ? (
                 <Button
                   variant="outline"
                   size="sm"
@@ -214,13 +243,16 @@ export default function Navbar() {
                 </Button>
               ) : (
                 <Link href="/admin/login" onClick={() => setIsOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full gap-2 mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 mt-2"
+                  >
                     <LogIn className="h-4 w-4" />
                     {t("login")}
                   </Button>
                 </Link>
-              )
-            )}
+              ))}
           </div>
         )}
       </div>

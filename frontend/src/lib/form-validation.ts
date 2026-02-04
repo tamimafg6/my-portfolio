@@ -27,7 +27,7 @@ export function sanitizeString(value: string, maxLength: number): string {
   return s;
 }
 
-/** Trim and enforce max length without escaping (for validation/submit; use capLength for live input). */
+/** Trim and enforce max length without escaping (for display in inputs; escape before sending if needed). */
 export function trimAndCap(value: string, maxLength: number): string {
   if (typeof value !== "string") return "";
   const s = value.trim();

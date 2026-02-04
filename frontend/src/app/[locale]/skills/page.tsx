@@ -118,12 +118,12 @@ export default async function SkillsPage({
                           <p className="font-semibold text-center text-sm text-foreground">
                             {locale === "fr" ? skill.nameAr : skill.nameEn}
                           </p>
-                          <div className="mt-2 flex gap-1">
+                          <div className="mt-2 flex gap-1 hidden" aria-hidden="true">
                             {[...Array(Math.round(skill.level))].map((_, i) => (
                               <div
                                 key={i}
                                 className="w-1.5 h-1.5 rounded-full bg-blue-500"
-                              ></div>
+                              />
                             ))}
                           </div>
                         </div>

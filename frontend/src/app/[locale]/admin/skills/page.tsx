@@ -160,9 +160,12 @@ export default function AdminSkillsPage() {
           }),
         });
         if (res.ok) {
-          const updated = await res.json();
-          setSkills(skills.map((s) => (s.id === editingSkill.id ? updated : s)));
           closeModal();
+          const refetchRes = await fetch("/api/skills", { cache: "no-store" });
+          if (refetchRes.ok) {
+            const list = await refetchRes.json();
+            setSkills(Array.isArray(list) ? list : skills);
+          }
         } else {
           const err = await res.json();
           alert(err.error || "Failed to update skill.");
@@ -266,16 +269,14 @@ export default function AdminSkillsPage() {
                             {CATEGORY_TO_KEY[skill.category] ? t(CATEGORY_TO_KEY[skill.category]) : skill.category}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 hidden" aria-hidden="true">
                           <span className="text-sm text-muted-foreground">{t("level")}:</span>
                           <div className="flex gap-1">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <span
                                 key={star}
                                 className={`text-sm ${
-                                  star <= skill.level
-                                    ? "text-yellow-500"
-                                    : "text-muted-foreground/30"
+                                  star <= skill.level ? "text-yellow-500" : "text-muted-foreground/30"
                                 }`}
                               >
                                 ★
@@ -411,7 +412,7 @@ export default function AdminSkillsPage() {
                 )}
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 hidden" aria-hidden="true">
               <label className="text-sm font-medium text-foreground">
                 Proficiency Level (1–5 stars) *
               </label>

@@ -90,8 +90,6 @@ export default function HomePage() {
   >([]);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeLabel, setResumeLabel] = useState<string>("Resume");
-  const [githubUrl, setGithubUrl] = useState<string | null>(null);
-  const [linkedInUrl, setLinkedInUrl] = useState<string | null>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [showTestimonialForm, setShowTestimonialForm] = useState(false);
 
@@ -195,33 +193,28 @@ export default function HomePage() {
         );
       })
       .catch(() => setEducation([]));
-    // Fetch contact info (profile photo + social links) - cache-bust so saved URLs are used
-    fetch(`/api/contact/info?_=${Date.now()}`, { cache: "no-store" })
+    // Fetch profile photo
+    fetch("/api/contact/info", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.profilePhotoUrl) {
           setProfilePhotoUrl(data.profilePhotoUrl);
         }
-        setGithubUrl(data?.github ?? null);
-        setLinkedInUrl(data?.linkedIn ?? data?.linkedin ?? null);
       })
       .catch(() => {});
-    // Fetch resume (use locale-specific file if available)
+    // Fetch resume (show section if any of fileUrl, fileUrlEn, or fileUrlAr exists)
     fetch("/api/resume", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        const url =
-          locale === "fr"
-            ? (data?.fileUrlAr ?? data?.fileUrl)
-            : (data?.fileUrlEn ?? data?.fileUrl);
-        if (url) {
-          setResumeUrl(url);
-          setResumeLabel(locale === "fr" ? (data?.labelAr ?? "CV") : (data?.labelEn ?? "Resume"));
+        const hasResume = data?.fileUrlEn || data?.fileUrlAr || data?.fileUrl;
+        if (hasResume) {
+          setResumeUrl(data.fileUrlEn || data.fileUrlAr || data.fileUrl);
+          setResumeLabel(locale === "fr" ? (data.labelAr ?? "CV") : (data.labelEn ?? "Resume"));
         } else {
           setResumeUrl(null);
         }
       })
-      .catch(() => {});
+      .catch(() => setResumeUrl(null));
   };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -371,31 +364,25 @@ export default function HomePage() {
               </p>
             </ScrollAnimation>
 
-            {/* Social Links - use URLs saved in Settings */}
+            {/* Social Links */}
             <ScrollAnimation animation="slide-up" delay={0.3}>
               <div className="flex gap-4 mb-12 justify-center">
-                {githubUrl && (
-                  <Link
-                    href={githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
-                    aria-label="GitHub"
-                  >
-                    <Github className="w-6 h-6 text-foreground" />
-                  </Link>
-                )}
-                {linkedInUrl && (
-                  <Link
-                    href={linkedInUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
-                    aria-label="LinkedIn"
-                  >
-                    <Linkedin className="w-6 h-6 text-foreground" />
-                  </Link>
-                )}
+                <Link
+                  href="https://github.com/tamimafg6"
+                  target="_blank"
+                  className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
+                  aria-label="GitHub"
+                >
+                  <Github className="w-6 h-6 text-foreground" />
+                </Link>
+                <Link
+                  href="https://www.linkedin.com/in/tamim-afghanyar-2026852b3"
+                  target="_blank"
+                  className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-6 h-6 text-foreground" />
+                </Link>
               </div>
             </ScrollAnimation>
 
@@ -448,7 +435,7 @@ export default function HomePage() {
                       key={idx}
                       className="flex items-start gap-3 p-3 rounded-lg bg-card border border-border hover:border-blue-500/40 transition-colors"
                     >
-                      <ArrowRight className="w-4 h-4 text-blue-500 mt-1" />
+                      <ArrowRight className="w-4 h-4 text-blue-500 mt-1 shrink-0" />
                       <span className="text-foreground">{t(`about.highlights.${idx}`)}</span>
                     </div>
                   ))}
@@ -465,21 +452,21 @@ export default function HomePage() {
             </ScrollAnimation>
 
             <ScrollAnimation animation="slide-in-from-right" delay={0.1}>
-              <div className="flex flex-col items-center justify-center">
+              <div className="flex justify-center md:justify-end">
                 {profilePhotoUrl ? (
-                  <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full overflow-hidden border-4 border-border shadow-xl shadow-blue-500/10">
+                  <div className="relative w-56 h-56 md:w-72 md:h-72 rounded-2xl overflow-hidden border-4 border-border shadow-xl shrink-0">
                     <Image
                       src="/api/profile/photo"
                       alt="Profile"
                       fill
                       className="object-cover"
-                      sizes="(max-width: 640px) 224px, (max-width: 768px) 256px, 288px"
+                      sizes="(max-width: 768px) 224px, 288px"
                       unoptimized
                     />
                   </div>
                 ) : (
-                  <div className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full bg-muted border-4 border-border flex items-center justify-center">
-                    <span className="text-4xl font-bold text-muted-foreground">
+                  <div className="w-56 h-56 md:w-72 md:h-72 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-border flex items-center justify-center shrink-0">
+                    <span className="text-6xl md:text-7xl font-bold text-foreground/80">
                       {t("about.title").charAt(0)}
                     </span>
                   </div>
@@ -563,16 +550,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Skills Section – horizontal infinite scroll, pause on hover */}
+      {/* Skills Section */}
       <section
         id="skills"
-        className="relative py-20 bg-background overflow-hidden"
+        className="relative py-20 bg-background"
         style={{ zIndex: 1 }}
       >
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <ScrollAnimation animation="fade-in" delay={0}>
-              <div className="text-center mb-12">
+              <div className="text-center mb-16">
                 <h2 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
                   {t("skillsSection.title")}
                 </h2>
@@ -583,21 +570,22 @@ export default function HomePage() {
               </div>
             </ScrollAnimation>
 
-            <div className="skill-scroll-container overflow-hidden mb-12">
-              <div className="animate-skill-scroll flex w-max gap-4">
+            {/* Horizontal scrolling strip – pauses on hover */}
+            <div className="skill-scroll-container overflow-hidden w-full py-8 mb-12">
+              <div className="animate-skill-scroll flex gap-6 w-max">
                 {[...skills, ...skills].map((skill, idx) => (
                   <div
                     key={`${skill.id}-${idx}`}
-                    className="flex shrink-0 flex-col items-center justify-center min-w-[140px] p-5 rounded-xl bg-card border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group"
+                    className="flex flex-col items-center justify-center flex-shrink-0 w-28 py-5 px-4 rounded-xl bg-card border border-border hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group"
                   >
-                    <div className="text-4xl mb-2 text-foreground group-hover:scale-110 transition-transform duration-300 flex items-center justify-center w-12 h-12">
+                    <div className="mb-2 shrink-0 w-14 h-14 flex items-center justify-center text-foreground group-hover:scale-110 transition-transform duration-300 [&_svg]:w-12 [&_svg]:h-12">
                       {getSkillIcon(skill) ?? (
-                        <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg font-bold text-white text-lg shadow-lg">
-                          {skill.nameEn.slice(0, 2).toUpperCase()}
+                        <div className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg font-bold text-white text-base shadow-lg">
+                          {(skill.nameEn || skill.nameAr || "SK").trim().slice(0, 2).toUpperCase() || "SK"}
                         </div>
                       )}
                     </div>
-                    <p className="font-semibold text-center text-sm text-foreground">
+                    <p className="font-semibold text-center text-xs text-foreground leading-tight">
                       {locale === "fr" ? skill.nameAr : skill.nameEn}
                     </p>
                   </div>
@@ -891,7 +879,7 @@ export default function HomePage() {
                     href={`/api/resume/file?locale=${locale}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    download={locale === "fr" ? "cv.pdf" : "resume.pdf"}
+                    download={resumeLabel || (locale === "fr" ? "cv.pdf" : "resume.pdf")}
                     className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all hover:scale-[1.02]"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -991,7 +979,7 @@ export default function HomePage() {
                     onClick={() => setShowTestimonialForm(!showTestimonialForm)}
                     className="bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
                   >
-                    {showTestimonialForm ? tTestimonials("hideFormButton") : tTestimonials("showFormButton")}
+                    {showTestimonialForm ? "Hide Testimonial Form" : "Submit a Testimonial"}
                   </Button>
                 </div>
 
@@ -1103,7 +1091,7 @@ export default function HomePage() {
                   onClick={() => setShowContactForm(!showContactForm)}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
                 >
-                  {showContactForm ? tContact("hideFormButton") : tContact("showFormButton")}
+                  {showContactForm ? "Hide Contact Form" : "Show Contact Form"}
                 </Button>
               </div>
             </ScrollAnimation>
