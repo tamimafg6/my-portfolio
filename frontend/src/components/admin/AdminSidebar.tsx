@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "@/i18n/routing";
+import { useState } from "react";
+import { usePathname } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import {
@@ -32,7 +32,6 @@ interface NavItem {
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("admin.sidebar");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -101,15 +100,11 @@ export default function AdminSidebar() {
 
   const handleLogout = async () => {
     try {
-      // Clear session
       await authClient.signOut();
-      // Clear any cached session data
       await authClient.getSession();
-      // Force a hard reload to clear all state and cookies
       window.location.href = `/${locale}`;
     } catch (error) {
       console.error("Logout error:", error);
-      // Even on error, force redirect to clear state
       window.location.href = `/${locale}`;
     }
   };
@@ -188,7 +183,6 @@ export default function AdminSidebar() {
                 const newLocale = locale === "en" ? "fr" : "en";
                 const currentPath = pathname || "";
                 const pathWithoutLocale = currentPath.replace(/^\/(en|fr)/, "") || "/";
-                // Navigate to same path with new locale so language persists
                 window.location.href = `/${newLocale}${pathWithoutLocale}`;
                 setIsMobileMenuOpen(false);
               }}

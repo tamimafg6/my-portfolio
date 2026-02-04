@@ -2,6 +2,8 @@
 
 > Modern portfolio application with microservices architecture
 
+**Last updated:** January 2026
+
 [![Next.js](https://img.shields.io/badge/Next.js-15.5.9-black)](https://nextjs.org/)
 [![Express](https://img.shields.io/badge/Express-4.18.2-green)](https://expressjs.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)](https://postgresql.org/)

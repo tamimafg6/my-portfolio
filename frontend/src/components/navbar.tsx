@@ -57,6 +57,8 @@ export default function Navbar() {
     }
   };
 
+  const resumeUrl = `/api/resume/file?locale=${locale}`;
+
   const navLinks = [
     { href: "/", label: t("home"), sectionId: null },
     { href: "/about", label: t("about"), sectionId: "about" },
@@ -72,8 +74,6 @@ export default function Navbar() {
     },
     { href: "/contact", label: t("contact"), sectionId: "contact-form" },
   ];
-
-  const resumeUrl = `/api/resume/file?locale=${locale}`;
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
