@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { LanguageSwitcher } from "./language-switcher";
 import { Button } from "./ui/button";
-import { Menu, X, LogIn, LogOut, FileDown } from "lucide-react";
+import { Menu, X, LogIn, LogOut } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
 import { authClient } from "@/lib/auth-client";
@@ -56,8 +56,6 @@ export default function Navbar() {
       window.location.href = `/${locale}`;
     }
   };
-
-  const resumeUrl = `/api/resume/file?locale=${locale}`;
 
   const navLinks = [
     { href: "/", label: t("home"), sectionId: null },
@@ -153,16 +151,6 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            <a
-              href={resumeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm font-medium hover:text-primary transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              <FileDown className="h-4 w-4" />
-              {t("resume")}
-            </a>
             {!isCheckingSession &&
               (isLoggedIn ? (
                 <Button
@@ -217,16 +205,6 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            <a
-              href={resumeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              <FileDown className="h-4 w-4" />
-              {t("resume")}
-            </a>
             {!isCheckingSession &&
               (isLoggedIn ? (
                 <Button

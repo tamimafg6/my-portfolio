@@ -9,6 +9,7 @@ import {
   Mail,
   Github,
   Linkedin,
+  FileDown,
   ChevronDown,
   Sparkles,
   Calendar,
@@ -68,6 +69,7 @@ export default function HomePage() {
   const tContact = useTranslations("contact");
   const tTestimonials = useTranslations("testimonials");
   const tCommon = useTranslations("common");
+  const tNav = useTranslations("nav");
   const locale = useLocale();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -366,10 +368,11 @@ export default function HomePage() {
 
             {/* Social Links */}
             <ScrollAnimation animation="slide-up" delay={0.3}>
-              <div className="flex gap-4 mb-12 justify-center">
+              <div className="flex gap-4 mb-12 justify-center flex-wrap">
                 <Link
                   href="https://github.com/tamimafg6"
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
                   aria-label="GitHub"
                 >
@@ -378,10 +381,20 @@ export default function HomePage() {
                 <Link
                   href="https://www.linkedin.com/in/tamim-afghanyar-2026852b3"
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
                   aria-label="LinkedIn"
                 >
                   <Linkedin className="w-6 h-6 text-foreground" />
+                </Link>
+                <Link
+                  href={`/api/resume/file?locale=${locale}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
+                  aria-label={tNav("resume")}
+                >
+                  <FileDown className="w-6 h-6 text-foreground" />
                 </Link>
               </div>
             </ScrollAnimation>
