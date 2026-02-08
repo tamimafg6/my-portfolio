@@ -60,6 +60,9 @@ services:
       NODE_ENV: production
       PORT: 3001
       CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+      # Admin user for seed script (values from .env; do not commit credentials)
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     ports:
       - "3001:3001"
     depends_on:

@@ -53,10 +53,7 @@ fi
 # Step 5: Keep service running in foreground
 echo "✅ Setup complete!"
 if [ "${NODE_ENV}" != "production" ] && [ "${SPRING_PROFILES_ACTIVE}" != "prod" ] && [ "${SPRING_PROFILES_ACTIVE}" != "production" ]; then
-  echo "📝 Test users available:"
-  echo "   Admin:      admin@test.com / password123 (ADMIN role)"
-  echo "   Customer:   customer@test.com / password123 (CUSTOMER role)"
-  echo "   Team Buyer: teambuyer@test.com / password123 (TEAM_BUYER role)"
+  echo "📝 Log in: use ADMIN_EMAIL from .env for admin; test users customer@test.com / teambuyer@test.com (password123)"
   echo ""
 fi
 echo "🔧 Auth-service is running..."

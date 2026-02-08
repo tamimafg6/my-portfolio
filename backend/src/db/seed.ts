@@ -153,17 +153,18 @@ async function seed() {
     email: "tamim.afghanyar@gmail.com",
     phone: "514-953-9598",
     address: "Saint-Jean-sur-Richelieu, Quebec",
-    linkedIn: "https://www.linkedin.com/in/tamim-afghanyar/",
-    github: null,
+    linkedIn: "https://www.linkedin.com/in/tamim-afghanyar-2026852b3",
+    github: "https://github.com/tamimafg6",
     twitter: null,
     website: null,
   });
 
   // Resume: no seed row — CV is set only after admin uploads a PDF in Settings.
-  // Seed hobbies
+  // Seed hobbies (incl. extra-curricular from resume)
   await db.insert(schema.hobbies).values([
-    { titleEn: "Coding & Side Projects", titleAr: "Code et projets personnels", descriptionEn: "Building small apps and exploring new tech", descriptionAr: "Créer des applis et explorer de nouvelles technologies", order: 0 },
-    { titleEn: "Reading", titleAr: "Lecture", descriptionEn: "Tech blogs and software books", descriptionAr: "Blogs tech et livres sur le logiciel", order: 1 },
+    { titleEn: "Champlain Code Quest 2025 — Hackathon", titleAr: "Champlain Code Quest 2025 — Hackathon", descriptionEn: "One-day hackathon focused on innovation and teamwork under the theme \"Life 2035\".", descriptionAr: "Hackathon d'une journée sur le thème « Life 2035 », axé sur l'innovation et le travail d'équipe.", order: 0 },
+    { titleEn: "Coding & Side Projects", titleAr: "Code et projets personnels", descriptionEn: "Building small apps and exploring new tech", descriptionAr: "Créer des applis et explorer de nouvelles technologies", order: 1 },
+    { titleEn: "Reading", titleAr: "Lecture", descriptionEn: "Tech blogs and software books", descriptionAr: "Blogs tech et livres sur le logiciel", order: 2 },
   ]);
 
   console.log("✅ Database seeded successfully!");

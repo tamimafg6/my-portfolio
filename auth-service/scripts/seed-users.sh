@@ -2,17 +2,17 @@
 # Seed test users using Better Auth's signup API
 # This ensures passwords are properly hashed
 #
-# SECURITY: This script is DISABLED in production to prevent unauthorized access
-# with default credentials. DO NOT run this in production environments.
+# SECURITY: This script is DISABLED in production to prevent unauthorized access.
+# Admin user is created from ADMIN_EMAIL and ADMIN_PASSWORD (set in .env, never commit those).
+# Optional test users (customer, teambuyer) use dev-only defaults.
 
 # Check if running in production environment
 if [ "${NODE_ENV}" = "production" ] || [ "${SPRING_PROFILES_ACTIVE}" = "prod" ] || [ "${SPRING_PROFILES_ACTIVE}" = "production" ]; then
   echo "❌ ERROR: User seeding is DISABLED in production for security reasons."
-  echo "   This script creates accounts with known passwords (admin@test.com / password123)."
   echo "   To create admin accounts in production:"
   echo "   1. Sign up normally at your production site"
   echo "   2. Connect to the auth database"
-  echo "   3. Run: UPDATE \"user\" SET role = 'admin' WHERE email = 'your-email@example.com';"
+  echo "   3. Run: UPDATE \"user\" SET role = 'ADMIN' WHERE email = 'your-email@example.com';"
   exit 1
 fi
 
@@ -162,18 +162,25 @@ create_user() {
   fi
 }
 
-# Create test users
-create_user "admin@test.com" "password123" "Admin User" "ADMIN"
+# Admin user: use credentials from .env (never commit real credentials)
+if [ -n "${ADMIN_EMAIL}" ] && [ -n "${ADMIN_PASSWORD}" ]; then
+  create_user "${ADMIN_EMAIL}" "${ADMIN_PASSWORD}" "Admin User" "ADMIN"
+else
+  echo "⏭️  Skipping admin user (set ADMIN_EMAIL and ADMIN_PASSWORD in .env to create one)"
+fi
+
+# Optional dev-only test users (not for production use)
 create_user "customer@test.com" "password123" "Customer User" "CUSTOMER"
 create_user "teambuyer@test.com" "password123" "Team Buyer" "TEAM_BUYER"
 
 echo ""
 echo "✅ User seeding complete!"
 echo ""
-echo "📝 Test User Credentials:"
-echo "   Admin:      admin@test.com / password123 (ADMIN role)"
-echo "   Customer:   customer@test.com / password123 (CUSTOMER role)"
-echo "   Team Buyer: teambuyer@test.com / password123 (TEAM_BUYER role)"
+if [ -n "${ADMIN_EMAIL}" ]; then
+  echo "📝 Admin: log in with ADMIN_EMAIL from your .env"
+else
+  echo "📝 Admin: set ADMIN_EMAIL and ADMIN_PASSWORD in .env and re-run seed to create admin"
+fi
+echo "   Test users (dev only): customer@test.com, teambuyer@test.com / password123"
 echo ""
-echo "✅ All users created with correct roles!"
 
