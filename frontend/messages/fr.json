@@ -173,6 +173,7 @@
       "endDate": "Date de fin",
       "descriptionEn": "Description (anglais)",
       "deleteConfirm": "Supprimer cette expérience ?",
+      "deleteConfirmMessage": "Voulez-vous vraiment supprimer « {name} » ? Cette action est irréversible.",
       "failedCreate": "Échec de la création.",
       "failedDelete": "Échec de la suppression."
     },
@@ -252,7 +253,11 @@
       "descriptionAr": "Description (français)",
       "cancel": "Annuler",
       "adding": "Enregistrement...",
-      "save": "Enregistrer"
+      "save": "Enregistrer",
+      "deleteConfirmTitle": "Supprimer ce loisir ?",
+      "deleteConfirmDescription": "Voulez-vous vraiment supprimer ce loisir ? Cette action est irréversible.",
+      "deletedSuccess": "Loisir supprimé.",
+      "failedDelete": "Échec de la suppression du loisir."
     }
   },
   "footer": {

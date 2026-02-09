@@ -42,6 +42,10 @@ export default function AdminHobbiesPage() {
     descriptionAr: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [hobbyToDeleteId, setHobbyToDeleteId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !authorized) {
@@ -139,24 +143,45 @@ export default function AdminHobbiesPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Delete this hobby?")) return;
+  const openDeleteDialog = (id: number) => {
+    setHobbyToDeleteId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (hobbyToDeleteId === null) return;
+    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/hobbies/${id}`, {
+      const res = await fetch(`/api/hobbies/${hobbyToDeleteId}`, {
         method: "DELETE",
         credentials: "include",
       });
-      if (res.ok) setHobbies(hobbies.filter((h) => h.id !== id));
-      else alert("Failed to delete hobby");
+      if (res.ok) {
+        setHobbies(hobbies.filter((h) => h.id !== hobbyToDeleteId));
+        setDeleteDialogOpen(false);
+        setHobbyToDeleteId(null);
+        setSuccessMessage(t("deletedSuccess"));
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || t("failedDelete"));
+      }
     } catch (e) {
       console.error(e);
-      alert("Failed to delete hobby");
+      alert(t("failedDelete"));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
+        {successMessage && (
+          <div className="mb-4 p-3 rounded-lg bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
+            {successMessage}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
@@ -216,7 +241,7 @@ export default function AdminHobbiesPage() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => handleDelete(h.id)}
+                        onClick={() => openDeleteDialog(h.id)}
                         aria-label="Delete"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
@@ -229,6 +254,38 @@ export default function AdminHobbiesPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setDeleteDialogOpen(false);
+          setHobbyToDeleteId(null);
+        }
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t("deleteConfirmTitle")}</DialogTitle>
+            <DialogDescription>{t("deleteConfirmDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => { setDeleteDialogOpen(false); setHobbyToDeleteId(null); }}
+              disabled={isDeleting}
+            >
+              {tCommon("cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+            >
+              {isDeleting ? t("loading") : tCommon("delete")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isModalOpen} onOpenChange={(open) => {
         setIsModalOpen(open);

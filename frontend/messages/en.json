@@ -173,6 +173,7 @@
       "endDate": "End Date",
       "descriptionEn": "Description (English)",
       "deleteConfirm": "Delete experience?",
+      "deleteConfirmMessage": "Are you sure you want to delete \"{name}\"? This cannot be undone.",
       "failedCreate": "Failed to create experience.",
       "failedDelete": "Failed to delete experience."
     },
@@ -252,7 +253,11 @@
       "descriptionAr": "Description (French)",
       "cancel": "Cancel",
       "adding": "Adding...",
-      "save": "Save"
+      "save": "Save",
+      "deleteConfirmTitle": "Delete hobby?",
+      "deleteConfirmDescription": "Are you sure you want to delete this hobby? This cannot be undone.",
+      "deletedSuccess": "Hobby deleted.",
+      "failedDelete": "Failed to delete hobby."
     }
   },
   "footer": {
