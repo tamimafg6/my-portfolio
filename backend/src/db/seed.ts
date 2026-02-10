@@ -9,7 +9,8 @@ dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
 const { db } = await import("./index.js");
 const schema = await import("./schema/index.js");
 
-async function seed() {
+/** Run full seed (clear + insert). Exported for seed-if-empty. */
+export async function runSeed() {
   console.log("🌱 Seeding database...");
 
   // Clear existing data
@@ -168,10 +169,15 @@ async function seed() {
   ]);
 
   console.log("✅ Database seeded successfully!");
-  process.exit(0);
 }
 
-seed().catch((error) => {
-  console.error("❌ Error seeding database:", error);
-  process.exit(1);
-});
+// When run directly (npm run db:seed), not when imported by seed-if-empty
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+if (isMain) {
+  runSeed()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error("❌ Error seeding database:", error);
+      process.exit(1);
+    });
+}

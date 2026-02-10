@@ -35,27 +35,18 @@ done
 if [ $attempt -eq $max_attempts ]; then
   echo "⚠️  Auth-service did not start in time, but continuing..."
 else
-  # Step 4: Seed users now that service is ready (development only)
-  # SECURITY: Seeding is disabled in production - see seed-users.sh for details
-  if [ "${NODE_ENV}" = "production" ] || [ "${SPRING_PROFILES_ACTIVE}" = "prod" ] || [ "${SPRING_PROFILES_ACTIVE}" = "production" ]; then
-    echo "⏭️  Skipping user seeding (production mode)"
-    echo "   To create admin accounts: sign up normally, then update role via SQL"
-  else
-    echo "🌱 Seeding users..."
-    ./scripts/seed-users.sh
-    if [ $? -ne 0 ]; then
-      echo "⚠️  User seeding failed. Test users may not be available."
-      echo "   You can create test users manually via the signup page"
-    fi
+  # Step 4: Seed users now that service is ready (enabled in prod per project preference)
+  echo "🌱 Seeding users..."
+  ./scripts/seed-users.sh
+  if [ $? -ne 0 ]; then
+    echo "⚠️  User seeding failed. Test users may not be available."
+    echo "   You can create test users manually via the signup page"
   fi
 fi
 
 # Step 5: Keep service running in foreground
 echo "✅ Setup complete!"
-if [ "${NODE_ENV}" != "production" ] && [ "${SPRING_PROFILES_ACTIVE}" != "prod" ] && [ "${SPRING_PROFILES_ACTIVE}" != "production" ]; then
-  echo "📝 Log in: use ADMIN_EMAIL from .env for admin; test users customer@test.com / teambuyer@test.com (password123)"
-  echo ""
-fi
+echo "📝 Log in: use ADMIN_EMAIL from .env for admin; test users customer@test.com / teambuyer@test.com (password123)"
 echo "🔧 Auth-service is running..."
 
 # Wait for npm process to keep container alive

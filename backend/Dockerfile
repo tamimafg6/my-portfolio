@@ -28,5 +28,5 @@ COPY --from=builder /app/drizzle ./drizzle
 
 EXPOSE 4000
 
-# Run migrations then start the server (DATABASE_URL is set at runtime)
-CMD ["sh", "-c", "node dist/migrate.js && node dist/server.js"]
+# Run migrations, seed if empty, then start the server (DATABASE_URL is set at runtime)
+CMD ["sh", "-c", "node dist/migrate.js && node dist/seed-if-empty.js && node dist/server.js"]

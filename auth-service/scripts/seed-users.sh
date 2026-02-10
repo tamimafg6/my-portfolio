@@ -2,26 +2,8 @@
 # Seed test users using Better Auth's signup API
 # This ensures passwords are properly hashed
 #
-# SECURITY: This script is DISABLED in production to prevent unauthorized access.
-# Admin user is created from ADMIN_EMAIL and ADMIN_PASSWORD (set in .env, never commit those).
-# Optional test users (customer, teambuyer) use dev-only defaults.
-
-# Check if running in production environment
-if [ "${NODE_ENV}" = "production" ] || [ "${SPRING_PROFILES_ACTIVE}" = "prod" ] || [ "${SPRING_PROFILES_ACTIVE}" = "production" ]; then
-  echo "❌ ERROR: User seeding is DISABLED in production for security reasons."
-  echo "   To create admin accounts in production:"
-  echo "   1. Sign up normally at your production site"
-  echo "   2. Connect to the auth database"
-  echo "   3. Run: UPDATE \"user\" SET role = 'ADMIN' WHERE email = 'your-email@example.com';"
-  exit 1
-fi
-
-# Additional safeguard: Check for production-like environment indicators
-if [ -n "${DATABASE_URL}" ] && echo "${DATABASE_URL}" | grep -q "digitalocean\|amazonaws\|azure"; then
-  echo "⚠️  WARNING: Detected production-like database URL. Seeding is disabled."
-  echo "   If this is a development environment, set NODE_ENV=development explicitly."
-  exit 1
-fi
+# Admin user is created from ADMIN_EMAIL and ADMIN_PASSWORD (set in .env / app env, never commit).
+# Optional test users (customer, teambuyer) are seeded when enabled (including in production).
 
 echo "🌱 Seeding test users..."
 
