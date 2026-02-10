@@ -32,9 +32,16 @@ async function runMigrations() {
   try {
     await migrate(db, { migrationsFolder });
     console.log("[migrate] Migrations completed.");
-  } catch (err) {
-    console.error("[migrate] Migration failed:", err);
-    process.exit(1);
+  } catch (err: unknown) {
+    const cause = err && typeof err === "object" && "cause" in err ? (err as { cause?: { code?: string; message?: string } }).cause : null;
+    const alreadyExists = cause?.code === "42P07" || (cause?.message && String(cause.message).includes("already exists"));
+    if (alreadyExists) {
+      console.log("[migrate] Tables already exist (schema up to date), continuing.");
+    } else {
+      console.error("[migrate] Migration failed:", err);
+      await client.end();
+      process.exit(1);
+    }
   } finally {
     await client.end();
   }
