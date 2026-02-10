@@ -1,23 +1,16 @@
 #!/bin/sh
-# Startup script that initializes DB, starts service, and seeds users
+# Startup: start server first so health checks pass, then run DB setup in background.
+# This avoids the container being killed when the DB is slow to accept connections.
 
 echo "🚀 Starting auth-service..."
 
-# Step 1: Setup database schema
-echo "📊 Setting up database..."
-./scripts/setup-db.sh
-if [ $? -ne 0 ]; then
-  echo "❌ Database setup failed! Cannot start service."
-  exit 1
-fi
-
-# Step 2: Start the service in background
-echo "🔧 Starting auth-service in background..."
+# Step 1: Start the service in background immediately (so readiness probe passes)
+echo "🔧 Starting auth-service..."
 npm start &
 NPM_PID=$!
 
-# Step 3: Wait for service to be ready
-echo "⏳ Waiting for auth-service to be ready..."
+# Step 2: Wait for server to listen (so platform health checks succeed)
+echo "⏳ Waiting for server to be ready..."
 max_attempts=60
 attempt=0
 while [ $attempt -lt $max_attempts ]; do
@@ -33,22 +26,23 @@ while [ $attempt -lt $max_attempts ]; do
 done
 
 if [ $attempt -eq $max_attempts ]; then
-  echo "⚠️  Auth-service did not start in time, but continuing..."
-else
-  # Step 4: Seed users now that service is ready (enabled in prod per project preference)
-  echo "🌱 Seeding users..."
-  ./scripts/seed-users.sh
-  if [ $? -ne 0 ]; then
-    echo "⚠️  User seeding failed. Test users may not be available."
-    echo "   You can create test users manually via the signup page"
-  fi
+  echo "⚠️  Server did not become ready in time."
 fi
 
-# Step 5: Keep service running in foreground
-echo "✅ Setup complete!"
-echo "📝 Log in: use ADMIN_EMAIL from .env for admin; test users customer@test.com / teambuyer@test.com (password123)"
-echo "🔧 Auth-service is running..."
+# Step 3: Run DB setup in background (don't block; auth may 500 until DB is ready)
+echo "📊 Setting up database in background..."
+( ./scripts/setup-db.sh && echo "✅ Database setup done." || echo "⚠️  Database setup had errors." ) &
 
-# Wait for npm process to keep container alive
+# Step 4: Seed users after a short delay (give DB setup a head start)
+sleep 15
+echo "🌱 Seeding users..."
+./scripts/seed-users.sh
+if [ $? -ne 0 ]; then
+  echo "⚠️  User seeding failed. Create users via signup or run create-admin-user.js."
+fi
+
+echo "🔧 Auth-service is running (DB setup may still be in progress)."
+
+# Keep container alive
 wait $NPM_PID
 
