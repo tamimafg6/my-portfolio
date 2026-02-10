@@ -35,10 +35,13 @@ router.get("/file", async (req: Request, res: Response) => {
   try {
     const [row] = await db.select().from(resume).limit(1);
     const locale = (req.query.locale as string)?.toLowerCase() === "fr" ? "fr" : "en";
+    // Fallback logic:
+    // - For FR: prefer French CV, then English CV, then legacy single file
+    // - For EN: prefer English CV, then legacy file, then French CV
     const key =
       locale === "fr"
-        ? (row?.fileUrlAr ?? row?.fileUrl ?? null)
-        : (row?.fileUrlEn ?? row?.fileUrl ?? null);
+        ? row?.fileUrlAr ?? row?.fileUrlEn ?? row?.fileUrl ?? null
+        : row?.fileUrlEn ?? row?.fileUrl ?? row?.fileUrlAr ?? null;
     if (!key) {
       return res.status(404).json({ error: "Resume file not found" });
     }

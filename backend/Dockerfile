@@ -21,7 +21,9 @@ RUN npm ci --only=production
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/db/schema ./dist/db/schema
+COPY --from=builder /app/drizzle ./drizzle
 
 EXPOSE 4000
 
-CMD ["node", "dist/server.js"]
+# Run migrations then start the server (DATABASE_URL is set at runtime)
+CMD ["sh", "-c", "node dist/migrate.js && node dist/server.js"]

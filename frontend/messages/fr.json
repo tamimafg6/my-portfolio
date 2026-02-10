@@ -347,6 +347,7 @@
     "testimonialsSection": {
       "title": "Témoignages",
       "subtitle": "Mots gentils de collaborateurs.",
+      "noTestimonials": "Aucun témoignage pour le moment.",
       "viewAll": "Voir tous les témoignages"
     },
     "contactSection": {
