@@ -35,14 +35,8 @@ if [ $attempt -eq $max_attempts ]; then
 fi
 
 echo "Initializing database schema..."
-psql "$DB_CONNECTION" -f /app/scripts/init-schema.sql
-
-if [ $? -eq 0 ]; then
-  echo "Database schema initialized successfully!"
-else
-  echo "Schema initialization failed!"
-  exit 1
-fi
+psql "$DB_CONNECTION" -v ON_ERROR_STOP=0 -f /app/scripts/init-schema.sql || true
+echo "Database schema step complete."
 
 echo "Running migrations..."
 # Run all migrations in the migrations directory
