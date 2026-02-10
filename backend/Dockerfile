@@ -8,6 +8,9 @@ RUN npm ci
 
 COPY . .
 RUN npm run build
+# Generate migrations so drizzle/ exists (repo has drizzle/ in .gitignore)
+ENV DATABASE_URL=postgresql://local:local@localhost:5432/local
+RUN npm run db:generate
 
 # Production stage
 FROM node:18-alpine AS runner
