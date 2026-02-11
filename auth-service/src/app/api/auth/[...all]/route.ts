@@ -764,31 +764,17 @@ export async function POST(request: NextRequest) {
     
     return response;
   } catch (error) {
-    // Log error only in development mode
-    // In production, use structured logging service
-    if (process.env.NODE_ENV === "development") {
-      console.error("Better Auth POST error:", error);
-      if (error instanceof Error) {
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-      }
-      // Check if this is a callback request
-      const url = new URL(request.url);
-      if (url.pathname.includes("/callback/")) {
-        console.error("OAuth callback error - URL:", url.toString());
-        console.error("OAuth callback error - Query params:", Object.fromEntries(url.searchParams));
-      }
-    } else {
-      // In production, log minimal information to prevent information leakage
-      // TODO: Integrate with proper logging service (Winston, Pino, etc.)
-      const url = new URL(request.url);
-      if (url.pathname.includes("/callback/")) {
-        console.error("OAuth callback error occurred");
-      } else {
-        console.error("Better Auth POST error occurred");
-      }
+    // Always log so we can see 500 cause in production (e.g. Digital Ocean logs)
+    console.error("[Auth] POST error:", error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.stack) {
+      console.error("[Auth] Stack:", error.stack);
     }
-    // Re-throw to let Better Auth handle it
+    const postUrl = new URL(request.url);
+    if (postUrl.pathname.includes("/callback/")) {
+      console.error("[Auth] OAuth callback error - path:", postUrl.pathname);
+    } else if (postUrl.pathname.includes("/sign-in/")) {
+      console.error("[Auth] Sign-in error - check BETTER_AUTH_URL, CORS_ORIGINS, and DB");
+    }
     throw error;
   }
 }
