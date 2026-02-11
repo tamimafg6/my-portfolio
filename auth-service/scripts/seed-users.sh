@@ -7,15 +7,22 @@
 
 echo "🌱 Seeding test users..."
 
-# Set database connection defaults from environment or use docker-compose values
-DB_USER="${POSTGRES_USER:-postgres}"
-DB_NAME="${POSTGRES_DB:-auth}"
-DB_PASSWORD="${POSTGRES_PASSWORD:-password}"
-
-echo "Database configuration:"
-echo "   DB_USER=$DB_USER"
-echo "   DB_NAME=$DB_NAME"
-echo "   DB_PASSWORD is set: $([ -n "${DB_PASSWORD}" ] && echo "yes" || echo "no")"
+# Use DATABASE_URL when set (e.g. Digital Ocean); otherwise use individual vars (e.g. docker-compose with host auth-db)
+if [ -n "$DATABASE_URL" ]; then
+  DB_CONNECTION="$DATABASE_URL"
+  echo "Database configuration: Using DATABASE_URL"
+else
+  DB_HOST="${POSTGRES_HOST:-auth-db}"
+  DB_USER="${POSTGRES_USER:-postgres}"
+  DB_NAME="${POSTGRES_DB:-auth}"
+  DB_PASSWORD="${POSTGRES_PASSWORD:-password}"
+  DB_CONNECTION="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}"
+  echo "Database configuration:"
+  echo "   DB_HOST=$DB_HOST"
+  echo "   DB_USER=$DB_USER"
+  echo "   DB_NAME=$DB_NAME"
+  echo "   DB_PASSWORD is set: $([ -n "${DB_PASSWORD}" ] && echo "yes" || echo "no")"
+fi
 
 # Wait for auth-service to be ready
 # Try localhost first (when running in same container), then try service name (when running separately)
@@ -65,11 +72,11 @@ update_user_in_db() {
   local email_lower="$1"
   local role_escaped="$2"
   
-  PGPASSWORD=$DB_PASSWORD psql -h auth-db -U $DB_USER -d $DB_NAME \
+  psql "$DB_CONNECTION" \
     -c "UPDATE \"user\" SET role = '$role_escaped', \"emailVerified\" = true, \"updatedAt\" = NOW() WHERE LOWER(email) = LOWER('$email_lower');" \
     || { echo "   ❌ Failed to update user in database" >&2; return 1; }
   
-  PGPASSWORD=$DB_PASSWORD psql -h auth-db -U $DB_USER -d $DB_NAME \
+  psql "$DB_CONNECTION" \
     -c "DELETE FROM login_attempt WHERE LOWER(email) = LOWER('$email_lower') AND success = false;" \
     || { echo "   ❌ Failed to clear login attempts" >&2; return 1; }
 }
@@ -89,7 +96,7 @@ create_user() {
   role_escaped=$(escape_sql_string_preserve_case "$role")
   
   # Check if user already exists (using psql with proper escaping)
-  psql_output=$(PGPASSWORD=$DB_PASSWORD psql -h auth-db -U $DB_USER -d $DB_NAME \
+  psql_output=$(psql "$DB_CONNECTION" \
     -t -c "SELECT id FROM \"user\" WHERE LOWER(email) = LOWER('$email_lower');" 2>&1)
   psql_exit_code=$?
   if [ $psql_exit_code -ne 0 ]; then
