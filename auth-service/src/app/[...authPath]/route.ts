@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GET as authApiGET, POST as authApiPOST } from "@/app/api/auth/[...all]/route";
+import { GET as tokenGET, POST as tokenPOST } from "@/app/api/auth/token/route";
 
 /**
  * When the platform (e.g. Digital Ocean) routes tamimafg.dev/auth/* to this service
- * and strips the /auth prefix, we receive /sign-in/email, /get-session, etc.
- * Forward to /api/auth/... so Better Auth can handle them (fixes 404 on login).
+ * and strips the /auth prefix, we receive /token, /sign-in/email, /get-session, etc.
+ * Forward to the right handler: /token is our custom route, the rest go to Better Auth [...all].
  */
-function buildInternalPath(pathSegments: string[]): string | null {
+function normalizeSegments(pathSegments: string[]): string[] | null {
   if (!pathSegments?.length) return null;
   let segments = pathSegments;
   if (segments[0] === "auth") segments = segments.slice(1);
   if (!segments.length) return null;
-  return `/api/auth/${segments.join("/")}`;
+  return segments;
 }
 
 export async function GET(
@@ -19,8 +20,13 @@ export async function GET(
   { params }: { params: Promise<{ authPath: string[] }> }
 ) {
   const pathSegments = (await params).authPath;
-  const internalPath = buildInternalPath(pathSegments);
-  if (!internalPath) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const segments = normalizeSegments(pathSegments);
+  if (!segments) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // /auth/token -> custom token route (session JWT); [...all] does not handle it
+  if (segments[0] === "token") {
+    return tokenGET(request);
+  }
+  const internalPath = `/api/auth/${segments.join("/")}`;
   const url = new URL(request.url);
   const rewriteUrl = new URL(internalPath, url.origin);
   rewriteUrl.search = url.search;
@@ -33,8 +39,12 @@ export async function POST(
   { params }: { params: Promise<{ authPath: string[] }> }
 ) {
   const pathSegments = (await params).authPath;
-  const internalPath = buildInternalPath(pathSegments);
-  if (!internalPath) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const segments = normalizeSegments(pathSegments);
+  if (!segments) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (segments[0] === "token") {
+    return tokenPOST(request);
+  }
+  const internalPath = `/api/auth/${segments.join("/")}`;
   const url = new URL(request.url);
   const rewriteUrl = new URL(internalPath, url.origin);
   rewriteUrl.search = url.search;
