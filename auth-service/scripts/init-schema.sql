@@ -9,8 +9,19 @@ CREATE TABLE IF NOT EXISTS "user" (
   "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
   "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW(),
   "role" TEXT DEFAULT 'CUSTOMER',
-  "locale" TEXT DEFAULT 'en'
+  "locale" TEXT DEFAULT 'en',
+  "username" TEXT UNIQUE,
+  "displayUsername" TEXT UNIQUE,
+  "deletedAt" TIMESTAMP
 );
+
+-- Ensure columns exist for existing tables (Better Auth username plugin)
+ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "username" TEXT UNIQUE;
+ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "displayUsername" TEXT UNIQUE;
+ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP;
+CREATE INDEX IF NOT EXISTS "user_username_idx" ON "user"("username");
+CREATE INDEX IF NOT EXISTS "user_displayUsername_idx" ON "user"("displayUsername");
+CREATE INDEX IF NOT EXISTS "user_deleted_at_idx" ON "user"("deletedAt") WHERE "deletedAt" IS NULL;
 
 CREATE TABLE IF NOT EXISTS "session" (
   "id" TEXT PRIMARY KEY,
