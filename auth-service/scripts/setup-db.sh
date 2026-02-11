@@ -16,6 +16,9 @@ else
   DB_CONNECTION="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:5432/${DB_NAME}"
 fi
 
+# Fail fast per attempt so we don't block readiness (e.g. 10s timeout instead of ~2 min TCP hang)
+export PGCONNECT_TIMEOUT=10
+
 # Wait for database to be ready with retries
 max_attempts=30
 attempt=0

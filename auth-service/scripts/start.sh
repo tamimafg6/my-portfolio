@@ -11,22 +11,22 @@ NPM_PID=$!
 
 # Step 2: Wait for server to listen (so platform health checks succeed)
 echo "⏳ Waiting for server to be ready..."
-max_attempts=60
+max_attempts=120
 attempt=0
 while [ $attempt -lt $max_attempts ]; do
-  if wget --no-verbose --tries=1 --spider http://localhost:3001/api/health > /dev/null 2>&1; then
+  if wget --no-verbose --tries=1 --spider http://127.0.0.1:3001/api/health > /dev/null 2>&1; then
     echo "✅ Auth-service is ready!"
     break
   fi
   attempt=$((attempt + 1))
-  if [ $((attempt % 10)) -eq 0 ]; then
-    echo "   Still waiting... ($attempt/$max_attempts)"
+  if [ $((attempt % 10)) -eq 0 ] && [ $attempt -gt 0 ]; then
+    echo "   Still waiting for server... ($attempt/$max_attempts)"
   fi
   sleep 1
 done
 
 if [ $attempt -eq $max_attempts ]; then
-  echo "⚠️  Server did not become ready in time."
+  echo "⚠️  Server did not become ready in time. Check BETTER_AUTH_URL and DATABASE_URL. Starting DB setup anyway."
 fi
 
 # Step 3: Run DB setup in background (don't block; auth may 500 until DB is ready)

@@ -62,9 +62,9 @@ RUN chmod +x ./scripts/setup-db.sh && \
 # Switch to non-root user
 USER nextjs
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1
+# Health check (start-period gives time for server to bind before failing)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3001/api/health || exit 1
 
 # Start the application with DB initialization and user seeding
 CMD ["./scripts/start.sh"]
