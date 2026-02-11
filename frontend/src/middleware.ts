@@ -22,15 +22,18 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = /^\/(en|fr)\/admin/.test(pathname);
   
   if (isAdminRoute) {
-    const sessionToken = request.cookies.get("better-auth.session_token");
+    // Better Auth uses __Secure- prefix for cookies over HTTPS (production)
+    const sessionToken =
+      request.cookies.get("better-auth.session_token") ??
+      request.cookies.get("__Secure-better-auth.session_token");
     const localeMatch = pathname.match(/^\/(en|fr)/);
     const locale = localeMatch ? localeMatch[1] : "en";
-    
+
     // Always allow access to login page (user might be logging out or re-logging in)
     if (pathname.includes("/login")) {
       return response;
     }
-    
+
     // If no session token, redirect to login
     if (!sessionToken) {
       return NextResponse.redirect(new URL(`/${locale}/admin/login`, request.url));
