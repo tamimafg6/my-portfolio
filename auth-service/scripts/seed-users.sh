@@ -151,14 +151,14 @@ create_user() {
   fi
 }
 
-# Admin user: use credentials from .env (never commit real credentials)
+# Admin user: use ADMIN_EMAIL/ADMIN_PASSWORD from env if set; otherwise seed same as other test users (admin@test.com)
 if [ -n "${ADMIN_EMAIL}" ] && [ -n "${ADMIN_PASSWORD}" ]; then
   create_user "${ADMIN_EMAIL}" "${ADMIN_PASSWORD}" "Admin User" "ADMIN"
 else
-  echo "⏭️  Skipping admin user (set ADMIN_EMAIL and ADMIN_PASSWORD in .env to create one)"
+  create_user "admin@test.com" "password123" "Admin User" "ADMIN"
 fi
 
-# Optional dev-only test users (not for production use)
+# Test users (same pattern as admin)
 create_user "customer@test.com" "password123" "Customer User" "CUSTOMER"
 create_user "teambuyer@test.com" "password123" "Team Buyer" "TEAM_BUYER"
 
@@ -168,8 +168,8 @@ echo ""
 if [ -n "${ADMIN_EMAIL}" ]; then
   echo "📝 Admin: log in with ADMIN_EMAIL from your .env"
 else
-  echo "📝 Admin: set ADMIN_EMAIL and ADMIN_PASSWORD in .env and re-run seed to create admin"
+  echo "📝 Admin: admin@test.com / password123 (or set ADMIN_EMAIL and ADMIN_PASSWORD to use custom credentials)"
 fi
-echo "   Test users (dev only): customer@test.com, teambuyer@test.com / password123"
+echo "   Test users: customer@test.com, teambuyer@test.com / password123"
 echo ""
 
