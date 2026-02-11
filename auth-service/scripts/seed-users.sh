@@ -7,6 +7,9 @@
 
 echo "🌱 Seeding test users..."
 
+# Fail fast if DB is unreachable (avoid long hangs)
+export PGCONNECT_TIMEOUT=10
+
 # Use DATABASE_URL when set (e.g. Digital Ocean); otherwise use individual vars (e.g. docker-compose with host auth-db)
 if [ -n "$DATABASE_URL" ]; then
   DB_CONNECTION="$DATABASE_URL"
