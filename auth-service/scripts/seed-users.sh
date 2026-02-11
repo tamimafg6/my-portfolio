@@ -155,6 +155,11 @@ create_user() {
 }
 
 # Admin user: use ADMIN_EMAIL/ADMIN_PASSWORD from env if set; otherwise seed same as other test users (admin@test.com)
+# If admin@test.com has an invalid password hash (e.g. from a broken past run), delete so sign-up creates a fresh one
+if [ -z "${ADMIN_EMAIL}" ] || [ -z "${ADMIN_PASSWORD}" ]; then
+  echo "Ensuring admin@test.com has a valid password hash (recreate if needed)..."
+  psql "$DB_CONNECTION" -c "DELETE FROM \"user\" WHERE LOWER(email) = 'admin@test.com';" 2>/dev/null || true
+fi
 if [ -n "${ADMIN_EMAIL}" ] && [ -n "${ADMIN_PASSWORD}" ]; then
   create_user "${ADMIN_EMAIL}" "${ADMIN_PASSWORD}" "Admin User" "ADMIN"
 else
