@@ -81,10 +81,14 @@ function ensureValidated() {
   }
 }
 
-// Parse CORS origins from environment variable
+// Parse CORS origins: explicit CORS_ORIGINS, or FRONTEND_URL + localhost fallbacks
 const corsOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map(origin => origin.trim()).filter(Boolean)
-  : ["http://localhost:3000", "http://localhost:3002"]; // Fallback for development only
+  : [
+      process.env.FRONTEND_URL || "http://localhost:3000",
+      "http://localhost:3000",
+      "http://localhost:3002",
+    ].filter(Boolean);
 
 // Create auth instance - validation will happen when it's actually used
 // During build, use placeholders; at runtime, real values will be used
