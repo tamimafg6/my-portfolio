@@ -1,31 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthServiceBaseUrl } from "@/lib/utils/auth-url";
+import { getAdminToken } from "@/lib/api/get-admin-token";
 
 const API_URL =
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   "http://backend:8080/api";
-
-async function getAuthToken(cookies: string): Promise<string | null> {
-  try {
-    const authServiceUrl = getAuthServiceBaseUrl();
-    const tokenRes = await fetch(`${authServiceUrl}/api/auth/token`, {
-      method: "GET",
-      headers: {
-        "Cookie": cookies,
-      },
-      credentials: "include",
-    });
-
-    if (tokenRes.ok) {
-      const tokenData = await tokenRes.json();
-      return tokenData?.token || null;
-    }
-  } catch (error) {
-    console.error("Error getting auth token:", error);
-  }
-  return null;
-}
 
 export async function PUT(
   request: NextRequest,
@@ -34,8 +13,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const cookies = request.headers.get("cookie") || "";
-    const authToken = await getAuthToken(cookies);
+    const authToken = await getAdminToken(request);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json; charset=utf-8",
@@ -44,8 +22,6 @@ export async function PUT(
 
     if (authToken) {
       headers["Authorization"] = `Bearer ${authToken}`;
-    } else {
-      headers["Cookie"] = cookies;
     }
 
     const res = await fetch(`${API_URL}/testimonials/${id}`, {
@@ -94,8 +70,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const cookies = request.headers.get("cookie") || "";
-    const authToken = await getAuthToken(cookies);
+    const authToken = await getAdminToken(request);
 
     const headers: Record<string, string> = {
       "Accept": "application/json; charset=utf-8",
@@ -103,8 +78,6 @@ export async function DELETE(
 
     if (authToken) {
       headers["Authorization"] = `Bearer ${authToken}`;
-    } else {
-      headers["Cookie"] = cookies;
     }
 
     const res = await fetch(`${API_URL}/testimonials/${id}`, {
