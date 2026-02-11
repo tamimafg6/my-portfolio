@@ -38,6 +38,7 @@
     "signIn": "Connexion",
     "signingIn": "Connexion...",
     "loginFailed": "Email ou mot de passe incorrect.",
+    "tokenFailed": "Impossible d'obtenir le jeton de session. Veuillez réessayer de vous connecter.",
     "unexpectedError": "Une erreur inattendue s'est produite.",
     "dashboardPage": {
       "title": "Tableau de bord",

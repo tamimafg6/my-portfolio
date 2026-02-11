@@ -38,6 +38,7 @@
     "signIn": "Sign In",
     "signingIn": "Signing in...",
     "loginFailed": "Invalid email or password.",
+    "tokenFailed": "Could not get session token. Please try signing in again.",
     "unexpectedError": "An unexpected error occurred.",
     "dashboardPage": {
       "title": "Dashboard",
