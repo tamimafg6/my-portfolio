@@ -1,10 +1,14 @@
 /**
  * HTTP client for email-service
- * Used by Better Auth hooks to send emails via email-service
+ * Used by Better Auth hooks to send emails via email-service.
+ * When EMAIL_SERVICE_URL is not set, all send functions no-op (success, no email sent).
  */
 
-const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL || "http://email-service:3003";
+const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL;
 const EMAIL_API_KEY = process.env.EMAIL_API_KEY;
+
+/** If true, we skip calling any external email service (for dev or when you don't use one). */
+const EMAIL_DISABLED = !EMAIL_SERVICE_URL || EMAIL_SERVICE_URL.trim() === "";
 
 export interface SendEmailResult {
   success: boolean;
@@ -13,11 +17,15 @@ export interface SendEmailResult {
 }
 
 /**
- * Centralized POST request to email-service with robust error handling
+ * Centralized POST request to email-service with robust error handling.
+ * No-ops when EMAIL_SERVICE_URL is not set (no email service).
  */
 async function postEmailService(
   body: unknown
 ): Promise<SendEmailResult> {
+  if (EMAIL_DISABLED) {
+    return { success: true };
+  }
   try {
     const headers: HeadersInit = { "Content-Type": "application/json" };
     
@@ -26,7 +34,7 @@ async function postEmailService(
       headers["Authorization"] = `Bearer ${EMAIL_API_KEY}`;
     }
     
-    const response = await fetch(`${EMAIL_SERVICE_URL}/api/send`, {
+    const response = await fetch(`${EMAIL_SERVICE_URL!.trim()}/api/send`, {
       method: "POST",
       headers,
       body: JSON.stringify(body),
