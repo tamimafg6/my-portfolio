@@ -2,13 +2,12 @@
 
 import { useTranslations, useLocale } from "next-intl";
 import { useState, useEffect } from "react";
-import { Mail, Phone, MapPin, Send, Sparkles } from "lucide-react";
+import { Mail, MapPin, Send, Sparkles } from "lucide-react";
 import ScrollAnimation from "@/components/ScrollAnimation";
 import { validateContactForm, capLength, LIMITS } from "@/lib/form-validation";
 
 interface ContactInfo {
   email: string | null;
-  phone: string | null;
   address: string | null;
 }
 
@@ -17,7 +16,6 @@ export default function ContactPage() {
   const locale = useLocale();
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     email: null,
-    phone: null,
     address: null,
   });
   const [formData, setFormData] = useState({
@@ -38,7 +36,6 @@ export default function ContactPage() {
         if (data && typeof data === "object") {
           setContactInfo({
             email: data.email ?? null,
-            phone: data.phone ?? null,
             address: data.address ?? null,
           });
         }
@@ -97,7 +94,6 @@ export default function ContactPage() {
         "Have a question or want to work together? Feel free to reach out!",
       contactInfo: "Contact Information",
       email: "Email",
-      phone: "Phone",
       location: "Location",
       formTitle: "Send a Message",
       nameLabel: "Name",
@@ -117,7 +113,6 @@ export default function ContactPage() {
         "Vous avez une question ou souhaitez collaborer? N'hésitez pas à me contacter!",
       contactInfo: "Informations de Contact",
       email: "Courriel",
-      phone: "Téléphone",
       location: "Emplacement",
       formTitle: "Envoyer un Message",
       nameLabel: "Nom",
@@ -211,25 +206,6 @@ export default function ContactPage() {
                         className="text-muted-foreground hover:text-blue-500 transition-colors"
                       >
                         {contactInfo.email}
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {contactInfo.phone && (
-                  <div className="group flex items-start gap-4 p-6 bg-card border border-border rounded-xl hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0 border border-purple-500/20 group-hover:scale-110 transition-transform">
-                      <Phone className="w-6 h-6 text-purple-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1 text-foreground">
-                        {pageContent.phone}
-                      </h3>
-                      <a
-                        href={`tel:${contactInfo.phone.replace(/\D/g, "")}`}
-                        className="text-muted-foreground hover:text-purple-500 transition-colors"
-                      >
-                        {contactInfo.phone}
                       </a>
                     </div>
                   </div>

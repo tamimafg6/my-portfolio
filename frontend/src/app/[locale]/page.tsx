@@ -485,6 +485,16 @@ export default function HomePage() {
                 >
                   <Linkedin className="w-6 h-6 text-foreground" />
                 </Link>
+                {resumeUrl && (
+                  <a
+                    href={`/api/resume/file?locale=${locale}`}
+                    download={locale === "fr" ? "cv.pdf" : "resume.pdf"}
+                    className="p-3 border border-border rounded-lg hover:border-primary/50 hover:bg-accent transition-all"
+                    aria-label={locale === "fr" ? "Télécharger CV" : "Download Resume"}
+                  >
+                    <FileDown className="w-6 h-6 text-foreground" />
+                  </a>
+                )}
               </div>
             </ScrollAnimation>
 

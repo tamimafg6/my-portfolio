@@ -323,16 +323,6 @@ export default function AdminSettingsPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="phone" className="text-sm font-medium text-foreground">{t("phone")}</label>
-                  <Input
-                    id="phone"
-                    type="text"
-                    value={contactInfo.phone ?? ""}
-                    onChange={(e) => setContactInfo((c) => ({ ...c, phone: e.target.value || null }))}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
                   <label htmlFor="address" className="text-sm font-medium text-foreground">{t("address")}</label>
                   <Input
                     id="address"

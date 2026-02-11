@@ -6,9 +6,49 @@ import { adminOnly } from "../lib/auth.js";
 
 const router = Router();
 
+// Simple in-memory rate limiting for contact form
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+function getClientIP(req: Request): string {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string") {
+    return forwarded.split(",")[0]?.trim() || "unknown";
+  }
+  return req.ip || req.socket?.remoteAddress || "unknown";
+}
+
+function checkRateLimit(ip: string, maxRequests: number, windowMs: number): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+
+  if (!record || now > record.resetTime) {
+    rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs });
+    return { allowed: true };
+  }
+
+  if (record.count >= maxRequests) {
+    const retryAfter = Math.ceil((record.resetTime - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+
+  record.count++;
+  return { allowed: true };
+}
+
 // POST submit contact form
 router.post("/", async (req: Request, res: Response) => {
   try {
+    // Rate limiting: 5 messages per 15 minutes per IP
+    const ip = getClientIP(req);
+    const rateCheck = checkRateLimit(ip, 5, 15 * 60 * 1000);
+    
+    if (!rateCheck.allowed) {
+      return res.status(429).json({ 
+        error: "Too many messages. Please try again later.",
+        retryAfter: rateCheck.retryAfter
+      });
+    }
+
     const { name, email, subject, message } = req.body;
 
     if (!name || !email || !subject || !message) {

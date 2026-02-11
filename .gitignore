@@ -58,6 +58,7 @@ next-env.d.ts
 
 # Docker
 .dockerignore
+docker-compose.override.yml
 
 # Misc
 *.pem

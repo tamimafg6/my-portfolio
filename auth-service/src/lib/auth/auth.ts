@@ -90,12 +90,46 @@ const corsOrigins = process.env.CORS_ORIGINS
       "http://localhost:3002",
     ].filter(Boolean);
 
+// Cross-subdomain cookie: derive root domain from FRONTEND_URL or BETTER_AUTH_URL so the session
+// cookie is sent to both frontend and auth in production (no extra env needed).
+function getRootDomain(urlStr: string | undefined): string | null {
+  if (!urlStr?.trim()) return null;
+  try {
+    const hostname = new URL(urlStr.trim()).hostname;
+    if (!hostname || hostname === "localhost" || hostname.startsWith("127.")) return null;
+    const parts = hostname.split(".");
+    if (parts.length >= 2) return parts.slice(-2).join(".");
+    return hostname;
+  } catch {
+    return null;
+  }
+}
+// Only enable in production so dev (localhost) never gets a cookie domain
+const cookieDomain =
+  process.env.NODE_ENV === "production"
+    ? (process.env.COOKIE_DOMAIN?.trim() ||
+        getRootDomain(process.env.FRONTEND_URL) ||
+        getRootDomain(process.env.BETTER_AUTH_URL))
+    : null;
+const crossSubDomainCookies =
+  cookieDomain ? { enabled: true as const, domain: cookieDomain } : undefined;
+
 // Create auth instance - validation will happen when it's actually used
 // During build, use placeholders; at runtime, real values will be used
 export const auth = betterAuth({
   secret: (process.env.BETTER_AUTH_SECRET || process.env.AUTH_JWT_SECRET) || "build-time-placeholder-secret-must-be-32-chars-min",
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
   trustedOrigins: corsOrigins,
+  advanced: {
+    ...(crossSubDomainCookies ? { crossSubDomainCookies } : {}),
+    // In development with different ports, use Lax for cookie sharing
+    // In production, use Strict for better security
+    cookieOptions: {
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,

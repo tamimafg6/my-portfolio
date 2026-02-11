@@ -290,6 +290,10 @@ taskkill /PID <PID> /F
 - Check DATABASE_URL in .env files
 - Verify database exists
 
+### 401 / Token not provided in production (admin forms, testimonials, uploads)
+
+The auth service derives the cookie domain from `FRONTEND_URL` or `BETTER_AUTH_URL` so the session cookie is shared across subdomains. Ensure those are set in production; no extra env is needed.
+
 ### Module Not Found
 
 ```bash
