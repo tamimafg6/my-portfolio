@@ -50,15 +50,23 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 // API Routes
-app.use("/api/skills", skillsRouter);
-app.use("/api/projects", projectsRouter);
-app.use("/api/experience", experienceRouter);
-app.use("/api/education", educationRouter);
-app.use("/api/contact", contactRouter);
-app.use("/api/resume", resumeRouter);
-app.use("/api/profile", profileRouter);
-app.use("/api/hobbies", hobbiesRouter);
-app.use("/api/testimonials", testimonialsRouter);
+// Mount at both /api/* (for local Docker) and /* (for DigitalOcean which strips /api prefix)
+const routers = [
+  { path: "/skills", router: skillsRouter },
+  { path: "/projects", router: projectsRouter },
+  { path: "/experience", router: experienceRouter },
+  { path: "/education", router: educationRouter },
+  { path: "/contact", router: contactRouter },
+  { path: "/resume", router: resumeRouter },
+  { path: "/profile", router: profileRouter },
+  { path: "/hobbies", router: hobbiesRouter },
+  { path: "/testimonials", router: testimonialsRouter },
+];
+
+routers.forEach(({ path, router }) => {
+  app.use(path, router);           // For DigitalOcean (prefix stripped)
+  app.use(`/api${path}`, router);  // For local Docker development
+});
 
 // 404 handler
 app.use((req: Request, res: Response) => {
