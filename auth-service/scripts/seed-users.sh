@@ -161,6 +161,9 @@ if [ -z "${ADMIN_EMAIL}" ] || [ -z "${ADMIN_PASSWORD}" ]; then
   psql "$DB_CONNECTION" -c "DELETE FROM \"user\" WHERE LOWER(email) = 'admin@test.com';" 2>/dev/null || true
 fi
 if [ -n "${ADMIN_EMAIL}" ] && [ -n "${ADMIN_PASSWORD}" ]; then
+  # Delete ALL existing admin users to ensure fresh credentials from env vars
+  echo "ADMIN_EMAIL and ADMIN_PASSWORD set - removing existing admin users to recreate with new credentials..."
+  psql "$DB_CONNECTION" -c "DELETE FROM \"user\" WHERE LOWER(role) = 'admin';" 2>/dev/null || true
   create_user "${ADMIN_EMAIL}" "${ADMIN_PASSWORD}" "Admin User" "ADMIN"
 else
   create_user "admin@test.com" "password123" "Admin User" "ADMIN"
