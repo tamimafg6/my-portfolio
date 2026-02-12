@@ -125,9 +125,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!loading && !authorized) {
-      router.push(`/${locale}/admin/login`);
+      router.push('/admin/login');
     }
-  }, [authorized, loading, router, locale]);
+  }, [authorized, loading, router]);
 
   if (loading) {
     return (
@@ -237,7 +237,7 @@ export default function AdminDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  onClick={() => router.push(`/${locale}/admin/projects`)}
+                  onClick={() => router.push('/admin/projects')}
                 >
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("newProject")}</span>
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  onClick={() => router.push(`/${locale}/admin/skills`)}
+                  onClick={() => router.push('/admin/skills')}
                 >
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("newSkill")}</span>
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  onClick={() => router.push(`/${locale}/admin/experience`)}
+                  onClick={() => router.push('/admin/experience')}
                 >
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("addExperience")}</span>
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  onClick={() => router.push(`/${locale}/admin/education`)}
+                  onClick={() => router.push('/admin/education')}
                 >
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("addEducation")}</span>
@@ -269,7 +269,7 @@ export default function AdminDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  onClick={() => router.push(`/${locale}/admin/testimonials`)}
+                  onClick={() => router.push('/admin/testimonials')}
                 >
                   <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("testimonials")}</span>
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  onClick={() => router.push(`/${locale}/admin/hobbies`)}
+                  onClick={() => router.push('/admin/hobbies')}
                 >
                   <Heart className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("hobbies")}</span>
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  onClick={() => router.push(`/${locale}`)}
+                  onClick={() => router.push('/')}
                 >
                   <Eye className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("viewPortfolio")}</span>
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
                 <Button
                   variant="default"
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() => router.push(`/${locale}/admin/testimonials`)}
+                  onClick={() => router.push('/admin/testimonials')}
                 >
                   {t("manageTestimonialsBtn")}
                 </Button>
@@ -333,7 +333,7 @@ export default function AdminDashboard() {
                 variant="outline"
                 size="sm"
                 className="border-gray-200 dark:border-gray-700"
-                onClick={() => router.push(`/${locale}/admin/experience`)}
+                onClick={() => router.push('/admin/experience')}
               >
                 {t("viewAll")}
               </Button>
@@ -349,7 +349,7 @@ export default function AdminDashboard() {
                     <li
                       key={exp.id}
                       className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/${locale}/admin/experience`)}
+                      onClick={() => router.push('/admin/experience')}
                     >
                       <div className="font-medium text-gray-900 dark:text-gray-100">
                         {exp.positionEn}
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
                 variant="outline"
                 size="sm"
                 className="border-gray-200 dark:border-gray-700"
-                onClick={() => router.push(`/${locale}/admin/education`)}
+                onClick={() => router.push('/admin/education')}
               >
                 {t("viewAll")}
               </Button>
@@ -394,7 +394,7 @@ export default function AdminDashboard() {
                     <li
                       key={edu.id}
                       className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/${locale}/admin/education`)}
+                      onClick={() => router.push('/admin/education')}
                     >
                       <div className="font-medium text-gray-900 dark:text-gray-100">
                         {edu.degreeEn}
@@ -430,7 +430,7 @@ export default function AdminDashboard() {
                   <div
                     key={item.id}
                     className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
-                    onClick={() => router.push(`/${locale}${item.route}`)}
+                    onClick={() => router.push(item.route)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
