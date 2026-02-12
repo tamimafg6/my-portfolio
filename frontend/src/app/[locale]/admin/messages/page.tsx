@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
+import { useAdminApi } from "@/lib/hooks/useAdminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,7 @@ export default function AdminMessagesPage() {
   const t = useTranslations("admin.messagesPage");
   const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
+  const { get, del } = useAdminApi();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -50,17 +52,15 @@ export default function AdminMessagesPage() {
     const fetchMessages = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch("/api/contact/messages", { credentials: "include" });
-        if (res.ok) {
-          const data = await res.json();
+        const { data, error } = await get<ContactMessage[]>("/contact/messages");
+        if (data) {
           const list = Array.isArray(data) ? data : [];
           setMessages(list.sort((a: ContactMessage, b: ContactMessage) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           ));
           setFetchError(null);
         } else {
-          const err = await res.json().catch(() => ({}));
-          setFetchError(err.error || "Failed to load messages");
+          setFetchError(error || "Failed to load messages");
           setMessages([]);
         }
       } catch {
@@ -71,7 +71,7 @@ export default function AdminMessagesPage() {
       }
     };
     if (authorized) fetchMessages();
-  }, [authorized]);
+  }, [authorized, get]);
 
   const formatDate = (dateStr: string) => {
     try {
@@ -92,16 +92,12 @@ export default function AdminMessagesPage() {
     setIsDeleting(true);
     setDeleteError(null);
     try {
-      const res = await fetch(`/api/contact/messages/${messageToDelete}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
+      const { error } = await del(`/contact/messages/${messageToDelete}`);
+      if (!error) {
         setMessages((prev) => prev.filter((m) => m.id !== messageToDelete));
         setMessageToDelete(null);
       } else {
-        const data = await res.json().catch(() => ({}));
-        setDeleteError(data.error || t("deleteError"));
+        setDeleteError(error || t("deleteError"));
       }
     } catch {
       setDeleteError(t("deleteError"));

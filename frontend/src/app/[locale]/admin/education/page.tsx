@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
+import { useAdminApi } from "@/lib/hooks/useAdminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ export default function AdminEducationPage() {
   const t = useTranslations("admin.educationPage");
   const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
+  const { get, post, put, del } = useAdminApi();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEducation, setEditingEducation] = useState<Education | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
@@ -73,15 +75,12 @@ export default function AdminEducationPage() {
     try {
       setIsLoadingEducation(true);
       setFetchError(null);
-      const res = await fetch("/api/education");
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && Array.isArray(data)) {
+      const { data, error } = await get<Education[]>("/education");
+      if (data && Array.isArray(data)) {
         setEducation(data);
       } else {
         setEducation([]);
-        setFetchError(
-          data?.error || (res.ok ? "Invalid response" : `Failed to load (${res.status})`)
-        );
+        setFetchError(error || "Invalid response");
       }
     } catch (error) {
       console.error("Error fetching education:", error);
@@ -175,34 +174,20 @@ export default function AdminEducationPage() {
     try {
       const payload = buildPayload();
       if (editingEducation) {
-        const res = await fetch(`/api/education/${editingEducation.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const updated = await res.json();
+        const { data: updated, error } = await put<Education>(`/education/${editingEducation.id}`, payload);
+        if (updated) {
           setEducation(education.map((ed) => (ed.id === editingEducation.id ? updated : ed)));
           closeModal();
         } else {
-          const err = await res.json();
-          alert(err.error || "Failed to update education.");
+          alert(error || "Failed to update education.");
         }
       } else {
-        const res = await fetch("/api/education", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const newEducation = await res.json();
+        const { data: newEducation, error } = await post<Education>("/education", payload);
+        if (newEducation) {
           setEducation([...education, newEducation]);
           closeModal();
         } else {
-          const err = await res.json();
-          alert(err.error || t("failedCreate"));
+          alert(error || t("failedCreate"));
         }
       }
     } catch (error) {
@@ -216,11 +201,8 @@ export default function AdminEducationPage() {
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm) return;
     try {
-      const res = await fetch(`/api/education/${deleteConfirm.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
+      const { error } = await del(`/education/${deleteConfirm.id}`);
+      if (!error) {
         setEducation(education.filter((e) => e.id !== deleteConfirm.id));
         setDeleteConfirm(null);
       } else {

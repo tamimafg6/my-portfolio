@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
+import { useAdminApi } from "@/lib/hooks/useAdminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export default function AdminProjectsPage() {
   const t = useTranslations("admin.projectsPage");
   const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
+  const { get, post, put, del } = useAdminApi();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
@@ -66,12 +68,11 @@ export default function AdminProjectsPage() {
     const fetchProjects = async () => {
       try {
         setIsLoadingProjects(true);
-        const res = await fetch("/api/projects");
-        if (res.ok) {
-          const data = await res.json();
+        const { data, error } = await get<Project[]>("/projects");
+        if (data) {
           setProjects(Array.isArray(data) ? data : []);
         } else {
-          console.error("Failed to fetch projects:", res.status);
+          console.error("Failed to fetch projects:", error);
           setProjects([]);
         }
       } catch (error) {
@@ -85,7 +86,7 @@ export default function AdminProjectsPage() {
     if (authorized) {
       fetchProjects();
     }
-  }, [authorized]);
+  }, [authorized, get]);
 
   if (loading) {
     return (
@@ -150,34 +151,20 @@ export default function AdminProjectsPage() {
         order: editingProject ? editingProject.order : projects.length,
       };
       if (editingProject) {
-        const res = await fetch(`/api/projects/${editingProject.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const updated = await res.json();
+        const { data: updated, error } = await put<Project>(`/projects/${editingProject.id}`, payload);
+        if (updated) {
           setProjects(projects.map((p) => (p.id === editingProject.id ? updated : p)));
           closeModal();
         } else {
-          const err = await res.json();
-          alert(err.error || t("failedUpdate"));
+          alert(error || t("failedUpdate"));
         }
       } else {
-        const res = await fetch("/api/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const newProject = await res.json();
+        const { data: newProject, error } = await post<Project>("/projects", payload);
+        if (newProject) {
           setProjects([...projects, newProject]);
           closeModal();
         } else {
-          const error = await res.json();
-          alert(error.error || t("failedCreate"));
+          alert(error || t("failedCreate"));
         }
       }
     } catch (error) {
@@ -191,11 +178,8 @@ export default function AdminProjectsPage() {
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm) return;
     try {
-      const res = await fetch(`/api/projects/${deleteConfirm.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
+      const { error } = await del(`/projects/${deleteConfirm.id}`);
+      if (!error) {
         setProjects(projects.filter((p) => p.id !== deleteConfirm.id));
         setDeleteConfirm(null);
       } else {

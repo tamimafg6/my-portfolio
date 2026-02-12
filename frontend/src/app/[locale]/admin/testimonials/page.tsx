@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
+import { useAdminApi } from "@/lib/hooks/useAdminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,7 @@ export default function AdminTestimonialsPage() {
   const t = useTranslations("admin.testimonialsPage");
   const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
+  const { get, put, del } = useAdminApi();
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -60,20 +62,16 @@ export default function AdminTestimonialsPage() {
     const fetchTestimonials = async () => {
       try {
         setIsLoadingTestimonials(true);
-        const res = await fetch("/api/testimonials/admin", {
-          credentials: "include",
-        });
+        const { data, error } = await get<Testimonial[]>("/testimonials/admin");
         
-        if (res.ok) {
-          const data = await res.json();
+        if (data) {
           console.log("Fetched testimonials:", data);
           setTestimonials(Array.isArray(data) ? data : []);
           setFetchError(null);
         } else {
-          const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
-          console.error("Failed to fetch testimonials:", res.status, errorData);
+          console.error("Failed to fetch testimonials:", error);
           setTestimonials([]);
-          setFetchError(errorData?.error || `Failed to fetch testimonials (${res.status})`);
+          setFetchError(error || "Failed to fetch testimonials");
         }
       } catch (error) {
         console.error("Error fetching testimonials:", error);
@@ -87,40 +85,29 @@ export default function AdminTestimonialsPage() {
     if (authorized) {
       fetchTestimonials();
     }
-  }, [authorized]);
+  }, [authorized, get]);
 
   const handleApprove = async (id: number) => {
     try {
       setActionLoading(id);
-      const res = await fetch(`/api/testimonials/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ isApproved: true }),
-      });
+      const { data, error } = await put(`/testimonials/${id}`, { isApproved: true });
 
-      if (res.ok) {
+      if (data) {
         // Refresh testimonials
-        const refreshRes = await fetch("/api/testimonials/admin", {
-          credentials: "include",
-        });
-        if (refreshRes.ok) {
-          const refreshData = await refreshRes.json();
+        const { data: refreshData } = await get<Testimonial[]>("/testimonials/admin");
+        if (refreshData) {
           setTestimonials(Array.isArray(refreshData) ? refreshData : []);
         } else {
           // Still update the local state even if refresh fails
           setTestimonials(prev => prev.map(t => t.id === id ? { ...t, isApproved: true } : t));
         }
       } else {
-        const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
-        console.error("Failed to approve testimonial:", res.status, errorData);
-        alert(`Failed to approve testimonial: ${errorData?.error || res.status}`);
+        console.error("Failed to approve testimonial:", error);
+        alert(`Failed to approve testimonial: ${error || "Unknown error"}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error approving testimonial:", error);
-      alert(`Error approving testimonial: ${error?.message || "Please try again."}`);
+      alert(`Error approving testimonial: ${error instanceof Error ? error.message : "Please try again."}`);
     } finally {
       setActionLoading(null);
     }
@@ -136,18 +123,14 @@ export default function AdminTestimonialsPage() {
 
     try {
       setActionLoading(testimonialToDelete);
-      const res = await fetch(`/api/testimonials/${testimonialToDelete}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const { error } = await del(`/testimonials/${testimonialToDelete}`);
 
-      if (res.ok) {
+      if (!error) {
         setTestimonials((prev) => prev.filter((t) => t.id !== testimonialToDelete));
         setDeleteDialogOpen(false);
         setTestimonialToDelete(null);
       } else {
-        const errorData = await res.json().catch(() => ({}));
-        alert(errorData?.error || t("failedReject"));
+        alert(error || t("failedReject"));
       }
     } catch (error: unknown) {
       alert(t("failedReject"));
@@ -162,28 +145,17 @@ export default function AdminTestimonialsPage() {
       setActionLoading(id);
       console.log("[Unapprove] Starting unapprove for testimonial ID:", id);
       
-      const res = await fetch(`/api/testimonials/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ isApproved: false }),
-      });
+      const { data, error } = await put(`/testimonials/${id}`, { isApproved: false });
 
-      console.log("[Unapprove] Response status:", res.status);
+      console.log("[Unapprove] Response:", data, error);
       
-      if (res.ok) {
-        const updatedData = await res.json();
-        console.log("[Unapprove] Updated testimonial:", updatedData);
+      if (data) {
+        console.log("[Unapprove] Updated testimonial:", data);
         
         // Refresh testimonials to get updated list
-        const refreshRes = await fetch("/api/testimonials/admin", {
-          credentials: "include",
-        });
+        const { data: refreshData } = await get<Testimonial[]>("/testimonials/admin");
         
-        if (refreshRes.ok) {
-          const refreshData = await refreshRes.json();
+        if (refreshData) {
           console.log("[Unapprove] Refreshed testimonials count:", refreshData.length);
           setTestimonials(Array.isArray(refreshData) ? refreshData : []);
         } else {
@@ -191,13 +163,12 @@ export default function AdminTestimonialsPage() {
           setTestimonials(prev => prev.map(t => t.id === id ? { ...t, isApproved: false } : t));
         }
       } else {
-        const errorText = await res.text();
-        console.error("[Unapprove] Failed to unapprove testimonial:", res.status, errorText);
-        alert(`Failed to unapprove testimonial: ${res.status}`);
+        console.error("[Unapprove] Failed to unapprove testimonial:", error);
+        alert(`Failed to unapprove testimonial: ${error || "Unknown error"}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[Unapprove] Error unapproving testimonial:", error);
-      alert(`Error unapproving testimonial: ${error?.message || "Please try again."}`);
+      alert(`Error unapproving testimonial: ${error instanceof Error ? error.message : "Please try again."}`);
     } finally {
       setActionLoading(null);
     }

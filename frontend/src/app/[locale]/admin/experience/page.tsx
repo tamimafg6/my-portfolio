@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
+import { useAdminApi } from "@/lib/hooks/useAdminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ export default function AdminExperiencePage() {
   const t = useTranslations("admin.experiencePage");
   const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
+  const { get, post, put, del } = useAdminApi();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
@@ -69,15 +71,12 @@ export default function AdminExperiencePage() {
     try {
       setIsLoadingExperiences(true);
       setFetchError(null);
-      const res = await fetch("/api/experience");
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && Array.isArray(data)) {
+      const { data, error } = await get<Experience[]>("/experience");
+      if (data && Array.isArray(data)) {
         setExperiences(data);
       } else {
         setExperiences([]);
-        const message =
-          (data && typeof data.error === "string" ? data.error : null) ||
-          (res.ok ? "Invalid response" : `Failed to load (${res.status}). Is the backend running on port 8080?`);
+        const message = error || "Invalid response";
         setFetchError(message);
       }
     } catch (error) {
@@ -166,34 +165,20 @@ export default function AdminExperiencePage() {
     try {
       const payload = buildPayload();
       if (editingExperience) {
-        const res = await fetch(`/api/experience/${editingExperience.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const updated = await res.json();
+        const { data: updated, error } = await put<Experience>(`/experience/${editingExperience.id}`, payload);
+        if (updated) {
           setExperiences(experiences.map((ex) => (ex.id === editingExperience.id ? updated : ex)));
           closeModal();
         } else {
-          const err = await res.json();
-          alert(err.error || "Failed to update experience.");
+          alert(error || "Failed to update experience.");
         }
       } else {
-        const res = await fetch("/api/experience", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const newExperience = await res.json();
+        const { data: newExperience, error } = await post<Experience>("/experience", payload);
+        if (newExperience) {
           setExperiences([...experiences, newExperience]);
           closeModal();
         } else {
-          const err = await res.json();
-          alert(err.error || t("failedCreate"));
+          alert(error || t("failedCreate"));
         }
       }
     } catch (error) {
@@ -207,11 +192,8 @@ export default function AdminExperiencePage() {
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm) return;
     try {
-      const res = await fetch(`/api/experience/${deleteConfirm.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
+      const { error } = await del(`/experience/${deleteConfirm.id}`);
+      if (!error) {
         setExperiences(experiences.filter((e) => e.id !== deleteConfirm.id));
         setDeleteConfirm(null);
       } else {

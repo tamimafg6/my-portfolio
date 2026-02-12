@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
+import { useAdminApi } from "@/lib/hooks/useAdminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,7 @@ export default function AdminSettingsPage() {
   const t = useTranslations("admin.settingsPage");
   const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
+  const { get, put, uploadFile, getToken } = useAdminApi();
   const [contactInfo, setContactInfo] = useState<ContactInfo>(emptyContact);
   const [resumeInfo, setResumeInfo] = useState<ResumeInfo>(emptyResume);
   const [loadingContact, setLoadingContact] = useState(true);
@@ -84,9 +86,8 @@ export default function AdminSettingsPage() {
     if (!authorized) return;
     const fetchContact = async () => {
       try {
-        const res = await fetch("/api/contact/info", { credentials: "include" });
-        const data = await res.json();
-        if (res.ok && data && typeof data === "object") {
+        const { data } = await get<ContactInfo>("/contact/info");
+        if (data && typeof data === "object") {
           setContactInfo({
             email: data.email ?? "",
             phone: data.phone ?? "",
@@ -106,9 +107,8 @@ export default function AdminSettingsPage() {
     };
     const fetchResume = async () => {
       try {
-        const res = await fetch("/api/resume", { credentials: "include" });
-        const data = await res.json();
-        if (res.ok && data && typeof data === "object") {
+        const { data } = await get<ResumeInfo>("/resume");
+        if (data && typeof data === "object") {
           setResumeInfo({
             fileUrl: data.fileUrl ?? "",
             fileUrlEn: data.fileUrlEn ?? null,
@@ -125,25 +125,19 @@ export default function AdminSettingsPage() {
     };
     fetchContact();
     fetchResume();
-  }, [authorized]);
+  }, [authorized, get]);
 
   const handleSaveContact = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingContact(true);
     setContactSuccess(false);
     try {
-      const res = await fetch("/api/contact/info", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(contactInfo),
-      });
-      if (res.ok) {
+      const { data, error } = await put<ContactInfo>("/contact/info", contactInfo);
+      if (data) {
         setContactSuccess(true);
         setTimeout(() => setContactSuccess(false), 3000);
       } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || t("failedSaveContact"));
+        alert(error || t("failedSaveContact"));
       }
     } catch (e) {
       console.error(e);
@@ -162,18 +156,12 @@ export default function AdminSettingsPage() {
         labelEn: resumeInfo.labelEn,
         labelAr: resumeInfo.labelAr,
       };
-      const res = await fetch("/api/resume", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
+      const { data, error } = await put<ResumeInfo>("/resume", payload);
+      if (data) {
         setResumeSuccess(true);
         setTimeout(() => setResumeSuccess(false), 3000);
       } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || t("failedSaveContact"));
+        alert(error || t("failedSaveContact"));
       }
     } catch (e) {
       console.error(e);
@@ -200,20 +188,14 @@ export default function AdminSettingsPage() {
     setUploadingPhoto(true);
     setUploadPhotoError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/profile/photo/upload", {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setContactInfo((prev) => ({ ...prev, profilePhotoUrl: data.profilePhotoUrl ?? "/api/profile/photo" }));
+      const { data, error } = await uploadFile("/profile/photo/upload", file, "file");
+      if (data && typeof data === "object") {
+        const responseData = data as { profilePhotoUrl?: string };
+        setContactInfo((prev) => ({ ...prev, profilePhotoUrl: responseData.profilePhotoUrl ?? "/api/profile/photo" }));
         fileInput.value = "";
         setPhotoFileLabel("");
       } else {
-        setUploadPhotoError(data.error || "Failed to upload photo");
+        setUploadPhotoError(error || "Failed to upload photo");
       }
     } catch (e) {
       console.error(e);
@@ -226,7 +208,7 @@ export default function AdminSettingsPage() {
   const handleUploadResume = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    const locale = (form.querySelector('input[name="locale"]') as HTMLInputElement)?.value === "fr" ? "fr" : "en";
+    const localeValue = (form.querySelector('input[name="locale"]') as HTMLInputElement)?.value === "fr" ? "fr" : "en";
     const fileInput = form.querySelector<HTMLInputElement>('input[type="file"]');
     const file = fileInput?.files?.[0];
     if (!file) {
@@ -240,12 +222,20 @@ export default function AdminSettingsPage() {
     setUploadingResume(true);
     setUploadResumeError(null);
     try {
+      const token = await getToken();
+      if (!token) {
+        setUploadResumeError("Not authenticated");
+        return;
+      }
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("locale", locale);
-      const res = await fetch("/api/resume/upload", {
+      formData.append("locale", localeValue);
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+      const res = await fetch(`${API_BASE_URL}/resume/upload`, {
         method: "POST",
-        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
       const data = await res.json().catch(() => ({}));
@@ -258,7 +248,7 @@ export default function AdminSettingsPage() {
         setResumeSuccess(true);
         setTimeout(() => setResumeSuccess(false), 3000);
         fileInput.value = "";
-        if (locale === "fr") setResumeFileArLabel("");
+        if (localeValue === "fr") setResumeFileArLabel("");
         else setResumeFileEnLabel("");
       } else {
         setUploadResumeError(data.error || t("failedUploadResume"));

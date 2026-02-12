@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
+import { useAdminApi } from "@/lib/hooks/useAdminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ export default function AdminSkillsPage() {
   const t = useTranslations("admin.skillsPage");
   const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
+  const { get, post, put, del } = useAdminApi();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
@@ -84,12 +86,11 @@ export default function AdminSkillsPage() {
     const fetchSkills = async () => {
       try {
         setIsLoadingSkills(true);
-        const res = await fetch("/api/skills");
-        if (res.ok) {
-          const data = await res.json();
+        const { data, error } = await get<Skill[]>("/skills");
+        if (data) {
           setSkills(Array.isArray(data) ? data : []);
         } else {
-          console.error("Failed to fetch skills:", res.status);
+          console.error("Failed to fetch skills:", error);
           setSkills([]);
         }
       } catch (error) {
@@ -103,7 +104,7 @@ export default function AdminSkillsPage() {
     if (authorized) {
       fetchSkills();
     }
-  }, [authorized]);
+  }, [authorized, get]);
 
   if (loading) {
     return (
@@ -146,51 +147,37 @@ export default function AdminSkillsPage() {
     try {
       const level = Math.min(5, Math.max(1, formData.level || 1));
       if (editingSkill) {
-        const res = await fetch(`/api/skills/${editingSkill.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            nameEn: formData.nameEn,
-            nameAr: formData.nameAr || formData.nameEn,
-            category: formData.category,
-            level,
-            icon: formData.icon || null,
-            order: editingSkill.order,
-          }),
+        const { data: updated, error } = await put<Skill>(`/skills/${editingSkill.id}`, {
+          nameEn: formData.nameEn,
+          nameAr: formData.nameAr || formData.nameEn,
+          category: formData.category,
+          level,
+          icon: formData.icon || null,
+          order: editingSkill.order,
         });
-        if (res.ok) {
+        if (updated) {
           closeModal();
-          const refetchRes = await fetch("/api/skills", { cache: "no-store" });
-          if (refetchRes.ok) {
-            const list = await refetchRes.json();
+          const { data: list } = await get<Skill[]>("/skills");
+          if (list) {
             setSkills(Array.isArray(list) ? list : skills);
           }
         } else {
-          const err = await res.json();
-          alert(err.error || "Failed to update skill.");
+          alert(error || "Failed to update skill.");
         }
       } else {
-        const res = await fetch("/api/skills", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            nameEn: formData.nameEn,
-            nameAr: formData.nameAr || formData.nameEn,
-            category: formData.category,
-            level,
-            icon: formData.icon || null,
-            order: skills.length,
-          }),
+        const { data: newSkill, error } = await post<Skill>("/skills", {
+          nameEn: formData.nameEn,
+          nameAr: formData.nameAr || formData.nameEn,
+          category: formData.category,
+          level,
+          icon: formData.icon || null,
+          order: skills.length,
         });
-        if (res.ok) {
-          const newSkill = await res.json();
+        if (newSkill) {
           setSkills([...skills, newSkill]);
           closeModal();
         } else {
-          const error = await res.json();
-          alert(error.error || t("failedCreate"));
+          alert(error || t("failedCreate"));
         }
       }
     } catch (error) {
@@ -204,11 +191,8 @@ export default function AdminSkillsPage() {
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm) return;
     try {
-      const res = await fetch(`/api/skills/${deleteConfirm.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
+      const { error } = await del(`/skills/${deleteConfirm.id}`);
+      if (!error) {
         setSkills(skills.filter((s) => s.id !== deleteConfirm.id));
         setDeleteConfirm(null);
       } else {

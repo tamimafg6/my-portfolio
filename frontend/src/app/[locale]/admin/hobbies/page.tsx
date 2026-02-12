@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
+import { useAdminApi } from "@/lib/hooks/useAdminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ export default function AdminHobbiesPage() {
   const t = useTranslations("admin.hobbiesPage");
   const tCommon = useTranslations("common");
   const { authorized, loading } = useAdminAccess();
+  const { get, post, put, del } = useAdminApi();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hobbies, setHobbies] = useState<Hobby[]>([]);
   const [isLoadingHobbies, setIsLoadingHobbies] = useState(true);
@@ -56,8 +58,7 @@ export default function AdminHobbiesPage() {
   const fetchHobbies = async () => {
     try {
       setIsLoadingHobbies(true);
-      const res = await fetch("/api/hobbies", { credentials: "include" });
-      const data = await res.json();
+      const { data } = await get<Hobby[]>("/hobbies");
       setHobbies(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("Error fetching hobbies:", e);
@@ -107,22 +108,11 @@ export default function AdminHobbiesPage() {
         order: editingId ? undefined : hobbies.length,
       };
 
-      const res = editingId
-        ? await fetch(`/api/hobbies/${editingId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(payload),
-          })
-        : await fetch("/api/hobbies", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(payload),
-          });
+      const { data: updatedHobby, error } = editingId
+        ? await put<Hobby>(`/hobbies/${editingId}`, payload)
+        : await post<Hobby>("/hobbies", payload);
 
-      if (res.ok) {
-        const updatedHobby = await res.json();
+      if (updatedHobby) {
         if (editingId) {
           setHobbies(hobbies.map((h) => (h.id === editingId ? updatedHobby : h)));
         } else {
@@ -132,8 +122,7 @@ export default function AdminHobbiesPage() {
         setEditingId(null);
         setIsModalOpen(false);
       } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || `Failed to ${editingId ? "update" : "create"} hobby`);
+        alert(error || `Failed to ${editingId ? "update" : "create"} hobby`);
       }
     } catch (e) {
       console.error(e);
@@ -152,19 +141,15 @@ export default function AdminHobbiesPage() {
     if (hobbyToDeleteId === null) return;
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/hobbies/${hobbyToDeleteId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
+      const { error } = await del(`/hobbies/${hobbyToDeleteId}`);
+      if (!error) {
         setHobbies(hobbies.filter((h) => h.id !== hobbyToDeleteId));
         setDeleteDialogOpen(false);
         setHobbyToDeleteId(null);
         setSuccessMessage(t("deletedSuccess"));
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || t("failedDelete"));
+        alert(error || t("failedDelete"));
       }
     } catch (e) {
       console.error(e);
