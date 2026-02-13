@@ -223,10 +223,7 @@ postgresql://postgres:password@localhost:5432/portfolio
 - Docker Compose
 - Node.js 18 Alpine
 
-## 🔐 Admin Access
 
-**Email:** tamim@portfolio.com  
-**Password:** Admin123!Secure
 
 ## 📚 Documentation
 
