@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { LanguageSwitcher } from "./language-switcher";
 import { Button } from "./ui/button";
-import { Menu, X, LogIn, LogOut } from "lucide-react";
+import { Menu, X, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
 import { authClient } from "@/lib/auth-client";
@@ -153,15 +153,23 @@ export default function Navbar() {
             ))}
             {!isCheckingSession &&
               (isLoggedIn ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
+                <>
+                  <Link href="/admin/dashboard">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
+                </>
               ) : (
                 <Link href="/admin/login">
                   <Button variant="outline" size="sm" className="gap-2">
@@ -207,18 +215,30 @@ export default function Navbar() {
             ))}
             {!isCheckingSession &&
               (isLoggedIn ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full gap-2 mt-2"
-                  onClick={() => {
-                    setIsOpen(false);
-                    handleLogout();
-                  }}
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
+                <>
+                  <Link href="/admin/dashboard" onClick={() => setIsOpen(false)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2 mt-2"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 mt-2"
+                    onClick={() => {
+                      setIsOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
+                </>
               ) : (
                 <Link href="/admin/login" onClick={() => setIsOpen(false)}>
                   <Button
