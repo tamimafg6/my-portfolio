@@ -4,6 +4,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useState, useEffect } from "react";
 import { Mail, MapPin, Send, Sparkles } from "lucide-react";
 import ScrollAnimation from "@/components/ScrollAnimation";
+import Turnstile from "@/components/Turnstile";
 import { validateContactForm, capLength, LIMITS } from "@/lib/form-validation";
 
 interface ContactInfo {
@@ -28,6 +29,7 @@ export default function ContactPage() {
     "idle" | "success" | "error"
   >("idle");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/contact/info", { cache: "no-store" })
@@ -46,9 +48,14 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
-    const result = validateContactForm(formData);
+    const result = validateContactForm(formData, t);
     if (!result.ok) {
       setFieldErrors(result.errors);
+      setSubmitStatus("error");
+      return;
+    }
+
+    if (!captchaToken) {
       setSubmitStatus("error");
       return;
     }
@@ -60,13 +67,15 @@ export default function ContactPage() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result.data),
+        body: JSON.stringify({ ...result.data, captchaToken }),
       });
       if (res.ok) {
         setSubmitStatus("success");
         setFormData({ name: "", email: "", message: "" });
+        setCaptchaToken(null);
       } else {
         setSubmitStatus("error");
+        setCaptchaToken(null);
       }
     } catch (error) {
       setSubmitStatus("error");
@@ -86,49 +95,6 @@ export default function ContactPage() {
     }));
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
-
-  const content = {
-    en: {
-      title: "Get In Touch",
-      subtitle:
-        "Have a question or want to work together? Feel free to reach out!",
-      contactInfo: "Contact Information",
-      email: "Email",
-      location: "Location",
-      formTitle: "Send a Message",
-      nameLabel: "Name",
-      namePlaceholder: "Your name",
-      emailLabel: "Email",
-      emailPlaceholder: "Your email",
-      messageLabel: "Message",
-      messagePlaceholder: "Your message",
-      sendButton: "Send Message",
-      sending: "Sending...",
-      successMessage: "Message sent successfully! I'll get back to you soon.",
-      errorMessage: "Something went wrong. Please try again.",
-    },
-    fr: {
-      title: "Contactez-Moi",
-      subtitle:
-        "Vous avez une question ou souhaitez collaborer? N'hésitez pas à me contacter!",
-      contactInfo: "Informations de Contact",
-      email: "Courriel",
-      location: "Emplacement",
-      formTitle: "Envoyer un Message",
-      nameLabel: "Nom",
-      namePlaceholder: "Votre nom",
-      emailLabel: "Courriel",
-      emailPlaceholder: "Votre courriel",
-      messageLabel: "Message",
-      messagePlaceholder: "Votre message",
-      sendButton: "Envoyer le Message",
-      sending: "Envoi en cours...",
-      successMessage: "Message envoyé avec succès! Je vous répondrai bientôt.",
-      errorMessage: "Une erreur s'est produite. Veuillez réessayer.",
-    },
-  };
-
-  const pageContent = locale === "fr" ? content.fr : content.en;
 
   return (
     <div className="min-h-screen pt-24 pb-16 bg-background">
@@ -168,15 +134,15 @@ export default function ContactPage() {
             <div className="flex items-center justify-center gap-2 mb-4">
               <Sparkles className="w-5 h-5 text-blue-500" />
               <span className="text-sm font-medium text-blue-500 uppercase tracking-wider">
-                {locale === "fr" ? "Contactez-moi" : "Let's Connect"}
+                {t("letsConnect")}
               </span>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
-              {pageContent.title}
+              {t("title")}
             </h1>
             <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-6"></div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {pageContent.subtitle}
+              {t("subtitle")}
             </p>
           </div>
         </ScrollAnimation>
@@ -187,7 +153,7 @@ export default function ContactPage() {
             <div className="space-y-8">
               <div>
                 <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-foreground">
-                  {pageContent.contactInfo}
+                  {t("getInTouch")}
                 </h2>
               </div>
 
@@ -199,7 +165,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1 text-foreground">
-                        {pageContent.email}
+                        {t("email")}
                       </h3>
                       <a
                         href={`mailto:${contactInfo.email}`}
@@ -218,7 +184,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1 text-foreground">
-                        {pageContent.location}
+                        {t("location")}
                       </h3>
                       <p className="text-muted-foreground">
                         {contactInfo.address}
@@ -234,7 +200,7 @@ export default function ContactPage() {
           <ScrollAnimation animation="slide-in-from-right" delay={0.2}>
             <div className="bg-card border border-border rounded-2xl p-8 md:p-10 hover:shadow-xl hover:shadow-blue-500/5 transition-all">
               <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-foreground">
-                {pageContent.formTitle}
+                {t("form.message")}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -242,7 +208,7 @@ export default function ContactPage() {
                     htmlFor="name"
                     className="block text-sm font-medium mb-2 text-foreground"
                   >
-                    {pageContent.nameLabel}
+                    {t("form.name")}
                   </label>
                   <input
                     type="text"
@@ -258,7 +224,7 @@ export default function ContactPage() {
                              bg-background text-foreground
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                              hover:border-blue-500/50 transition-colors ${fieldErrors.name ? "border-red-500" : "border-border"}`}
-                    placeholder={pageContent.namePlaceholder}
+                    placeholder={t("form.namePlaceholder")}
                   />
                   {fieldErrors.name && (
                     <p id="name-error" className="mt-1 text-sm text-red-500" role="alert">{fieldErrors.name}</p>
@@ -270,7 +236,7 @@ export default function ContactPage() {
                     htmlFor="email"
                     className="block text-sm font-medium mb-2 text-foreground"
                   >
-                    {pageContent.emailLabel}
+                    {t("form.email")}
                   </label>
                   <input
                     type="email"
@@ -286,7 +252,7 @@ export default function ContactPage() {
                              bg-background text-foreground
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                              hover:border-blue-500/50 transition-colors ${fieldErrors.email ? "border-red-500" : "border-border"}`}
-                    placeholder={pageContent.emailPlaceholder}
+                    placeholder={t("form.emailPlaceholder")}
                   />
                   {fieldErrors.email && (
                     <p id="email-error" className="mt-1 text-sm text-red-500" role="alert">{fieldErrors.email}</p>
@@ -298,7 +264,7 @@ export default function ContactPage() {
                     htmlFor="message"
                     className="block text-sm font-medium mb-2 text-foreground"
                   >
-                    {pageContent.messageLabel}
+                    {t("form.message")}
                   </label>
                   <textarea
                     id="message"
@@ -314,7 +280,7 @@ export default function ContactPage() {
                              bg-background text-foreground
                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                              hover:border-blue-500/50 transition-colors resize-none ${fieldErrors.message ? "border-red-500" : "border-border"}`}
-                    placeholder={pageContent.messagePlaceholder}
+                    placeholder={t("form.messagePlaceholder")}
                   />
                   {fieldErrors.message && (
                     <p id="message-error" className="mt-1 text-sm text-red-500" role="alert">{fieldErrors.message}</p>
@@ -323,19 +289,27 @@ export default function ContactPage() {
 
                 {submitStatus === "success" && (
                   <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-500 rounded-lg border border-green-500/20">
-                    {pageContent.successMessage}
+                    {t("form.successMessage")}
                   </div>
                 )}
 
                 {submitStatus === "error" && (
                   <div className="p-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 text-red-500 rounded-lg border border-red-500/20">
-                    {pageContent.errorMessage}
+                    {t("form.errorMessage")}
                   </div>
                 )}
 
+                <div className="flex justify-center">
+                  <Turnstile
+                    onVerify={(token) => setCaptchaToken(token)}
+                    onExpire={() => setCaptchaToken(null)}
+                    onError={() => setCaptchaToken(null)}
+                  />
+                </div>
+
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !captchaToken}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg 
                            hover:from-blue-600 hover:to-purple-700 transition-all
                            disabled:opacity-50 disabled:cursor-not-allowed 
@@ -343,7 +317,7 @@ export default function ContactPage() {
                            hover:shadow-lg hover:shadow-blue-500/30
                            transform hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  {isSubmitting ? pageContent.sending : pageContent.sendButton}
+                  {isSubmitting ? t("form.sending") : t("form.send")}
                   <Send className="w-4 h-4" />
                 </button>
               </form>

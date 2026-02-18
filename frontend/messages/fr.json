@@ -454,6 +454,10 @@
     "description": "Ce que les gens disent de mon travail",
     "heading": "Témoignages de Clients",
     "subheading": "Ne me croyez pas sur parole - écoutez ce que mes clients et collègues ont à dire",
+    "noTestimonialsYet": "Aucun témoignage pour le moment. Soyez le premier à laisser un avis !",
+    "at": "chez",
+    "hideForm": "Masquer le formulaire de témoignage",
+    "submitButton": "Soumettre un témoignage",
     "submit": "Soumettre un témoignage",
     "yourName": "Votre nom",
     "yourEmail": "Votre email",
@@ -461,8 +465,16 @@
     "yourCompany": "Votre entreprise",
     "yourMessage": "Votre message",
     "rating": "Évaluation",
-    "submitSuccess": "Merci ! Votre témoignage a été soumis pour examen.",
+    "submitSuccess": "Merci ! Votre témoignage a été soumis pour évaluation.",
     "submitError": "Échec de la soumission. Veuillez réessayer.",
+    "validation": {
+      "nameRequired": "Le nom est requis.",
+      "nameMinLength": "Le nom doit contenir au moins 2 caractères.",
+      "emailRequired": "L'email est requis.",
+      "emailInvalid": "Veuillez entrer une adresse email valide.",
+      "contentRequired": "Le message est requis.",
+      "contentMinLength": "Le message doit contenir au moins 10 caractères."
+    },
     "cta": {
       "heading": "Vous voulez travailler ensemble ?",
       "description": "Je suis toujours ouvert à discuter de nouveaux projets et opportunités.",
@@ -503,6 +515,9 @@
     "title": "Me Contacter",
     "description": "N'hésitez pas à me contacter pour des opportunités ou une collaboration",
     "subtitle": "Une question ou envie de travailler ensemble ?",
+    "letsConnect": "Contactez-moi",
+    "hideForm": "Masquer le formulaire de contact",
+    "showForm": "Afficher le formulaire de contact",
     "getInTouch": "Informations De Contact",
     "email": "Email",
     "phone": "Téléphone",
@@ -526,6 +541,14 @@
       "sending": "Envoi...",
       "successMessage": "Message envoyé avec succès ! Je vous répondrai bientôt.",
       "errorMessage": "Échec de l'envoi du message. Veuillez réessayer."
+    },
+    "validation": {
+      "nameRequired": "Le nom est requis.",
+      "nameMinLength": "Le nom doit contenir au moins 2 caractères.",
+      "emailRequired": "L'email est requis.",
+      "emailInvalid": "Veuillez entrer une adresse email valide.",
+      "messageRequired": "Le message est requis.",
+      "messageMinLength": "Le message doit contenir au moins 10 caractères."
     }
   },
   "resume": {

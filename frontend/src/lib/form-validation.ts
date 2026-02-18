@@ -51,20 +51,21 @@ export function isValidEmail(value: string): boolean {
 export type ValidationResult<T> = { ok: true; data: T } | { ok: false; errors: Record<string, string> };
 
 /** Validate and sanitize contact form. */
-export function validateContactForm(data: { name: string; email: string; message: string }): ValidationResult<{ name: string; email: string; subject: string; message: string }> {
+export function validateContactForm(data: { name: string; email: string; message: string }, translate?: (key: string) => string): ValidationResult<{ name: string; email: string; subject: string; message: string }> {
+  const t = translate || ((key) => key); // Fallback to key if no translation
   const errors: Record<string, string> = {};
   const name = trimAndCap(data.name, LIMITS.name);
   const email = data.email.trim().toLowerCase().slice(0, LIMITS.email);
   const message = trimAndCap(data.message, LIMITS.message);
 
-  if (!name) errors.name = "Name is required.";
-  else if (name.length < 2) errors.name = "Name must be at least 2 characters.";
+  if (!name) errors.name = t("validation.nameRequired");
+  else if (name.length < 2) errors.name = t("validation.nameMinLength");
 
-  if (!email) errors.email = "Email is required.";
-  else if (!isValidEmail(email)) errors.email = "Please enter a valid email address.";
+  if (!email) errors.email = t("validation.emailRequired");
+  else if (!isValidEmail(email)) errors.email = t("validation.emailInvalid");
 
-  if (!message) errors.message = "Message is required.";
-  else if (message.length < 10) errors.message = "Message must be at least 10 characters.";
+  if (!message) errors.message = t("validation.messageRequired");
+  else if (message.length < 10) errors.message = t("validation.messageMinLength");
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
 
@@ -87,7 +88,8 @@ export function validateTestimonialForm(data: {
   company: string;
   content: string;
   rating: number;
-}): ValidationResult<{ name: string; email: string; role: string | null; company: string | null; content: string; rating: number }> {
+}, translate?: (key: string) => string): ValidationResult<{ name: string; email: string; role: string | null; company: string | null; content: string; rating: number }> {
+  const t = translate || ((key) => key); // Fallback to key if no translation
   const errors: Record<string, string> = {};
   const name = trimAndCap(data.name, LIMITS.name);
   const email = data.email.trim().toLowerCase().slice(0, LIMITS.email);
@@ -96,14 +98,14 @@ export function validateTestimonialForm(data: {
   const content = trimAndCap(data.content, LIMITS.content);
   const rating = typeof data.rating === "number" && Number.isInteger(data.rating) ? Math.min(5, Math.max(1, data.rating)) : 5;
 
-  if (!name) errors.name = "Name is required.";
-  else if (name.length < 2) errors.name = "Name must be at least 2 characters.";
+  if (!name) errors.name = t("validation.nameRequired");
+  else if (name.length < 2) errors.name = t("validation.nameMinLength");
 
-  if (!email) errors.email = "Email is required.";
-  else if (!isValidEmail(email)) errors.email = "Please enter a valid email address.";
+  if (!email) errors.email = t("validation.emailRequired");
+  else if (!isValidEmail(email)) errors.email = t("validation.emailInvalid");
 
-  if (!content) errors.content = "Message is required.";
-  else if (content.length < 10) errors.content = "Message must be at least 10 characters.";
+  if (!content) errors.content = t("validation.contentRequired");
+  else if (content.length < 10) errors.content = t("validation.contentMinLength");
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
 
