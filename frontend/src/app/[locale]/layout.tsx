@@ -65,6 +65,7 @@ export default async function LocaleLayout({
             `,
           }}
         />
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

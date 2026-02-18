@@ -6,6 +6,35 @@ import { adminOnly } from "../lib/auth.js";
 
 const router = Router();
 
+// Cloudflare Turnstile verification
+async function verifyCaptcha(token: string): Promise<boolean> {
+  try {
+    const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY;
+    if (!secretKey) {
+      console.error("CLOUDFLARE_TURNSTILE_SECRET_KEY not configured");
+      return false;
+    }
+
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: secretKey,
+          response: token,
+        }),
+      }
+    );
+
+    const data = (await response.json()) as { success: boolean };
+    return data.success === true;
+  } catch (error) {
+    console.error("Error verifying captcha:", error);
+    return false;
+  }
+}
+
 // Simple in-memory rate limiting for contact form
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
@@ -49,7 +78,17 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    const { name, email, subject, message } = req.body;
+    // Verify CAPTCHA
+    const { captchaToken, name, email, subject, message } = req.body;
+    
+    if (!captchaToken) {
+      return res.status(400).json({ error: "CAPTCHA verification required" });
+    }
+
+    const captchaValid = await verifyCaptcha(captchaToken);
+    if (!captchaValid) {
+      return res.status(400).json({ error: "CAPTCHA verification failed" });
+    }
 
     if (!name || !email || !subject || !message) {
       return res.status(400).json({ error: "All fields are required" });

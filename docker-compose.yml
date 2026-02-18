@@ -91,6 +91,7 @@ services:
       DO_SPACES_ACCESS_KEY_ID: ${DO_SPACES_ACCESS_KEY_ID}
       DO_SPACES_SECRET_ACCESS_KEY: ${DO_SPACES_SECRET_ACCESS_KEY}
       DO_SPACES_CDN_URL: ${DO_SPACES_CDN_URL:-}
+      CLOUDFLARE_TURNSTILE_SECRET_KEY: ${CLOUDFLARE_TURNSTILE_SECRET_KEY}
     ports:
       - "8080:8080"
     depends_on:
@@ -119,6 +120,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY}
     container_name: portfolio-frontend
     restart: unless-stopped
     environment:
@@ -127,6 +130,7 @@ services:
       NEXT_PUBLIC_AUTH_URL: http://localhost:3001
       AUTH_SERVICE_URL: http://auth-service:3001
       AUTH_URL: http://auth-service:3001
+      NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY}
       NODE_ENV: production
     ports:
       - "3000:3000"

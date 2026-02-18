@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import Turnstile from "@/components/Turnstile";
 import {
   validateContactForm,
   validateTestimonialForm,
@@ -101,6 +102,7 @@ export default function HomePage() {
   const [contactFieldErrors, setContactFieldErrors] = useState<
     Record<string, string>
   >({});
+  const [contactCaptchaToken, setContactCaptchaToken] = useState<string | null>(null);
   const [testimonialFormData, setTestimonialFormData] = useState({
     name: "",
     email: "",
@@ -117,6 +119,7 @@ export default function HomePage() {
   const [testimonialFieldErrors, setTestimonialFieldErrors] = useState<
     Record<string, string>
   >({});
+  const [testimonialCaptchaToken, setTestimonialCaptchaToken] = useState<string | null>(null);
   const [experiences, setExperiences] = useState<
     {
       id: number;
@@ -301,9 +304,13 @@ export default function HomePage() {
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setContactFieldErrors({});
-    const result = validateContactForm(contactFormData);
+    const result = validateContactForm(contactFormData, tContact);
     if (!result.ok) {
       setContactFieldErrors(result.errors);
+      setContactSubmitStatus("error");
+      return;
+    }
+    if (!contactCaptchaToken) {
       setContactSubmitStatus("error");
       return;
     }
@@ -313,11 +320,12 @@ export default function HomePage() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result.data),
+        body: JSON.stringify({ ...result.data, captchaToken: contactCaptchaToken }),
       });
       if (res.ok) {
         setContactSubmitStatus("success");
         setContactFormData({ name: "", email: "", message: "" });
+        setContactCaptchaToken(null);
         setTimeout(() => setContactSubmitStatus("idle"), 5000);
       } else {
         setContactSubmitStatus("error");
@@ -332,12 +340,19 @@ export default function HomePage() {
   const handleTestimonialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTestimonialFieldErrors({});
-    const result = validateTestimonialForm(testimonialFormData);
+    const result = validateTestimonialForm(testimonialFormData, tTestimonials);
     if (!result.ok) {
       setTestimonialFieldErrors(result.errors);
       setTestimonialSubmitMessage({
         type: "error",
         text: Object.values(result.errors)[0] ?? tTestimonials("submitError"),
+      });
+      return;
+    }
+    if (!testimonialCaptchaToken) {
+      setTestimonialSubmitMessage({
+        type: "error",
+        text: tTestimonials("submitError"),
       });
       return;
     }
@@ -347,13 +362,13 @@ export default function HomePage() {
       const res = await fetch("/api/testimonials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result.data),
+        body: JSON.stringify({ ...result.data, captchaToken: testimonialCaptchaToken }),
       });
       if (res.ok) {
         const data = await res.json();
         setTestimonialSubmitMessage({
           type: "success",
-          text: data.message || tTestimonials("submitSuccess"),
+          text: tTestimonials("submitSuccess"),
         });
         setTestimonialFormData({
           name: "",
@@ -363,6 +378,7 @@ export default function HomePage() {
           content: "",
           rating: 5,
         });
+        setTestimonialCaptchaToken(null);
         setTimeout(() => setTestimonialSubmitMessage(null), 5000);
       } else {
         const error = await res.json();
@@ -1144,8 +1160,8 @@ export default function HomePage() {
                     className="bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
                   >
                     {showTestimonialForm
-                      ? "Hide Testimonial Form"
-                      : "Submit a Testimonial"}
+                      ? tTestimonials("hideForm")
+                      : tTestimonials("submitButton")}
                   </Button>
                 </div>
 
@@ -1285,9 +1301,14 @@ export default function HomePage() {
                           </p>
                         )}
                       </div>
+                      <Turnstile
+                        onVerify={(token) => setTestimonialCaptchaToken(token)}
+                        onError={() => setTestimonialCaptchaToken(null)}
+                        onExpire={() => setTestimonialCaptchaToken(null)}
+                      />
                       <Button
                         type="submit"
-                        disabled={isTestimonialSubmitting}
+                        disabled={isTestimonialSubmitting || !testimonialCaptchaToken}
                         className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
                       >
                         {isTestimonialSubmitting
@@ -1325,7 +1346,7 @@ export default function HomePage() {
                   onClick={() => setShowContactForm(!showContactForm)}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
                 >
-                  {showContactForm ? "Hide Contact Form" : "Show Contact Form"}
+                  {showContactForm ? tContact("hideForm") : tContact("showForm")}
                 </Button>
               </div>
             </ScrollAnimation>
@@ -1435,9 +1456,14 @@ export default function HomePage() {
                         </p>
                       )}
                     </div>
+                    <Turnstile
+                      onVerify={(token) => setContactCaptchaToken(token)}
+                      onError={() => setContactCaptchaToken(null)}
+                      onExpire={() => setContactCaptchaToken(null)}
+                    />
                     <Button
                       type="submit"
-                      disabled={isContactSubmitting}
+                      disabled={isContactSubmitting || !contactCaptchaToken}
                       className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:shadow-lg"
                     >
                       {isContactSubmitting

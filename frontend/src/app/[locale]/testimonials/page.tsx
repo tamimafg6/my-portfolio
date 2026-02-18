@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import ScrollAnimation from "@/components/ScrollAnimation";
+import Turnstile from "@/components/Turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +40,7 @@ export default function TestimonialsPage() {
     rating: 5,
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   // Fetch testimonials
   useEffect(() => {
@@ -67,10 +69,15 @@ export default function TestimonialsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
-    const result = validateTestimonialForm(formData);
+    const result = validateTestimonialForm(formData, t);
     if (!result.ok) {
       setFieldErrors(result.errors);
       setSubmitMessage({ type: "error", text: Object.values(result.errors)[0] ?? t("submitError") });
+      return;
+    }
+
+    if (!captchaToken) {
+      setSubmitMessage({ type: "error", text: t("submitError") });
       return;
     }
 
@@ -83,16 +90,17 @@ export default function TestimonialsPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(result.data),
+        body: JSON.stringify({ ...result.data, captchaToken }),
       });
 
       if (res.ok) {
         const data = await res.json();
         setSubmitMessage({ 
           type: "success", 
-          text: data.message || t("submitSuccess") 
+          text: t("submitSuccess")
         });
         setFormData({ name: "", email: "", role: "", company: "", content: "", rating: 5 });
+        setCaptchaToken(null);
         setShowForm(false);
         // Refresh testimonials list
         const refreshRes = await fetch("/api/testimonials");
@@ -165,7 +173,7 @@ export default function TestimonialsPage() {
             </div>
           ) : testimonials.length === 0 ? (
             <div className="col-span-2 text-center py-12 text-muted-foreground">
-              <p>No testimonials yet. Be the first to leave a review!</p>
+              <p>{t("noTestimonialsYet")}</p>
             </div>
           ) : (
             testimonials.map((testimonial, index) => (
@@ -192,7 +200,7 @@ export default function TestimonialsPage() {
                       {testimonial.name}
                     </p>
                     <p className="text-muted-foreground text-sm">
-                      {testimonial.role}{testimonial.company ? (locale === "fr" ? ` chez ${testimonial.company}` : ` at ${testimonial.company}`) : ""}
+                      {testimonial.role}{testimonial.company ? ` ${t("at")} ${testimonial.company}` : ""}
                     </p>
                   </div>
                 </div>
@@ -366,10 +374,17 @@ export default function TestimonialsPage() {
                       />
                       {fieldErrors.content && <p className="text-sm text-red-500" role="alert">{fieldErrors.content}</p>}
                     </div>
+                    <div className="flex justify-center">
+                      <Turnstile
+                        onVerify={(token) => setCaptchaToken(token)}
+                        onExpire={() => setCaptchaToken(null)}
+                        onError={() => setCaptchaToken(null)}
+                      />
+                    </div>
                     <div className="flex gap-4">
                       <Button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !captchaToken}
                         className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600"
                       >
                         {isSubmitting ? tCommon("loading") : t("submit")}

@@ -454,6 +454,10 @@
     "description": "What people say about my work",
     "heading": "Client Testimonials",
     "subheading": "Don't just take my word for it - hear what my clients and colleagues have to say",
+    "noTestimonialsYet": "No testimonials yet. Be the first to leave a review!",
+    "at": "at",
+    "hideForm": "Hide Testimonial Form",
+    "submitButton": "Submit a Testimonial",
     "submit": "Submit Testimonial",
     "yourName": "Your Name",
     "yourEmail": "Your Email",
@@ -463,6 +467,14 @@
     "rating": "Rating",
     "submitSuccess": "Thank you! Your testimonial has been submitted for review.",
     "submitError": "Failed to submit testimonial. Please try again.",
+    "validation": {
+      "nameRequired": "Name is required.",
+      "nameMinLength": "Name must be at least 2 characters.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "contentRequired": "Message is required.",
+      "contentMinLength": "Message must be at least 10 characters."
+    },
     "cta": {
       "heading": "Want to work together?",
       "description": "I'm always open to discussing new projects and opportunities.",
@@ -503,6 +515,9 @@
     "title": "Get In Touch",
     "description": "Feel free to reach out for opportunities or collaboration",
     "subtitle": "Have a question or want to work together?",
+    "letsConnect": "Let's Connect",
+    "hideForm": "Hide Contact Form",
+    "showForm": "Show Contact Form",
     "getInTouch": "Contact Information",
     "email": "Email",
     "phone": "Phone",
@@ -526,6 +541,14 @@
       "sending": "Sending...",
       "successMessage": "Message sent successfully! I'll get back to you soon.",
       "errorMessage": "Failed to send message. Please try again."
+    },
+    "validation": {
+      "nameRequired": "Name is required.",
+      "nameMinLength": "Name must be at least 2 characters.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "messageRequired": "Message is required.",
+      "messageMinLength": "Message must be at least 10 characters."
     }
   },
   "resume": {
