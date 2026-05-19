@@ -50,8 +50,9 @@ import {
   SiSlack,
   SiTrello,
   SiPostman,
+  SiSupabase,
 } from "react-icons/si";
-import { FaJava, FaNode } from "react-icons/fa6";
+import { FaJava, FaNode, FaShieldHalved, FaUserShield } from "react-icons/fa6";
 
 const iconClass = "w-12 h-12";
 
@@ -95,6 +96,9 @@ export const ICONS_BY_ID: Record<string, React.ReactNode> = {
     <div className={`${iconClass} flex items-center justify-center text-sm font-bold`}>EXP</div>
   ),
   postgresql: <SiPostgresql className={iconClass} />,
+  supabase: <SiSupabase className={`${iconClass} text-[#3ECF8E]`} />,
+  rls: <FaShieldHalved className={iconClass} />,
+  rbac: <FaUserShield className={iconClass} />,
   "tailwind-css": <SiTailwindcss className={iconClass} />,
   // Extra common tech
   python: <SiPython className={iconClass} />,
@@ -162,6 +166,11 @@ const NAME_TO_ID: Record<string, string> = {
   "Node.js": "node-js",
   "Express.js": "express-js",
   PostgreSQL: "postgresql",
+  Supabase: "supabase",
+  RLS: "rls",
+  "Row Level Security": "rls",
+  "Role-Based Access Control": "rbac",
+  RBAC: "rbac",
   "Tailwind CSS": "tailwind-css",
   Python: "python",
   Go: "go",
@@ -217,6 +226,9 @@ export const SKILL_ICON_OPTIONS: { id: string; label: string }[] = [
   { id: "asp-net-mvc", label: "ASP.NET MVC" },
   { id: "sql", label: "SQL" },
   { id: "postgresql", label: "PostgreSQL" },
+  { id: "supabase", label: "Supabase" },
+  { id: "rls", label: "RLS (Row Level Security)" },
+  { id: "rbac", label: "Role-Based Access Control" },
   { id: "sql-server", label: "SQL Server" },
   { id: "azure-sql", label: "Azure SQL" },
   { id: "docker", label: "Docker" },
