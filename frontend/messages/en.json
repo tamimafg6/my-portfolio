@@ -39,7 +39,7 @@
     "signingIn": "Signing in...",
     "emailRequired": "Email is required.",
     "passwordRequired": "Password is required.",
-    "loginFailed": "Invalid email or password.",
+    "loginFailed": "Invalid password.",
     "loginFailedNoData": "Login failed. Please try again.",
     "accessDenied": "Access denied. Admin privileges required.",
     "tokenFailed": "Authentication token generation failed.",

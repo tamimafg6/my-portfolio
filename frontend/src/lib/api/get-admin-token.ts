@@ -1,23 +1,13 @@
 import { NextRequest } from "next/server";
-import { getAuthServiceBaseUrl } from "@/lib/utils/auth-url";
+import { ADMIN_COOKIE, verifyAdminToken } from "@/lib/admin-token";
 
 /**
- * Get JWT token from auth service for server-side admin API calls.
- * Returns null if not authenticated.
+ * Get the admin token (from the Bearer header or the admin cookie) for server-side
+ * admin API calls. Returns null if not authenticated.
  */
 export async function getAdminToken(request: NextRequest): Promise<string | null> {
-  const cookies = request.headers.get("cookie") || "";
-  const authServiceUrl = getAuthServiceBaseUrl();
-  const tokenUrl = `${authServiceUrl}/api/auth/token`;
-
-  const tokenRes = await fetch(tokenUrl, {
-    method: "GET",
-    headers: { Cookie: cookies },
-    credentials: "include",
-    cache: "no-store",
-  });
-
-  if (!tokenRes.ok) return null;
-  const data = await tokenRes.json().catch(() => ({}));
-  return data?.token ?? null;
+  const authHeader = request.headers.get("authorization");
+  const bearer = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
+  const token = bearer || request.cookies.get(ADMIN_COOKIE)?.value || null;
+  return (await verifyAdminToken(token)) ? token : null;
 }

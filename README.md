@@ -1,324 +1,94 @@
 # Portfolio Monorepo
 
-> Modern portfolio application with microservices architecture
+> Bilingual (EN/FR) portfolio with an admin panel, hosted on Vercel with a Supabase database.
 
-**Last updated:** January 2026
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![Express](https://img.shields.io/badge/Express-4.18-green)](https://expressjs.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-hosted-black)](https://vercel.com/)
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5.9-black)](https://nextjs.org/)
-[![Express](https://img.shields.io/badge/Express-4.18.2-green)](https://expressjs.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)](https://postgresql.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-blue)](https://www.typescriptlang.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
-
-## 🏗️ Architecture
+## Architecture
 
 ```
 portfolio-monorepo/
-├── frontend/              # Next.js 15 Application (Port 3000)
-│   ├── src/app/          # App Router with i18n (en, fr)
-│   ├── components/       # React Components
-│   ├── public/           # Static Assets
-│   └── messages/         # Translations
-│
-├── backend/              # Express.js API (Port 4000)
-│   ├── src/server.ts    # Main Server
-│   ├── routes/          # API Endpoints
-│   └── db/              # Database Config
-│
-└── docker-compose.yml   # PostgreSQL 17 + Services
+├── frontend/   # Next.js 15 app (pages, admin panel, /api proxy routes, admin login)
+├── backend/    # Express.js API (Drizzle ORM -> Supabase Postgres, Supabase Storage)
+└── docker-compose.yml   # Optional local stack (Postgres + backend + frontend)
 ```
 
-## 🚀 Quick Start
+- **Frontend** (Vercel project, root `frontend/`): renders the site. Its `/api/*` routes proxy to the backend; any `/api/*` path without a matching route is rewritten to the backend (`API_URL`).
+- **Backend** (Vercel project, root `backend/`): Express app served as a single Vercel Function (`backend/api/index.js` + `backend/vercel.json`).
+- **Database**: Supabase Postgres (portfolio tables only).
+- **File storage**: Supabase Storage bucket (private), accessed through its S3-compatible API. The resume and profile photo are served via short-lived presigned URLs.
 
-### Using Docker (Recommended)
+### Admin login
 
-```bash
-# Start all services
-npm run docker:up
+There are no user accounts. The admin page asks for a single password, checked against the `ADMIN_PASSWORD` environment variable. On success the frontend issues a signed JWT (HS256, `ADMIN_TOKEN_SECRET`, 7 days) in an httpOnly `admin_token` cookie. The backend verifies the same token for every admin-only endpoint, so both projects must share `ADMIN_TOKEN_SECRET`.
 
-# View logs
-npm run docker:logs
+## Environment variables
 
-# Stop services
-npm run docker:down
-```
+See [`frontend/.env.example`](./frontend/.env.example) and [`backend/.env.example`](./backend/.env.example).
 
-**Access:**
+| Project  | Variables |
+| -------- | --------- |
+| frontend | `API_URL`, `ADMIN_PASSWORD`, `ADMIN_TOKEN_SECRET`, `NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY` |
+| backend  | `DATABASE_URL`, `ADMIN_TOKEN_SECRET`, `FRONTEND_URL`, `CLOUDFLARE_TURNSTILE_SECRET_KEY`, `STORAGE_*` |
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8080/api
-- Health Check: http://localhost:8080/health
-- Auth Service: http://localhost:3001
+Use the Supabase **transaction pooler** connection string (port 6543) for `DATABASE_URL` on Vercel.
 
-### Local Development
-
-**1. Install dependencies:**
+## Local development
 
 ```bash
 npm run install:all
-```
 
-**2. Start PostgreSQL:**
+# Option A: everything in Docker (local Postgres)
+npm run docker:up
 
-```bash
-docker-compose up postgres -d
-```
-
-**3. Initialize database:**
-
-```bash
-cd frontend
-npm run db:push
-npm run db:seed
-cd ..
-```
-
-**4. Start development servers:**
-
-```bash
+# Option B: run directly (point backend/.env DATABASE_URL at Supabase or a local Postgres)
 npm run dev
 ```
 
-## 📋 Available Scripts
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080/api (health: http://localhost:8080/health)
 
-### Root Level
-
-```bash
-npm run dev              # Start both services in dev mode
-npm run build            # Build both services
-npm run start            # Start production servers
-npm run install:all      # Install all dependencies
-npm run docker:up        # Start Docker services
-npm run docker:down      # Stop Docker services
-npm run docker:build     # Rebuild Docker images
-npm run docker:logs      # View Docker logs
-npm run docker:clean     # Remove volumes and data
-```
-
-### Frontend (`cd frontend`)
-
-```bash
-npm run dev              # Development server
-npm run build            # Production build
-npm run start            # Start production server
-npm run db:push          # Push schema to database
-npm run db:seed          # Seed database with data
-npm run db:studio        # Open Drizzle Studio
-```
-
-### Backend (`cd backend`)
-
-```bash
-npm run dev              # Development with hot reload
-npm run build            # TypeScript compilation
-npm run start            # Start production server
-```
-
-## 🔌 API Endpoints
-
-**Base URL:** `http://localhost:8080/api`
-
-### Skills
-
-- `GET /api/skills` - Get all skills
-- `GET /api/skills/:id` - Get skill by ID
-- `POST /api/skills` - Create skill _(admin)_
-- `PUT /api/skills/:id` - Update skill _(admin)_
-- `DELETE /api/skills/:id` - Delete skill _(admin)_
-
-### Projects
-
-- `GET /api/projects` - Get all projects
-- `GET /api/projects/:id` - Get project by ID
-- `POST /api/projects` - Create project _(admin)_
-- `PUT /api/projects/:id` - Update project _(admin)_
-- `DELETE /api/projects/:id` - Delete project _(admin)_
-
-### Experience
-
-- `GET /api/experience` - Get all work experience
-- `GET /api/experience/:id` - Get experience by ID
-
-### Education
-
-- `GET /api/education` - Get all education
-- `GET /api/education/:id` - Get education by ID
-
-### Contact
-
-- `POST /api/contact` - Submit contact form
-- `GET /api/contact/messages` - Get all messages _(admin)_
-
-## 🗄️ Database
-
-**PostgreSQL 17** with Drizzle ORM
-
-**Connection String:**
-
-```
-postgresql://postgres:password@localhost:5432/portfolio
-```
-
-## 🌐 Features
-
-### Frontend
-
-✅ Next.js 15 with App Router  
-✅ React 19  
-✅ TypeScript  
-✅ Tailwind CSS  
-✅ Bilingual (EN/FR) with next-intl  
-✅ Dark/Light mode with next-themes  
-✅ BetterAuth authentication  
-✅ Responsive design  
-✅ SEO optimized
-
-### Backend
-
-✅ Express.js with TypeScript  
-✅ REST API  
-✅ CORS enabled  
-✅ Helmet security  
-✅ Health checks  
-✅ Error handling  
-✅ Drizzle ORM integration
-
-### Infrastructure
-
-✅ Docker containerization  
-✅ Docker Compose orchestration  
-✅ PostgreSQL 17  
-✅ Health checks  
-✅ Network isolation
-
-## 🔧 Tech Stack
-
-**Frontend:**
-
-- Next.js 15.5.9
-- React 19
-- TypeScript 5.7.2
-- Tailwind CSS 3.4.1
-- next-intl 3.26.0
-- next-themes 0.4.6
-- Drizzle ORM 0.45.0
-- BetterAuth 1.4.0
-
-**Backend:**
-
-- Express.js 4.18.2
-- TypeScript 5.7.2
-- Drizzle ORM 0.45.0
-- PostgreSQL (postgres 3.4.4)
-- CORS 2.8.5
-- Helmet 7.1.0
-
-**Database:**
-
-- PostgreSQL 17 Alpine
-
-**DevOps:**
-
-- Docker
-- Docker Compose
-- Node.js 18 Alpine
-
-## 🔐 Admin Access
-
-**Email:** tamim@portfolio.com  
-**Password:** Admin123!Secure
-
-## 📚 Documentation
-
-- [Development Guide](./DEVELOPMENT.md) - Local setup without Docker
-- [Project Structure](./PROJECT_STRUCTURE.md) - Detailed architecture
-- [Docker Setup](./DOCKER_README.md) - Docker configuration
-- [Frontend Docs](./frontend/README.md)
-- [Backend Docs](./backend/README.md)
-
-## 🚢 Deployment
-
-### Docker Production
-
-```bash
-npm run docker:build
-```
-
-### Manual Deployment
-
-**Backend:**
+### Database schema and seed data
 
 ```bash
 cd backend
-npm run build
-NODE_ENV=production npm start
+npm run db:generate   # generate SQL from src/db/schema/portfolio.ts
+npm run db:migrate    # apply to DATABASE_URL
+npm run db:seed       # load initial portfolio content
 ```
 
-**Frontend:**
+## Deployment (Vercel)
 
-```bash
-cd frontend
-npm run build
-NODE_ENV=production npm start
-```
+Both projects deploy from this GitHub repo:
 
-## 🔄 Development Workflow
+1. **Backend project**: Root Directory `backend`, Framework "Other" (settings come from `backend/vercel.json`). Set the backend env vars.
+2. **Frontend project**: Root Directory `frontend`, Framework Next.js. Set `API_URL=https://<backend-domain>/api` plus the other frontend env vars.
+3. Set the backend's `FRONTEND_URL` to the frontend's production URL.
 
-1. Create feature branch: `git checkout -b feature/your-feature`
-2. Make changes to frontend or backend
-3. Test locally: `npm run dev`
-4. Build and test: `npm run build`
-5. Test with Docker: `npm run docker:build`
-6. Commit and push changes
+Uploads are limited to 4 MB because Vercel Functions accept request bodies up to 4.5 MB.
 
-## 🐛 Troubleshooting
+## API Endpoints
 
-### Port Already in Use
+**Base URL:** `/api`
 
-```bash
-# Windows
-netstat -ano | findstr :8080
-netstat -ano | findstr :3001
+- `GET /api/skills`, `GET /api/projects`, `GET /api/experience`, `GET /api/education`, `GET /api/hobbies`, `GET /api/testimonials` - public content
+- `POST/PUT/DELETE` on the above - admin only (Bearer admin token)
+- `POST /api/contact` - contact form (Turnstile protected)
+- `GET /api/contact/messages` - admin only
+- `GET /api/resume/file?locale=en|fr`, `GET /api/profile/photo` - redirect to presigned storage URLs
+- `POST /api/resume/upload`, `POST /api/profile/photo/upload` - admin only
 
-# Kill process
-taskkill /PID <PID> /F
-```
-
-### Database Connection Issues
-
-- Ensure PostgreSQL is running
-- Check DATABASE_URL in .env files
-- Verify database exists
-
-### 401 / Token not provided in production (admin forms, testimonials, uploads)
-
-The auth service derives the cookie domain from `FRONTEND_URL` or `BETTER_AUTH_URL` so the session cookie is shared across subdomains. Ensure those are set in production; no extra env is needed.
-
-### Module Not Found
-
-```bash
-npm run install:all
-```
-
-### Clean Install
-
-```bash
-npm run clean
-npm run install:all
-```
-
-## 📄 License
+## License
 
 Private - © 2026 Tamim Afghanyar
 
-## 👤 Author
+## Author
 
 **Tamim Afghanyar**
 
 - GitHub: [@tamimafg6](https://github.com/tamimafg6)
 - LinkedIn: [Tamim Afghanyar](https://www.linkedin.com/in/tamim-afghanyar-2026852b3)
 - Email: tamim.afghanyar@gmail.com
-
----
-
-Built with ❤️ using Next.js, Express.js, and PostgreSQL

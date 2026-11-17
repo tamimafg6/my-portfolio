@@ -1,3 +1,4 @@
+# Local development stack. Production runs on Vercel (frontend + backend) with Supabase.
 services:
   # App Database (PostgreSQL 17) - For Backend
   app-db:
@@ -23,54 +24,6 @@ services:
     networks:
       - portfolio-network
 
-  # Auth Database (PostgreSQL 17) - For Auth Service
-  auth-db:
-    image: postgres:17-alpine
-    container_name: portfolio-auth-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: auth
-    ports:
-      - "5433:5432"
-    volumes:
-      - auth_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - portfolio-network
-
-  # Auth Service (Next.js with BetterAuth)
-  auth-service:
-    build:
-      context: ./auth-service
-      dockerfile: Dockerfile
-    container_name: portfolio-auth-service
-    restart: unless-stopped
-    environment:
-      DATABASE_URL: postgresql://postgres:password@auth-db:5432/auth
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
-      BETTER_AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
-      BETTER_AUTH_URL: http://auth-service:3001
-      NODE_ENV: production
-      PORT: 3001
-      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
-      # Admin user for seed script (values from .env; do not commit credentials)
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-    ports:
-      - "3001:3001"
-    depends_on:
-      auth-db:
-        condition: service_healthy
-    networks:
-      - portfolio-network
-
   # Backend Service (Express.js API)
   backend:
     build:
@@ -82,23 +35,20 @@ services:
       DATABASE_URL: postgresql://postgres:password@app-db:5432/portfolio
       PORT: 8080
       NODE_ENV: production
-      FRONTEND_URL: http://frontend:3000
-      AUTH_SERVICE_URL: http://auth-service:3001
-      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
-      # DigitalOcean Spaces (object storage for resume + profile photo)
-      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT}
-      DO_SPACES_BUCKET: ${DO_SPACES_BUCKET}
-      DO_SPACES_ACCESS_KEY_ID: ${DO_SPACES_ACCESS_KEY_ID}
-      DO_SPACES_SECRET_ACCESS_KEY: ${DO_SPACES_SECRET_ACCESS_KEY}
-      DO_SPACES_CDN_URL: ${DO_SPACES_CDN_URL:-}
+      FRONTEND_URL: http://localhost:3000
+      ADMIN_TOKEN_SECRET: ${ADMIN_TOKEN_SECRET}
+      # Supabase Storage (S3-compatible) for resume + profile photo
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
       CLOUDFLARE_TURNSTILE_SECRET_KEY: ${CLOUDFLARE_TURNSTILE_SECRET_KEY}
     ports:
       - "8080:8080"
     depends_on:
       app-db:
         condition: service_healthy
-      auth-service:
-        condition: service_started
     networks:
       - portfolio-network
     healthcheck:
@@ -125,18 +75,15 @@ services:
     container_name: portfolio-frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080/api
       API_URL: http://backend:8080/api
-      NEXT_PUBLIC_AUTH_URL: http://localhost:3001
-      AUTH_SERVICE_URL: http://auth-service:3001
-      AUTH_URL: http://auth-service:3001
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_TOKEN_SECRET: ${ADMIN_TOKEN_SECRET}
       NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY}
       NODE_ENV: production
     ports:
       - "3000:3000"
     depends_on:
       - backend
-      - auth-service
     networks:
       - portfolio-network
 
@@ -146,4 +93,3 @@ networks:
 
 volumes:
   app_db_data:
-  auth_db_data:

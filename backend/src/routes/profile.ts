@@ -4,11 +4,11 @@ import { db } from "../db/index.js";
 import { contactInfo } from "../db/schema/portfolio.js";
 import { eq } from "drizzle-orm";
 import { adminOnly } from "../lib/auth.js";
-import * as spacesService from "../services/spaces-service.js";
+import * as storageService from "../services/storage-service.js";
 
 const router = Router();
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE = 4 * 1024 * 1024; // 4 MB (Vercel request body limit is 4.5 MB)
 const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp"];
 
 const upload = multer({
@@ -36,11 +36,11 @@ router.get("/photo", async (req: Request, res: Response) => {
     if (!row?.profilePhotoUrl) {
       return res.status(404).json({ error: "Profile photo not found" });
     }
-    if (!spacesService.isConfigured()) {
+    if (!storageService.isConfigured()) {
       return res.status(503).json({ error: "File storage is not configured" });
     }
     const key = row.profilePhotoUrl.includes("/") ? "profile.jpg" : row.profilePhotoUrl;
-    const signedUrl = await spacesService.getPresignedUrl(key, 900);
+    const signedUrl = await storageService.getPresignedUrl(key, 900);
     res.redirect(302, signedUrl);
   } catch (error) {
     console.error("Error serving profile photo:", error);
@@ -54,7 +54,7 @@ router.post("/photo/upload", adminOnly, (req: Request, res: Response, next: () =
     if (err) {
       if (err instanceof multer.MulterError) {
         if (err.code === "LIMIT_FILE_SIZE") {
-          return res.status(400).json({ error: "File too large. Maximum size is 5 MB." });
+          return res.status(400).json({ error: "File too large. Maximum size is 4 MB." });
         }
         return res.status(400).json({ error: err.message });
       }
@@ -69,9 +69,9 @@ router.post("/photo/upload", adminOnly, (req: Request, res: Response, next: () =
         error: "No file uploaded. Please select an image (JPEG, PNG, or WebP).",
       });
     }
-    if (!spacesService.isConfigured()) {
+    if (!storageService.isConfigured()) {
       return res.status(503).json({
-        error: "File storage (DigitalOcean Spaces) is not configured",
+        error: "File storage is not configured",
       });
     }
     const [existing] = await db.select().from(contactInfo).limit(1);
@@ -81,7 +81,7 @@ router.post("/photo/upload", adminOnly, (req: Request, res: Response, next: () =
       });
     }
     const key = getProfileKey(req.file.mimetype);
-    await spacesService.uploadBuffer(key, req.file.buffer, req.file.mimetype);
+    await storageService.uploadBuffer(key, req.file.buffer, req.file.mimetype);
     await db
       .update(contactInfo)
       .set({ profilePhotoUrl: key, updatedAt: new Date() })

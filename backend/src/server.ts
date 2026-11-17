@@ -40,17 +40,18 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Health check
-app.get("/health", (req: Request, res: Response) => {
+const health = (req: Request, res: Response) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
     service: "backend",
     database: process.env.DATABASE_URL ? "connected" : "not configured",
   });
-});
+};
+app.get("/health", health);
+app.get("/api/health", health);
 
 // API Routes
-// Mount at both /api/* (for local Docker) and /* (for DigitalOcean which strips /api prefix)
 const routers = [
   { path: "/skills", router: skillsRouter },
   { path: "/projects", router: projectsRouter },
@@ -64,8 +65,7 @@ const routers = [
 ];
 
 routers.forEach(({ path, router }) => {
-  app.use(path, router);           // For DigitalOcean (prefix stripped)
-  app.use(`/api${path}`, router);  // For local Docker development
+  app.use(`/api${path}`, router);
 });
 
 // 404 handler
@@ -79,27 +79,27 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
-// Graceful shutdown
-process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, closing database connection...");
-  await closeConnection();
-  process.exit(0);
-});
+// On Vercel the exported app is used as the serverless handler; listen only when run directly
+if (!process.env.VERCEL) {
+  process.on("SIGTERM", async () => {
+    console.log("SIGTERM received, closing database connection...");
+    await closeConnection();
+    process.exit(0);
+  });
 
-process.on("SIGINT", async () => {
-  console.log("SIGINT received, closing database connection...");
-  await closeConnection();
-  process.exit(0);
-});
+  process.on("SIGINT", async () => {
+    console.log("SIGINT received, closing database connection...");
+    await closeConnection();
+    process.exit(0);
+  });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Backend server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(
-    `🔗 Auth service: ${process.env.AUTH_SERVICE_URL || "not configured"}`,
-  );
-  console.log(
-    `🗄️  Database: ${process.env.DATABASE_URL ? "connected" : "not configured"}`,
-  );
-});
+  app.listen(PORT, () => {
+    console.log(`🚀 Backend server running on port ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(
+      `🗄️  Database: ${process.env.DATABASE_URL ? "connected" : "not configured"}`,
+    );
+  });
+}
+
+export default app;

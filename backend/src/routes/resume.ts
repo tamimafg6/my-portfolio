@@ -4,14 +4,14 @@ import { db } from "../db/index.js";
 import { resume } from "../db/schema/portfolio.js";
 import { eq } from "drizzle-orm";
 import { adminOnly } from "../lib/auth.js";
-import * as spacesService from "../services/spaces-service.js";
+import * as storageService from "../services/storage-service.js";
 
 const router = Router();
 
 const RESUME_KEY_LEGACY = "resume.pdf";
 const RESUME_KEY_EN = "resume-en.pdf";
 const RESUME_KEY_FR = "resume-fr.pdf";
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_SIZE = 4 * 1024 * 1024; // 4 MB (Vercel request body limit is 4.5 MB)
 
 function getKeyForLocale(locale: string): string {
   if (locale === "fr") return RESUME_KEY_FR;
@@ -45,14 +45,14 @@ router.get("/file", async (req: Request, res: Response) => {
     if (!key) {
       return res.status(404).json({ error: "Resume file not found" });
     }
-    if (!spacesService.isConfigured()) {
+    if (!storageService.isConfigured()) {
       return res.status(503).json({ error: "File storage is not configured" });
     }
     const storageKey =
       typeof key === "string" && key.includes("/")
         ? getKeyForLocale(locale)
         : key;
-    const signedUrl = await spacesService.getPresignedUrl(storageKey, 900);
+    const signedUrl = await storageService.getPresignedUrl(storageKey, 900);
     res.redirect(302, signedUrl);
   } catch (error) {
     console.error("Error serving resume file:", error);
@@ -66,7 +66,7 @@ router.post("/upload", adminOnly, (req: Request, res: Response, next: () => void
     if (err) {
       if (err instanceof multer.MulterError) {
         if (err.code === "LIMIT_FILE_SIZE") {
-          return res.status(400).json({ error: "File too large. Maximum size is 10 MB." });
+          return res.status(400).json({ error: "File too large. Maximum size is 4 MB." });
         }
         return res.status(400).json({ error: err.message });
       }
@@ -81,12 +81,12 @@ router.post("/upload", adminOnly, (req: Request, res: Response, next: () => void
     }
     const locale = (req.body?.locale as string)?.toLowerCase() === "fr" ? "fr" : "en";
     const storageKey = getKeyForLocale(locale);
-    if (!spacesService.isConfigured()) {
+    if (!storageService.isConfigured()) {
       return res.status(503).json({
-        error: "File storage (DigitalOcean Spaces) is not configured",
+        error: "File storage is not configured",
       });
     }
-    await spacesService.uploadBuffer(
+    await storageService.uploadBuffer(
       storageKey,
       req.file.buffer,
       "application/pdf"

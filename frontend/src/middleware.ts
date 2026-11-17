@@ -1,6 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
+import { ADMIN_COOKIE, verifyAdminToken } from "./lib/admin-token";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -22,10 +23,9 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = /^\/(en|fr)\/admin/.test(pathname);
   
   if (isAdminRoute) {
-    // Better Auth uses __Secure- prefix for cookies over HTTPS (production)
-    const sessionToken =
-      request.cookies.get("better-auth.session_token") ??
-      request.cookies.get("__Secure-better-auth.session_token");
+    const isAuthenticated = await verifyAdminToken(
+      request.cookies.get(ADMIN_COOKIE)?.value,
+    );
     const localeMatch = pathname.match(/^\/(en|fr)/);
     const locale = localeMatch ? localeMatch[1] : "en";
 
@@ -34,8 +34,7 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    // If no session token, redirect to login
-    if (!sessionToken) {
+    if (!isAuthenticated) {
       return NextResponse.redirect(new URL(`/${locale}/admin/login`, request.url));
     }
   }

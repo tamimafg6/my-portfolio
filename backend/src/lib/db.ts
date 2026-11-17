@@ -16,8 +16,9 @@ if (!connectionString.includes("client_encoding")) {
 }
 
 // Create postgres client with UTF-8 encoding
+// Serverless instances each hold their own pool, so keep it small on Vercel
 const client = postgres(connectionString, { 
-  max: 10,
+  max: process.env.VERCEL ? 1 : 10,
   connection: {
     application_name: "portfolio-backend",
   },

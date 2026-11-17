@@ -1,12 +1,10 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
-const JWT_SECRET = process.env.JWT_SECRET || process.env.AUTH_JWT_SECRET;
+const JWT_SECRET = process.env.ADMIN_TOKEN_SECRET;
 
 if (!JWT_SECRET) {
-  throw new Error(
-    "JWT_SECRET or AUTH_JWT_SECRET environment variable is required",
-  );
+  throw new Error("ADMIN_TOKEN_SECRET environment variable is required");
 }
 
 export interface AuthRequest extends Request {
@@ -17,7 +15,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-// Middleware to verify JWT token from auth-service
+// Middleware to verify the admin JWT issued by the frontend login
 export const verifyToken = async (
   req: AuthRequest,
   res: Response,
@@ -35,7 +33,7 @@ export const verifyToken = async (
     console.log("Verifying token, length:", token.length);
 
     // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as {
       id?: string;
       sub?: string; // Some tokens use 'sub' instead of 'id'
       email: string;
